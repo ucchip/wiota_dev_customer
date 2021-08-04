@@ -1,0 +1,68 @@
+menu "electricity_device"
+	menuconfig USING_ELEC_DEV
+		bool 	"USING_ELEC_DEV  (please click y or n)"
+		default n
+		
+		if USING_ELEC_DEV
+			choice
+				prompt "select electricity device mode"
+				default ELEC_DEV_CCO_MODE
+
+				config ELEC_DEV_CCO_MODE
+					bool	"ELEC_DEV_CCO_MODE"	
+					
+				config ELEC_DEV_METER_MODE
+					bool	"ELEC_DEV_METER_MODE"
+					
+				config ELEC_DEV_CTRLER_MODE
+					bool	"ELEC_DEV_CTRLER_MODE"
+					
+				comment	"ELEC_DEV_CCO_MODE-->using as a concentrator"
+				comment "ELEC_DEV_METER_MODE-->using as a meter"
+				comment "ELEC_DEV_CTRLER_MODE-->using as a controller"
+			endchoice
+			
+			config ELEC_DEV_COM_NAME
+				string	"com name for elec dev"
+				default	"uart1"
+
+			config ELEC_DEV_TRANS_MAX_LEN
+				int	"com transfer max len"
+				range 12 300
+				default	256
+
+			choice
+				prompt "elec dev uart com baudrate"
+				default ELEC_DEV_BAUD_2400
+				
+				config ELEC_DEV_BAUD_2400
+					bool	"ELEC_DEV_BAUD_2400"
+					
+				config ELEC_DEV_BAUD_4800
+					bool	"ELEC_DEV_BAUD_4800"
+					
+				config ELEC_DEV_BAUD_9600
+					bool	"ELEC_DEV_BAUD_9600"	
+					
+				config ELEC_DEV_BAUD_115200
+					bool	"ELEC_DEV_BAUD_115200"						
+			endchoice
+				
+			choice
+				prompt "elec dev uart com parity"
+				default ELEC_DEV_PARITY_EVEN
+				
+				config ELEC_DEV_PARITY_EVEN
+					bool	"ELEC_DEV_PARITY_EVEN"
+					
+				config ELEC_DEV_PARITY_NONE
+					bool	"ELEC_DEV_PARITY_NONE"
+					
+				config ELEC_DEV_PARITY_ODD
+					bool	"ELEC_DEV_PARITY_ODD"					
+			endchoice	
+			
+		endif	
+endmenu
+
+

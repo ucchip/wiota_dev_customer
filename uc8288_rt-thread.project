@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="uc8288_rt_thread" Version="11000" InternalType="RISCV" IconIndex="Console">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00010001N0005Debug000000000000]]>
+    </Plugin>
+  </Plugins>
+  <VirtualDirectory Name="PS">
+    <VirtualDirectory Name="cce">
+      <File Name="PS/cce/cce_firmware.h"/>
+      <File Name="PS/cce/cce_firmware.c" ExcludeProjConfig="Debug;"/>
+      <File Name="PS/cce/cce.c"/>
+      <File Name="PS/cce/cce_reg.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="platform">
+      <VirtualDirectory Name="trace">
+        <VirtualDirectory Name="src">
+          <File Name="PS/platform/trace/src/ctrl_cmd.c"/>
+          <File Name="PS/platform/trace/src/trcStreamingPort.c"/>
+          <File Name="PS/platform/trace/src/trcKernelPort.c"/>
+          <File Name="PS/platform/trace/src/vsi_trc.c"/>
+          <File Name="PS/platform/trace/src/trcStreamingRecorder.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="include">
+          <File Name="PS/platform/trace/include/trace_interface.h"/>
+          <File Name="PS/platform/trace/include/ctrl_cmd.h"/>
+          <File Name="PS/platform/trace/include/trace_function.h"/>
+          <File Name="PS/platform/trace/include/uc_submodule_def.h"/>
+          <File Name="PS/platform/trace/include/trcRecorder.h"/>
+          <File Name="PS/platform/trace/include/trcPortDefines.h"/>
+          <File Name="PS/platform/trace/include/trcStreamingPort.h"/>
+          <File Name="PS/platform/trace/include/cce_addr.h"/>
+          <File Name="PS/platform/trace/include/trcHardwarePort.h"/>
+          <File Name="PS/platform/trace/include/trcStreamingConfig.h"/>
+          <File Name="PS/platform/trace/include/trcKernelPort.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+      <VirtualDirectory Name="include">
+        <File Name="PS/platform/include/modules.h"/>
+        <File Name="PS/platform/include/uctypes.h"/>
+        <File Name="PS/platform/include/ucdebug.h"/>
+        <File Name="PS/platform/include/uccompile.h"/>
+        <File Name="PS/platform/include/sectdefs.h"/>
+        <File Name="PS/platform/include/wcdtypes.h"/>
+        <File Name="PS/platform/include/vsi.h"/>
+        <File Name="PS/platform/include/typedefs.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="adapter">
+        <VirtualDirectory Name="src">
+          <File Name="PS/platform/adapter/src/adp_sem.c"/>
+          <File Name="PS/platform/adapter/src/adp_mem.c"/>
+          <File Name="PS/platform/adapter/src/adp_task.c"/>
+          <File Name="PS/platform/adapter/src/adp_time.c"/>
+          <File Name="PS/platform/adapter/src/adp_queue.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="include">
+          <File Name="PS/platform/adapter/include/adp_task.h"/>
+          <File Name="PS/platform/adapter/include/adp_time.h"/>
+          <File Name="PS/platform/adapter/include/adp_projdefs.h"/>
+          <File Name="PS/platform/adapter/include/adp_sys.h"/>
+          <File Name="PS/platform/adapter/include/adp_queue.h"/>
+          <File Name="PS/platform/adapter/include/adp_mem.h"/>
+          <File Name="PS/platform/adapter/include/adp_sem.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="task">
+      <VirtualDirectory Name="include">
+        <File Name="PS/task/include/global_task.h"/>
+        <File Name="PS/task/include/dll.h"/>
+        <File Name="PS/task/include/ps_sys.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="src">
+        <File Name="PS/task/src/dll.c"/>
+        <File Name="PS/task/src/global_task.c"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="app">
+      <VirtualDirectory Name="test">
+        <File Name="PS/app/test/test_wiota_api.c"/>
+        <File Name="PS/app/test/test_wiota_api.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="include">
+        <File Name="PS/app/include/uc_wiota_api.h"/>
+        <File Name="PS/app/include/app_test.h" ExcludeProjConfig="Debug"/>
+        <File Name="PS/app/include/app_main.h" ExcludeProjConfig="Debug"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="src">
+        <File Name="PS/app/src/uc_wiota_api.c"/>
+        <File Name="PS/app/src/app_main.c" ExcludeProjConfig="Debug"/>
+        <File Name="PS/app/src/app_test.c" ExcludeProjConfig="Debug"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="l1">
+      <VirtualDirectory Name="include">
+        <File Name="PS/l1/include/l1_test.h"/>
+        <File Name="PS/l1/include/l1_algo.h"/>
+        <File Name="PS/l1/include/l1_main.h"/>
+        <File Name="PS/l1/include/l1_config.h"/>
+        <File Name="PS/l1/include/l1_rf.h"/>
+        <File Name="PS/l1/include/l1_state.h"/>
+        <File Name="PS/l1/include/l1_module.h"/>
+        <File Name="PS/l1/include/l1_cce_log.h"/>
+        <File Name="PS/l1/include/l1_interface.h"/>
+        <File Name="PS/l1/include/l1_task_manage.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="src">
+        <File Name="PS/l1/src/l1_state.c"/>
+        <File Name="PS/l1/src/l1_algo.c"/>
+        <File Name="PS/l1/src/l1_test.c"/>
+        <File Name="PS/l1/src/l1_rf.c"/>
+        <File Name="PS/l1/src/l1_main.c"/>
+        <File Name="PS/l1/src/l1_cce_log.c"/>
+        <File Name="PS/l1/src/l1_task_manage.c"/>
+        <File Name="PS/l1/src/l1_config.c"/>
+        <File Name="PS/l1/src/l1_module.c"/>
+        <File Name="PS/l1/src/l1_interface.c"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="mac">
+      <VirtualDirectory Name="include">
+        <File Name="PS/mac/include/mac_crc.h"/>
+        <File Name="PS/mac/include/mac_test.h"/>
+        <File Name="PS/mac/include/mac_main.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="src">
+        <File Name="PS/mac/src/mac_main.c"/>
+        <File Name="PS/mac/src/mac_test.c"/>
+        <File Name="PS/mac/src/mac_crc.c"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="test_tool">
+      <File Name="PS/test_tool/statistics_task.c" ExcludeProjConfig=""/>
+      <File Name="PS/test_tool/statistics_task.h"/>
+      <File Name="PS/test_tool/md5.c" ExcludeProjConfig="Debug;"/>
+      <File Name="PS/test_tool/rf_tool.h" ExcludeProjConfig="Debug;"/>
+      <File Name="PS/test_tool/uart_tool.h"/>
+      <File Name="PS/test_tool/rf_tool.c" ExcludeProjConfig="Debug;"/>
+      <File Name="PS/test_tool/md5.h" ExcludeProjConfig="Debug;"/>
+      <File Name="PS/test_tool/uart_tool.c"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="applications">
+    <File Name="applications/main.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="board">
+    <File Name="board/interrupt_handle.c"/>
+    <File Name="board/board.c"/>
+    <File Name="board/mem_share.c"/>
+    <File Name="board/crt0.flash.S"/>
+    <File Name="board/board.h"/>
+    <File Name="board/mem_share.h"/>
+    <VirtualDirectory Name="linker_scripts">
+      <File Name="board/linker_scripts/link.flash.ld"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="rt-thread">
+    <VirtualDirectory Name="libcpu">
+      <VirtualDirectory Name="risc-v">
+        <VirtualDirectory Name="uc8288">
+          <File Name="rt-thread/libcpu/risc-v/uc8288/entry_gcc.S"/>
+          <File Name="rt-thread/libcpu/risc-v/uc8288/context_gcc.S"/>
+          <File Name="rt-thread/libcpu/risc-v/uc8288/stack.c"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="components">
+      <VirtualDirectory Name="drivers">
+        <VirtualDirectory Name="misc">
+          <File Name="rt-thread/components/drivers/misc/pin.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="serial">
+          <File Name="rt-thread/components/drivers/serial/serial.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="src">
+          <File Name="rt-thread/components/drivers/src/ringblk_buf.c"/>
+          <File Name="rt-thread/components/drivers/src/dataqueue.c"/>
+          <File Name="rt-thread/components/drivers/src/ringbuffer.c"/>
+          <File Name="rt-thread/components/drivers/src/workqueue.c"/>
+          <File Name="rt-thread/components/drivers/src/completion.c"/>
+          <File Name="rt-thread/components/drivers/src/waitqueue.c"/>
+          <File Name="rt-thread/components/drivers/src/pipe.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="watchdog">
+          <File Name="rt-thread/components/drivers/watchdog/watchdog.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="include">
+          <VirtualDirectory Name="drivers">
+            <File Name="rt-thread/components/drivers/include/drivers/adc.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/alarm.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/audio.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/can.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/cputime.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/crypto.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/dac.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/hwtimer.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/i2c-bit-ops.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/i2c.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/i2c_dev.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/mmcsd_card.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/mmcsd_cmd.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/mmcsd_core.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/mmcsd_host.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/mtd_nand.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/mtd_nor.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/phy.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/phy_mdio.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/pin.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/pm.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/pulse_encoder.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/rt_drv_pwm.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/rt_inputcapture.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/rtc.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/sd.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/sdio.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/sdio_func_ids.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/sensor.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/serial.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/spi.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/usb_common.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/usb_device.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/usb_host.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/watchdog.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/wlan.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="ipc">
+            <File Name="rt-thread/components/drivers/include/ipc/completion.h"/>
+            <File Name="rt-thread/components/drivers/include/ipc/dataqueue.h"/>
+            <File Name="rt-thread/components/drivers/include/ipc/pipe.h"/>
+            <File Name="rt-thread/components/drivers/include/ipc/poll.h"/>
+            <File Name="rt-thread/components/drivers/include/ipc/ringblk_buf.h"/>
+            <File Name="rt-thread/components/drivers/include/ipc/ringbuffer.h"/>
+            <File Name="rt-thread/components/drivers/include/ipc/waitqueue.h"/>
+            <File Name="rt-thread/components/drivers/include/ipc/workqueue.h"/>
+          </VirtualDirectory>
+          <File Name="rt-thread/components/drivers/include/rtdevice.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+      <VirtualDirectory Name="finsh">
+        <File Name="rt-thread/components/finsh/shell.c"/>
+        <File Name="rt-thread/components/finsh/cmd.c"/>
+        <File Name="rt-thread/components/finsh/msh.c"/>
+        <File Name="rt-thread/components/finsh/finsh.h"/>
+        <File Name="rt-thread/components/finsh/finsh_api.h"/>
+        <File Name="rt-thread/components/finsh/msh.h"/>
+        <File Name="rt-thread/components/finsh/shell.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="libc">
+        <VirtualDirectory Name="compilers">
+          <VirtualDirectory Name="common">
+            <File Name="rt-thread/components/libc/compilers/common/stdlib.c"/>
+            <File Name="rt-thread/components/libc/compilers/common/time.c"/>
+            <VirtualDirectory Name="sys">
+              <File Name="rt-thread/components/libc/compilers/common/sys/time.h"/>
+            </VirtualDirectory>
+          </VirtualDirectory>
+          <VirtualDirectory Name="newlib">
+            <File Name="rt-thread/components/libc/compilers/newlib/libc.c"/>
+            <File Name="rt-thread/components/libc/compilers/newlib/syscalls.c"/>
+            <File Name="rt-thread/components/libc/compilers/newlib/stdio.c"/>
+            <File Name="rt-thread/components/libc/compilers/newlib/libc.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="src">
+      <File Name="rt-thread/src/scheduler.c"/>
+      <File Name="rt-thread/src/mem.c"/>
+      <File Name="rt-thread/src/thread.c"/>
+      <File Name="rt-thread/src/ipc.c"/>
+      <File Name="rt-thread/src/object.c"/>
+      <File Name="rt-thread/src/idle.c"/>
+      <File Name="rt-thread/src/mempool.c"/>
+      <File Name="rt-thread/src/kservice.c"/>
+      <File Name="rt-thread/src/components.c"/>
+      <File Name="rt-thread/src/clock.c"/>
+      <File Name="rt-thread/src/timer.c"/>
+      <File Name="rt-thread/src/irq.c"/>
+      <File Name="rt-thread/src/device.c"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="include">
+      <VirtualDirectory Name="libc">
+        <File Name="rt-thread/include/libc/libc_dirent.h"/>
+        <File Name="rt-thread/include/libc/libc_errno.h"/>
+        <File Name="rt-thread/include/libc/libc_fcntl.h"/>
+        <File Name="rt-thread/include/libc/libc_fdset.h"/>
+        <File Name="rt-thread/include/libc/libc_ioctl.h"/>
+        <File Name="rt-thread/include/libc/libc_limits.h"/>
+        <File Name="rt-thread/include/libc/libc_signal.h"/>
+        <File Name="rt-thread/include/libc/libc_stat.h"/>
+        <File Name="rt-thread/include/libc/libc_stdio.h"/>
+      </VirtualDirectory>
+      <File Name="rt-thread/include/rtdbg.h"/>
+      <File Name="rt-thread/include/rtdebug.h"/>
+      <File Name="rt-thread/include/rtdef.h"/>
+      <File Name="rt-thread/include/rthw.h"/>
+      <File Name="rt-thread/include/rtlibc.h"/>
+      <File Name="rt-thread/include/rtm.h"/>
+      <File Name="rt-thread/include/rtservice.h"/>
+      <File Name="rt-thread/include/rtthread.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="libraries">
+    <VirtualDirectory Name="HAL_Drivers">
+      <File Name="libraries/HAL_Drivers/drv_gpio.c"/>
+      <File Name="libraries/HAL_Drivers/drv_usart.c"/>
+      <File Name="libraries/HAL_Drivers/drv_wdt.c"/>
+      <File Name="libraries/HAL_Drivers/drv_onchip_flash.c"/>
+      <File Name="libraries/HAL_Drivers/drv_gpio.h"/>
+      <File Name="libraries/HAL_Drivers/drv_log.h"/>
+      <File Name="libraries/HAL_Drivers/drv_onchip_flash.h"/>
+      <File Name="libraries/HAL_Drivers/drv_spi.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="UC8288_HAL_Driver">
+      <VirtualDirectory Name="src">
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_stack_trace.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_spi.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_spi_flash.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_string.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_exceptions.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_uartx.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_timer.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_rtc.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_uart.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_smartcard.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_spim.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_gpio.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_i2c.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_watchdog.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_int.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_adda.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_utils.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_boot_strap.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_puf.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_udma.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_pwm.c"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="inc">
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_stack_trace.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_adda.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_core.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_event.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_gpio.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_i2c.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_int.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_puf.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_pulpino.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_pwm.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_rtc.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_sectdefs.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_smartcard.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_spi.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_spi_flash.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_spim.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_string_lib.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_timer.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_uart.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_uartx.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_udma.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_utils.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_watchdog.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_aon.h"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="uc8288_config">
+    <File Name="cconfig.h"/>
+    <File Name="rtconfig.h"/>
+  </VirtualDirectory>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="riscv( riscv32-unknown-elf )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D _UART_TOOL_FUNC_" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+        <IncludePath Value="applications"/>
+        <IncludePath Value="board"/>
+        <IncludePath Value="$(ProjectPath)/libraries/HAL_Drivers"/>
+        <IncludePath Value="$(ProjectPath)/libraries/UC8288_HAL_Driver/inc"/>
+        <IncludePath Value="$(ProjectPath)/rt-thread/components/drivers/include"/>
+        <IncludePath Value="$(ProjectPath)/rt-thread/components/finsh"/>
+        <IncludePath Value="$(ProjectPath)/rt-thread/components/libc/compilers/common"/>
+        <IncludePath Value="$(ProjectPath)/rt-thread/components/libc/compilers/newlib"/>
+        <IncludePath Value="$(ProjectPath)/rt-thread/include"/>
+        <IncludePath Value="$(ProjectPath)/rt-thread/libcpu/risc-v/uc8288"/>
+        <IncludePath Value="$(ProjectPath)/PS/app/include"/>
+        <IncludePath Value="$(ProjectPath)/PS/l1/include"/>
+        <IncludePath Value="$(ProjectPath)/PS/mac/include"/>
+        <IncludePath Value="$(ProjectPath)/PS/task/include"/>
+        <IncludePath Value="$(ProjectPath)/PS/test_tool"/>
+        <IncludePath Value="$(ProjectPath)/PS/platform/trace/include"/>
+        <IncludePath Value="$(ProjectPath)/PS/platform/adapter/include"/>
+        <IncludePath Value="$(ProjectPath)/PS/platform/include"/>
+        <IncludePath Value="$(ProjectPath)/PS/cce"/>
+        <IncludePath Value="$(ProjectPath)/PS/platform/adapter/test"/>
+        <IncludePath Value="$(ProjectPath)/PS/app/test"/>
+        <Preprocessor Value="HAVE_CCONFIG_H"/>
+        <Preprocessor Value="__RTTHREAD__"/>
+        <Preprocessor Value="RT_USING_NEWLIB"/>
+      </Compiler>
+      <Linker Options=" -nostartfiles -Wl,--gc-sections  -T ./board/linker_scripts/link.flash.ld -Wl,-Map=rtthread.map" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).elf" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="yes" RemoteHostName="127.0.0.1" RemoteHostPort="2331" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands>monitor reset
+monitor halt
+load</PostConnectCommands>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild>
+        <Command Enabled="yes"/>
+      </PreBuild>
+      <PostBuild>
+        <Command Enabled="yes">riscv32-unknown-elf-objdump -d $(IntermediateDirectory)/$(ProjectName).elf &gt;$(IntermediateDirectory)/$(ProjectName).asm</Command>
+        <Command Enabled="yes">touch $(ProjectName).uzf</Command>
+        <Command Enabled="yes">./bintools -d $(IntermediateDirectory)/$(ProjectName).elf  $(ProjectName).uzf</Command>
+      </PostBuild>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

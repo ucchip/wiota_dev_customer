@@ -1,0 +1,17 @@
+# RT-Thread building script for component
+
+Import('rtconfig')
+Import('RTT_ROOT')
+from building import *
+
+cwd = GetCurrentDir()
+
+src = Glob('src/*.c')
+
+CPPPATH = [ cwd + '/inc']
+
+CPPDEFINES = []
+
+group = DefineGroup('Libraries', src, depend = [''], CPPPATH = CPPPATH, CPPDEFINES=CPPDEFINES)
+
+Return('group')

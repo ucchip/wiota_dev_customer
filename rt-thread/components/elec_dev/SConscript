@@ -1,0 +1,38 @@
+import rtconfig             #导入 rtconfig 对象，后面用到的 rtconfig.CROSS_TOOL 定义在这个 rtconfig 模块
+from building import *      #把 building 模块的所有内容全都导入到当前模块，后面用到的 DefineGroup 定义在这个模块
+
+cwd     = GetCurrentDir()   #获得当前路径并保存到字符串变量 cwd 中
+CPPPATH = [cwd]
+src = Glob('*.c')           #得到当前目录下所有的 C 文件
+
+#检查 rtconfig.h 中的ENABLE_PLC宏是否打开，如果打开，则使用 src += [src_name] 向列表变量 src 中追加源代码文件
+if GetDepend(['USING_ELEC_DEV']):
+    src += Glob(r'elec_thread\*.c')
+    src += Glob(r'elec_drv\*.c')
+    src += Glob(r'elec_protocol\*.c')
+    
+    CPPPATH += [cwd + '/elec_thread']           #将当前路径保存到一个列表变量 CPPPATH 中
+    CPPPATH += [cwd + '/elec_drv']
+    CPPPATH += [cwd + '/elec_protocol']
+
+if GetDepend(['ELEC_DEV_CCO_MODE']):
+    src += Glob(r'elec_cco_api\*.c')
+    src += Glob(r'elec_cco_app\*.c')     
+    CPPPATH += [cwd + '/elec_cco_api']           #将当前路径保存到一个列表变量 CPPPATH 中
+    CPPPATH += [cwd + '/elec_cco_app']
+    
+if GetDepend(['ELEC_DEV_METER_MODE']):
+    src += Glob(r'elec_meter_api\*.c')    
+    CPPPATH += [cwd + '/elec_meter_api']           #将当前路径保存到一个列表变量 CPPPATH 中
+
+if GetDepend(['ELEC_DEV_CTRLER_MODE']):
+    src += Glob(r'elec_ctrler_api\*.c')    
+    CPPPATH += [cwd + '/elec_ctrler_api']           #将当前路径保存到一个列表变量 CPPPATH 中
+#使用 DefineGroup 创建一个名为 Drivers 的组，这个组也就对应 MDK 或者 IAR 中的分组。
+#这个组的源代码文件为 src 指定的文件，depend 为空表示该组不依赖任何 rtconfig.h 的宏。
+#CPPPATH =CPPPATH 表示将当前路径添加到系统的头文件路径中。
+#左边的 CPPPATH 是 DefineGroup 中内置参数，表示头文件路径。
+#右边的 CPPPATH 是本文件上面一行定义的。这样我们就可以在其他源码中引用 drivers 目录下的头文件了
+group = DefineGroup('elec_module', src, depend = ['USING_ELEC_DEV'], CPPPATH = CPPPATH)
+
+Return('group')
