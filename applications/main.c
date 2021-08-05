@@ -14,6 +14,7 @@
 #include "uc_event.h"
 #include "trcPortDefines.h"
 #include "trace_interface.h"
+#include "test_wiota_api.h"
 
 #define TIMESTAMP   (__DATE__ " " __TIME__)
 static const char *g_version = TIMESTAMP;
@@ -31,7 +32,7 @@ int main(void)
 
     TRACE_PRINTF("main %s\n", g_version);
     
-    l1_check_debug();
+//    l1_check_debug();
 
     vTraceEnable(TRC_START);
     rt_thread_idle_sethook(trace_control);
