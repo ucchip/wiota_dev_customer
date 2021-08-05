@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Database="" Name="uc8288_rt_thread" Version="10000">
   <Project Active="No" Name="uc8288_rt_thread" Path="uc8288_rt-thread.project"/>
-  <Project Name="uc8288_wiota_lib" Path="uc8288_wiota_lib.project" Active="No"/>
-  <Project Name="uc8288_wiota_lib_test" Path="uc8288_wiota_lib_test.project" Active="Yes"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>
