@@ -6,7 +6,40 @@
     </Plugin>
   </Plugins>
   <VirtualDirectory Name="PS">
+    <VirtualDirectory Name="platform">
+      <VirtualDirectory Name="adapter">
+        <VirtualDirectory Name="include">
+          <File Name="PS/platform/adapter/include/adp_task.h"/>
+          <File Name="PS/platform/adapter/include/adp_time.h"/>
+          <File Name="PS/platform/adapter/include/adp_projdefs.h"/>
+          <File Name="PS/platform/adapter/include/adp_sys.h"/>
+          <File Name="PS/platform/adapter/include/adp_queue.h"/>
+          <File Name="PS/platform/adapter/include/adp_mem.h"/>
+          <File Name="PS/platform/adapter/include/adp_sem.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+      <VirtualDirectory Name="include">
+        <File Name="PS/platform/include/uctypes.h"/>
+        <File Name="PS/platform/include/sectdefs.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="trace">
+        <VirtualDirectory Name="include">
+          <File Name="PS/platform/trace/include/trace_interface.h"/>
+          <File Name="PS/platform/trace/include/ctrl_cmd.h"/>
+          <File Name="PS/platform/trace/include/trace_function.h"/>
+          <File Name="PS/platform/trace/include/uc_submodule_def.h"/>
+          <File Name="PS/platform/trace/include/trcRecorder.h"/>
+          <File Name="PS/platform/trace/include/trcPortDefines.h"/>
+          <File Name="PS/platform/trace/include/trcStreamingPort.h"/>
+          <File Name="PS/platform/trace/include/trcHardwarePort.h"/>
+          <File Name="PS/platform/trace/include/trcKernelPort.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+    </VirtualDirectory>
     <VirtualDirectory Name="app">
+      <VirtualDirectory Name="include">
+        <File Name="PS/app/include/uc_wiota_api.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="test">
         <File Name="PS/app/test/test_wiota_api.c"/>
         <File Name="PS/app/test/test_wiota_api.h"/>
