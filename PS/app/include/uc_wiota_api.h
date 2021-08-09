@@ -12,57 +12,58 @@
 //200 k
 #define WIOTA_FREQUENCE_STEP 20
 //470M ~ 510M 
-#define WIOTA_FREQUENCE_POINT(freqIdx)  (WIOTA_BASE_FREQUENCE + freqIdx  * WIOTA_FREQUENCE_STEP)
+#define WIOTA_FREQUENCE_POINT(freq_idx)  (WIOTA_BASE_FREQUENCE + freq_idx * WIOTA_FREQUENCE_STEP)
 //0 - 200
 #define WIOTA_FREQUENCE_INDEX(freq)  ((freq - WIOTA_BASE_FREQUENCE)/WIOTA_FREQUENCE_STEP)
 
 
 typedef enum {
     UC_RECV_MSG = 0,
+    UC_RECV_BC,
     UC_RECV_OTA,
-    
 }UC_RECV_DATA_TYPE;
 
 
 typedef enum {
-    UC_OP_SUC = 0,
+    UC_STATUS_NULL = 0,
+    UC_STATUS_SYNC,
+    UC_STATUS_SLEEP,
+    UC_STATUS_ERROR,
+}UC_WIOTA_STATUS;
+
+
+typedef enum {
+    UC_OP_SUCC = 0,
     UC_OP_TIMEOUT,
     UC_OP_FAIL,    
 }UC_OP_RESULT;
 
-typedef struct 
-{
+
+typedef struct {
      u32_t         rssi;
      u32_t         ber;
-     u32_t         snr;
-}t_radio_info;
+     s8_t          snr;
+}radio_info_t;
 
 
 typedef struct {
-        u8_t  sub_sys_u;
-        u8_t  id_len;
+        u8_t  reserved1;        //subSys_u;
+        u8_t  id_len;           // 0: 2, 1: 4, 2: 6, 3: 8 
         u8_t  pn_num;           // 0: 1, 1: 2, 2: 4, 3: not use 
         u8_t  symbol_length;    //128,256,512,1024
-        u8_t  dlul_ratio;      //0 1:1,  1 1:2
-        u8_t  btvalue;         //bt from rf 1: 0.3, 0: 1.2
-        u8_t  group_number;     //frame ul group number: 1,2,4,8
-        u8_t  reserved;
+        u8_t  dlul_ratio;       // 0 1:1,  1 1:2
+        u8_t  btvalue;          //bt from rf 1: 0.3, 0: 1.2
+        u8_t  group_number;     //frame ul group number: 0,1,2,3: 1,2,4,8
+        u8_t  reserved2;
         u32_t systemid;
         u32_t subsystemid;
         u8_t  na[48];
-}t_sub_system_config;
+}sub_system_config_t;
 
 
 typedef struct {
     u16_t result;  
-}UcSendBack_T,*UcSendBack_P;
-
-typedef struct {
-    u8_t type;
-    u8_t result;   
-    u16_t data_len;
-    u8_t* data;
-}uc_receive_back_t,*uc_receive_back_p;
+}uc_send_back_t,*uc_send_back_p;
 
 
 typedef struct {
@@ -71,28 +72,60 @@ typedef struct {
 }uc_send_result_t,*uc_send_result_p;
 
 
-typedef int (*uc_receive)(uc_receive_back_p recv_data);
-typedef void (*uc_send)(UcSendBack_P send_result);
+typedef struct {
+    u8_t  result;   
+    u8_t  type;
+    u16_t data_len;
+    u8_t* data;
+}uc_recv_back_t,*uc_recv_back_p;
 
-void uc_wiota_set_freq_info(u8_t freqIdx);
 
-int uc_wiota_get_freq_info(void);
+typedef struct {
+    void *sem;
+    u8_t  result;  
+    u8_t  type;
+    u16_t data_len;
+    u8_t* data;
+}uc_recv_result_t,*uc_recv_result_p;
 
-int uc_wiota_set_userid(u8_t* id,u8_t id_len);
 
-void uc_wiota_get_userid(u8_t* id,u8_t *id_len);
+typedef void (*uc_recv)(uc_recv_back_p recv_data);
+typedef void (*uc_send)(uc_send_back_p send_result);
 
-void uc_wiota_set_system_config(t_sub_system_config *config);
 
 void uc_wiota_init(void);
 
 void uc_wiota_run(void);
 
-void uc_wiota_get_radio_info(t_radio_info *radio);
+void uc_wiota_exit(void);
 
-UC_OP_RESULT uc_wiota_send_data(u8_t* data, u16_t dataLen,  u16_t timeout, uc_send callback);
+void uc_wiota_connect(void);
 
-int uc_wiota_register_recv_data(uc_receive callback);
+void uc_wiota_disconnect(void);
+
+UC_WIOTA_STATUS uc_wiota_get_state(void);
+
+void uc_wiota_set_dxco(u32_t dcxo);
+
+void uc_wiota_set_freq_info(u8_t freq_idx);
+
+u8_t uc_wiota_get_freq_info(void);
+
+int uc_wiota_set_userid(u8_t* id,u8_t id_len);
+
+void uc_wiota_get_userid(u8_t* id,u8_t *id_len);
+
+void uc_wiota_set_system_config(sub_system_config_t *config);
+
+void uc_wiota_get_system_config(sub_system_config_t *config);
+
+void uc_wiota_get_radio_info(radio_info_t *radio);
+
+UC_OP_RESULT uc_wiota_send_data(u8_t* data, u16_t len, u16_t timeout, uc_send callback);
+
+void uc_wiota_recv_data(uc_recv_back_p recv_result, u16_t timeout, uc_recv callback);
+
+void uc_wiota_register_recv_data(uc_recv callback);
 
 #endif
 

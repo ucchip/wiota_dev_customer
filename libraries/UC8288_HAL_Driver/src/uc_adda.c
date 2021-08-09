@@ -292,5 +292,14 @@ void auxdac_level_set(ADDA_TypeDef* ADDA, uint16_t ele_level)
 void internal_temp_measure(ADDA_TypeDef *ADDA)
 {
     ADDA->ADC_CTRL0 = 0x80FF8E42;
-    ADDA->ADC_CTRL1 = 0xE0060000;
+    ADDA->ADC_CTRL1 = 0xA0060000;
+}
+
+void dc_off_control(int control)
+{
+    unsigned int *ptr = (unsigned int *)(0x1a109000);
+    if (control)
+        *ptr |= 1<<27;
+    else
+        *ptr &= ~(1<<27);
 }

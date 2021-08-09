@@ -95,5 +95,6 @@ extern void auxdac_init(ADDA_TypeDef* ADDA);
 extern void auxdac_level_set(ADDA_TypeDef* ADDA, uint16_t ele_level);
 
 extern void internal_temp_measure(ADDA_TypeDef *ADDA);
+extern void dc_off_control(int control);
 
 #endif

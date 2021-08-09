@@ -3,9 +3,6 @@
 
 
 
-#define TEST_USER_ID "12345678"
-
-
-void app_task_init(void) ;
+void app_task_init(void);
 
 #endif
