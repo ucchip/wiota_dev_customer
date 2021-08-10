@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Database="" Name="uc8288_rt_thread" Version="10000">
   <Project Active="No" Name="uc8288_rt_thread" Path="uc8288_rt-thread.project"/>
+  <Project Name="wind_uc8288_rt-thread" Path="wind_uc8288_rt-thread.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>
       <Project Name="uc8288_helloworld" ConfigName="Debug"/>
       <Project Name="uc8288_wiota_lib" ConfigName="Debug"/>
       <Project Name="uc8288_wiota_lib_test" ConfigName="Debug"/>
+      <Project Name="wind_uc8288_rt-thread" ConfigName="Debug"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>
