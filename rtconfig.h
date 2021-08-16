@@ -33,7 +33,7 @@
 #define RT_USING_SMALL_MEM
 #define RT_USING_MEMTRACE
 #define RT_USING_HEAP
-//#define RT_USING_FINSH
+
 /* Kernel Device Object */
 
 #define RT_USING_DEVICE
@@ -84,6 +84,13 @@
 
 /* AT commands */
 
+#define RT_USING_AT
+#define AT_USING_SERVER
+#define AT_SERVER_DEVICE "uart0"
+#define AT_SERVER_RECV_BUFF_LEN 256
+#define AT_CMD_END_MARK_CRLF
+#define AT_CMD_MAX_LEN 128
+#define AT_SW_VERSION_NUM 0x10301
 
 /* VBUS(Virtual Software BUS) */
 

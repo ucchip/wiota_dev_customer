@@ -58,7 +58,7 @@ SECTIONS
     } > instrram
 
     .text : 
-	{
+    {
         . = ALIGN(4);
         _stext = .;
         *(.pvt)
@@ -89,7 +89,7 @@ _endtext = .;
       KEEP (*(.preinit_array))
       PROVIDE_HIDDEN (__preinit_array_end = .);
     } > datarom
-	
+    
     .init_array     :
     {
       PROVIDE_HIDDEN (__init_array_start = .);
@@ -101,17 +101,17 @@ _endtext = .;
     .fini_array     :
     {
       PROVIDE_HIDDEN (__fini_array_start = .);
-	  KEEP (*(SORT(.fini_array.*)))
+      KEEP (*(SORT(.fini_array.*)))
       KEEP (*(.fini_array ))
       PROVIDE_HIDDEN (__fini_array_end = .);
-    } > datarom
+    } > datarom      
 
     .rodata : {
         . = ALIGN(4);
-	KEEP (*(.dsp_data));
+    KEEP (*(.dsp_data));
         *(.rodata);
         *(.rodata.*);
-		*(.srodata.*);
+        *(.srodata.*);
     } > datarom
 
    .staticinfo : {
@@ -121,7 +121,17 @@ _endtext = .;
         *(.efeinfo);
         *(.rfinfo);
     } > datarom
-
+  
+    .at_array     :
+    {
+        /* section information for at server */
+        . = ALIGN(4);
+        __rtatcmdtab_start = .;
+        KEEP(*(RtAtCmdTab))
+        __rtatcmdtab_end = .;
+        . = ALIGN(4);        
+    } > datarom
+    
     .shbss :
     {
         . = ALIGN(4);
@@ -181,7 +191,7 @@ _endtext = .;
         . = ALIGN(4);
         stack = . ;
         _stack = . ;
-		_sp = . ;
+        _sp = . ;
     } > stack
 
     .stab  0 (NOLOAD) :

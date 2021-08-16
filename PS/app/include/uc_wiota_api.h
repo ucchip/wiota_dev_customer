@@ -2,8 +2,6 @@
 #ifndef _UC_WIOTA_API_H__
 #define _UC_WIOTA_API_H__
 
-#include "uctypes.h"
-
 #define MAX_USER_ID_LEN 8
 
 #define FREQ_MAX_POINT 200
@@ -40,52 +38,52 @@ typedef enum {
 
 
 typedef struct {
-     u32_t         rssi;
-     u32_t         ber;
-     s8_t          snr;
+     unsigned int          rssi;
+     unsigned int          ber;
+     signed short          snr;
 }radio_info_t;
 
 
 typedef struct {
-        u8_t  reserved1;        //subSys_u;
-        u8_t  id_len;           // 0: 2, 1: 4, 2: 6, 3: 8 
-        u8_t  pn_num;           // 0: 1, 1: 2, 2: 4, 3: not use 
-        u8_t  symbol_length;    //128,256,512,1024
-        u8_t  dlul_ratio;       // 0 1:1,  1 1:2
-        u8_t  btvalue;          //bt from rf 1: 0.3, 0: 1.2
-        u8_t  group_number;     //frame ul group number: 0,1,2,3: 1,2,4,8
-        u8_t  reserved2;
-        u32_t systemid;
-        u32_t subsystemid;
-        u8_t  na[48];
+        unsigned char   reserved1;        //subSys_u;
+        unsigned char   id_len;           // 0: 2, 1: 4, 2: 6, 3: 8 
+        unsigned char   pn_num;           // 0: 1, 1: 2, 2: 4, 3: not use 
+        unsigned char   symbol_length;    //128,256,512,1024
+        unsigned char   dlul_ratio;       // 0 1:1,  1 1:2
+        unsigned char   btvalue;          //bt from rf 1: 0.3, 0: 1.2
+        unsigned char   group_number;     //frame ul group number: 0,1,2,3: 1,2,4,8
+        unsigned char   reserved2;
+        unsigned int  systemid;
+        unsigned int  subsystemid;
+        unsigned char   na[48];
 }sub_system_config_t;
 
 
 typedef struct {
-    u16_t result;  
+    unsigned short result;  
 }uc_send_back_t,*uc_send_back_p;
 
 
 typedef struct {
     void *sem;
-    u16_t result;   
+    unsigned short result;   
 }uc_send_result_t,*uc_send_result_p;
 
 
 typedef struct {
-    u8_t  result;   
-    u8_t  type;
-    u16_t data_len;
-    u8_t* data;
+    unsigned char   result;   
+    unsigned char   type;
+    unsigned short data_len;
+    unsigned char * data;
 }uc_recv_back_t,*uc_recv_back_p;
 
 
 typedef struct {
     void *sem;
-    u8_t  result;  
-    u8_t  type;
-    u16_t data_len;
-    u8_t* data;
+    unsigned char   result;  
+    unsigned char   type;
+    unsigned short data_len;
+    unsigned char * data;
 }uc_recv_result_t,*uc_recv_result_p;
 
 
@@ -105,15 +103,15 @@ void uc_wiota_disconnect(void);
 
 UC_WIOTA_STATUS uc_wiota_get_state(void);
 
-void uc_wiota_set_dxco(u32_t dcxo);
+void uc_wiota_set_dcxo(unsigned int  dcxo);
 
-void uc_wiota_set_freq_info(u8_t freq_idx);
+void uc_wiota_set_freq_info(unsigned char  freq_idx);
 
-u8_t uc_wiota_get_freq_info(void);
+unsigned char  uc_wiota_get_freq_info(void);
 
-int uc_wiota_set_userid(u8_t* id,u8_t id_len);
+int uc_wiota_set_userid(unsigned char * id,unsigned char  id_len);
 
-void uc_wiota_get_userid(u8_t* id,u8_t *id_len);
+void uc_wiota_get_userid(unsigned char * id,unsigned char  *id_len);
 
 void uc_wiota_set_system_config(sub_system_config_t *config);
 
@@ -121,9 +119,9 @@ void uc_wiota_get_system_config(sub_system_config_t *config);
 
 void uc_wiota_get_radio_info(radio_info_t *radio);
 
-UC_OP_RESULT uc_wiota_send_data(u8_t* data, u16_t len, u16_t timeout, uc_send callback);
+UC_OP_RESULT uc_wiota_send_data(unsigned char * data, unsigned short len, unsigned short timeout, uc_send callback);
 
-void uc_wiota_recv_data(uc_recv_back_p recv_result, u16_t timeout, uc_recv callback);
+void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_recv callback);
 
 void uc_wiota_register_recv_data(uc_recv callback);
 

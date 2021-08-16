@@ -8,35 +8,32 @@
  * Date           Author       Notes
  * 2020-11-26     RT-Thread    first version
  */
-
-#include "trace_interface.h"
+#include <rtthread.h>
 #include "uc_wiota_api.h"
-#include "adp_sys.h"
 #include "test_wiota_api.h"
-#include "uc_string_lib.h"
 
 extern void cce_check_fetch();
 
 void test_send_callback(uc_send_back_p sendResult)
 {
-    TRACE_PRINTF("send result %d\n",sendResult->result);
+    rt_kprintf("send result %d\n",sendResult->result);
 }
 
 void test_recv_callback(uc_recv_back_p recvData)
 {
-    TRACE_PRINTF("recv result %d type %d len %d addr 0x%x\n",
+    rt_kprintf("recv result %d type %d len %d addr 0x%x\n",
             recvData->result,recvData->type,recvData->data_len,recvData->data);
     
-    uc_free(recvData->data);
+    rt_free(recvData->data);
 }
 
 
 void test_recv_req_callback(uc_recv_back_p recvData)
 {
-    TRACE_PRINTF("recv req result %d type %d len %d addr 0x%x\n",
+    rt_kprintf("recv req result %d type %d len %d addr 0x%x\n",
             recvData->result,recvData->type,recvData->data_len,recvData->data);
     
-    uc_free(recvData->data);
+    rt_free(recvData->data);
 }
 
 
@@ -44,9 +41,9 @@ void* testTaskHandle = NULL;
 
 void app_test_main_task(void* pPara) 
 {
-    u8_t testData[20] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
-    u8_t user_id[8] = {0x78,0x56,0x34,0x12,0,0,0,0};
-    u8_t user_id_len = 0;
+    unsigned char testData[20] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
+    unsigned char user_id[8] = {0x78,0x56,0x34,0x12,0,0,0,0};
+    unsigned char user_id_len = 0;
     uc_recv_back_t recv_result_t;
     sub_system_config_t wiota_config = {0};   
 //    {
@@ -65,12 +62,12 @@ void app_test_main_task(void* pPara)
     uc_wiota_init();
     
     // test! set dcxo
-    uc_wiota_set_dxco(0x18000);
+    uc_wiota_set_dcxo(0x12000);
     
     // test! freq test
     uc_wiota_set_freq_info(100);    // 470+0.2*100=490
 //    uc_wiota_set_freq_info(150);    // 470+0.2*150=500
-    TRACE_PRINTF("test get freq point %d\n", uc_wiota_get_freq_info());
+    rt_kprintf("test get freq point %d\n", uc_wiota_get_freq_info());
     
     // test! user id 
 //    TRACE_PRINTF("set user id %s\n", user_id);
@@ -82,7 +79,7 @@ void app_test_main_task(void* pPara)
 
     // test! whole config 
     uc_wiota_get_system_config(&wiota_config);
-    TRACE_PRINTF("config show %d %d %d %d %d %d 0x%x 0x%x\n",
+    rt_kprintf("config show %d %d %d %d %d %d 0x%x 0x%x\n",
                 wiota_config.id_len,wiota_config.pn_num,wiota_config.symbol_length,wiota_config.dlul_ratio,
                 wiota_config.btvalue,wiota_config.group_number,wiota_config.systemid,wiota_config.subsystemid); 
 //    wiota_config.pn_num = 2;  // change config then set
@@ -90,18 +87,11 @@ void app_test_main_task(void* pPara)
 
     // after config set, run wiota !
     uc_wiota_run();
-    
-    // test wait cce run
-#ifdef _FPGA_    
-    cce_check_fetch();
-    uc_thread_delay(100);
-    TRACE_PRINTF("user_test_main_task start loop\n");
-#endif
 
     // sync connect
 //    TRACE_PRINTF("wiota state %d\n",uc_wiota_get_state());
     uc_wiota_connect();
-//    uc_thread_delay(1000);
+    rt_thread_mdelay(1000);
 //    TRACE_PRINTF("wiota state %d\n",uc_wiota_get_state());    
 
     // test! register recv data callback, afer upload, will continue recv ap's data or broadcast
@@ -109,7 +99,7 @@ void app_test_main_task(void* pPara)
 
     while (1)
     {
-        TRACE_PRINTF("%s line %d\n", __FUNCTION__, __LINE__);
+        rt_kprintf("%s line %d\n", __FUNCTION__, __LINE__);
         // test! send data periodic
         uc_wiota_send_data(testData, 20, 20000, test_send_callback);
         // test! recv data without callback
@@ -122,37 +112,61 @@ void app_test_main_task(void* pPara)
         
         
         // test! connect and disconnect
-//        uc_thread_delay(10000);
+//        rt_thread_mdelay(10000);
 //        TRACE_PRINTF("wiota state %d\n",uc_wiota_get_state());
 //        uc_wiota_disconnect();
-//        uc_thread_delay(1000);
+//        rt_thread_mdelay(1000);
 //        TRACE_PRINTF("wiota state %d\n",uc_wiota_get_state());
-//        uc_thread_delay(10000);
+//        rt_thread_mdelay(10000);
 //        TRACE_PRINTF("wiota state %d\n",uc_wiota_get_state());
 //        uc_wiota_connect();
-//        uc_thread_delay(1000);
+//        rt_thread_mdelay(1000);
 //        TRACE_PRINTF("wiota state %d\n",uc_wiota_get_state());
         
         // test! wiota iote task exit
-//        uc_thread_delay(10000);
+//        rt_thread_mdelay(10000);
 //        uc_wiota_exit();
-//        uc_thread_delay(10000);
+//        rt_thread_mdelay(10000);
 //        uc_wiota_init();
 //        // test! freq test
 //        uc_wiota_set_freq_info(100);    // 470+0.2*100=490
 //        uc_wiota_run();
 //        uc_wiota_connect();
         
-        uc_thread_delay(10000);
+        rt_thread_mdelay(20000);
     }
     return;
 }
 
+ int uc_thread_create_test(void ** thread, \
+            char *name, void (*entry)(void *parameter), \
+            void *parameter, unsigned int  stack_size, \
+            unsigned char   priority, \
+            unsigned int  tick)
+{
+    * thread = rt_malloc(sizeof(struct rt_thread));
+    void *start_stack = rt_malloc(stack_size * 4);
+    
+    if (RT_NULL == start_stack)
+        return 1;
+    if (RT_EOK != rt_thread_init(* thread, name, entry, parameter, start_stack, stack_size * 4, priority, tick))
+     {
+        return 2;
+     }
+
+    return 0;
+}
+ 
+ int uc_thread_start_test(void * thread)
+ {
+     return rt_thread_startup((rt_thread_t)thread);
+ }
+
 void app_task_init(void) 
 {
-    uc_thread_create(&testTaskHandle,"test1", app_test_main_task, NULL, 256, 3, 3);
+    uc_thread_create_test(&testTaskHandle,"test1", app_test_main_task, NULL, 256, 3, 3);
 
-    uc_thread_start(testTaskHandle);
+    uc_thread_start_test(testTaskHandle);
 }
 
 

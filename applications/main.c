@@ -12,9 +12,12 @@
 #include <rtdevice.h>
 #include <board.h>
 #include "uc_event.h"
-#include "trcPortDefines.h"
-#include "trace_interface.h"
+
+#ifdef UC8288_MODULE
+#include "at.h"
+#else
 #include "test_wiota_api.h"
+#endif
 
 #define TIMESTAMP   (__DATE__ " " __TIME__)
 static const char *g_version = TIMESTAMP;
@@ -30,14 +33,16 @@ int main(void)
     dll_open();
 #endif
 
-    TRACE_PRINTF("main %s\n", g_version);
+    rt_kprintf("main %s\n", g_version);
     
 //    l1_check_debug();
 
-    vTraceEnable(TRC_START);
-    rt_thread_idle_sethook(trace_control);
-    
+
+    #ifdef UC8288_MODULE
+    at_server_init();
+    #else
     app_task_init();
+    #endif
 
 //
 //    while(1)

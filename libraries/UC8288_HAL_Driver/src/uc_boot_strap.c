@@ -107,15 +107,15 @@ __critical_128 void xip_dummy_detect()
     auto_dummy = i;
 }
 
-__critical_128 uint32_t flash_read_id(){
-  uint32_t data;
-  *reg_spi_cmd = 0x9F000000;  //set cmd
-  *reg_spi_len = 0x200008;      //set cmd and data len
-  SPI_START(SPI_CMD_RD);
-  while(((*(reg_spi_status)>>16)&0xFF)==0);
-  data = *(reg_spi_rxfifo);
-  return data;
-}
+//__critical_128 uint32_t flash_read_id(){
+//  uint32_t data;
+//  *reg_spi_cmd = 0x9F000000;  //set cmd
+//  *reg_spi_len = 0x200008;      //set cmd and data len
+//  SPI_START(SPI_CMD_RD);
+//  while(((*(reg_spi_status)>>16)&0xFF)==0);
+//  data = *(reg_spi_rxfifo);
+//  return data;
+//}
 
 __critical_128 void flash_qspi_en()
 {
@@ -298,7 +298,7 @@ __critical_128 void boot_strap()
 {
     WAIT_XIP_FREE;
     init_parameters();
-    flash_read_id();
+    //flash_read_id();
     fill_mtr();
     WAIT_XIP_FREE;
     //8288 dcxo doubler enable; set 96M
