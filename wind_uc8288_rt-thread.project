@@ -275,11 +275,11 @@
         <Preprocessor Value="RT_USING_NEWLIB"/>
       </Compiler>
       <Linker Options=" -nostartfiles -Wl,--gc-sections  -T ./board/linker_scripts/link.flash.ld -Wl,-Map=rtthread.map" Required="yes">
-        <LibraryPath Value="./"/>
-        <Library Value="win_uc8288_wiota_lib"/>
+        <LibraryPath Value="./PS/app/lib"/>
+        <Library Value="wind_uc8288_wiota"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).elf" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -296,7 +296,6 @@ load</PostConnectCommands>
       </PreBuild>
       <PostBuild>
         <Command Enabled="yes">riscv32-unknown-elf-objdump -d $(IntermediateDirectory)/$(ProjectName).elf &gt;$(IntermediateDirectory)/$(ProjectName).asm</Command>
-        <Command Enabled="yes">./elf2bin.exe $(IntermediateDirectory)/$(ProjectName).elf</Command>
       </PostBuild>
       <CustomBuild Enabled="no">
         <RebuildCommand/>
