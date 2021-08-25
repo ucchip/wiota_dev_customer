@@ -118,7 +118,7 @@ static at_result_t at_userid_setup(const char* args)
 
 AT_CMD_EXPORT("AT+WIOTAUSERID", "=<userid>", RT_NULL, at_userid_query, at_userid_setup, RT_NULL);
 
-static at_result_t at_snr_exec(const char* args)
+static at_result_t at_snr_query(void)
 {
     radio_info_t radio;
     uc_wiota_get_radio_info(&radio);
@@ -129,7 +129,7 @@ static at_result_t at_snr_exec(const char* args)
 }
 
 
-AT_CMD_EXPORT("AT+WIOTASNR", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_snr_exec);
+AT_CMD_EXPORT("AT+WIOTASNR", RT_NULL, at_snr_query, RT_NULL, RT_NULL, RT_NULL);
 
 
 static at_result_t at_system_config_query(void)
@@ -179,7 +179,7 @@ static at_result_t at_system_config_setup(const char* args)
 AT_CMD_EXPORT("AT+WIOTACONFIG", "=<id_len>,<symbol>,<dlul>,<bt>,<group_num>,<systemid>,<subsystemid>", RT_NULL, at_system_config_query, at_system_config_setup, RT_NULL);
 
 
-static at_result_t at_wiota_init_exec(const char* args)
+static at_result_t at_wiota_init_exec(void)
 {
     if ( wiota_state == AT_WIOTA_DEFAULT || wiota_state == AT_WIOTA_EXIT)
    {

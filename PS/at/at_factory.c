@@ -11,6 +11,8 @@ enum factory_command_type
 {
     FACTORY_WIOTA = 0, 
     FACTORY_GPIO,
+    FACTORY_I2C,
+    FACTORY_ADC,
 };
 
 static at_result_t at_factory_setup(const char* args)
@@ -30,6 +32,11 @@ static at_result_t at_factory_setup(const char* args)
             break;
             
         case FACTORY_GPIO:
+            
+            break;
+        case FACTORY_I2C:
+            break;
+        case FACTORY_ADC:
             break;
         default:
             return AT_RESULT_REPETITIVE_FAILE;
