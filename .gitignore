@@ -1,8 +1,11 @@
 .codelite/
 Debug/
-uc8288_wiota_dev.mk
-uc8288_wiota_dev.txt
-uc8288_wiota_dev.uzf
+*.mk
+*.txt
+*.uzf
 *.bin
+.build-debug/
 rtthread.map
 Makefile
+*.pyc
+rt-thread/tools/

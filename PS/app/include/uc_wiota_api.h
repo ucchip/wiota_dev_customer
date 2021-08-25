@@ -113,6 +113,10 @@ int uc_wiota_set_userid(unsigned char * id,unsigned char  id_len);
 
 void uc_wiota_get_userid(unsigned char * id,unsigned char  *id_len);
 
+int uc_wiota_set_activetime(unsigned int active_s);
+
+unsigned int uc_wiota_get_activetime(void);
+
 void uc_wiota_set_system_config(sub_system_config_t *config);
 
 void uc_wiota_get_system_config(sub_system_config_t *config);

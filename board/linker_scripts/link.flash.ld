@@ -9,8 +9,9 @@ __DYNAMIC  =  0;
 MEMORY
 {
     uc_rom      : ORIGIN = 0x00000000, LENGTH = 0x3000  /*12K uncompressed code sys data, NO RODATA!!!!*/
-    instrram    : ORIGIN = 0x00003000, LENGTH = 0x1fd00 /*actually rom... */
-    datarom     : ORIGIN = 0x00200000, LENGTH = 0x100000
+    instrram    : ORIGIN = 0x00003000, LENGTH = 0x1fd00 /*127K actually rom... */
+    datarom     : ORIGIN = 0x00200000, LENGTH = 0x51400  /*352k data rom*/
+    staticdata  : ORIGIN = 0x00251400, LENGTH = 0x800   /*2k static data*/
     dataram     : ORIGIN = 0x00308000, LENGTH = 0x6c00
     traceram    : ORIGIN = 0x0030EC00, LENGTH = 0x400  /*1 K */
     stack       : ORIGIN = 0x0030F000, LENGTH = 0x100  /* 256 B */
@@ -113,14 +114,6 @@ _endtext = .;
         *(.rodata.*);
         *(.srodata.*);
     } > datarom
-
-   .staticinfo : {
-        . = ALIGN(4);
-        *(.devinfo);
-        *(.devcontrolinfo);
-        *(.efeinfo);
-        *(.rfinfo);
-    } > datarom
   
     .at_array     :
     {
@@ -131,6 +124,14 @@ _endtext = .;
         __rtatcmdtab_end = .;
         . = ALIGN(4);        
     } > datarom
+
+   .staticinfo : {
+        . = ALIGN(4);
+        *(.devinfo);
+        *(.devcontrolinfo);
+        *(.efeinfo);
+        *(.rfinfo);
+    } > staticdata
     
     .shbss :
     {
@@ -164,21 +165,10 @@ _endtext = .;
    
     .heap : {
        . = ALIGN(4);
-/*
-       _heap = .;
-       _heap_start = .;
-       . += _HEAP_SIZE;
-       _heap_end = .;
-*/
     } > dataram 
+    
     .guard : {
        . = ALIGN(4);
-/*
-       _heap = .;
-       _heap_start = .;
-       . += _HEAP_SIZE;
-       _heap_end = .;
-*/
     . = . + 16;
     } > dataram 
     

@@ -42,9 +42,9 @@ void* testTaskHandle = NULL;
 void app_test_main_task(void* pPara) 
 {
     unsigned char testData[20] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
-    unsigned char user_id[8] = {0x78,0x56,0x34,0x12,0,0,0,0};
-    unsigned char user_id_len = 0;
-    uc_recv_back_t recv_result_t;
+    //unsigned char user_id[8] = {0x78,0x56,0x34,0x12,0,0,0,0};
+    //unsigned char user_id_len = 0;
+    //uc_recv_back_t recv_result_t;
     sub_system_config_t wiota_config = {0};   
 //    {
 //        .id_len = 1,

@@ -116,12 +116,13 @@ void at_server_print_result(at_result_t result)
             break;
 
         case AT_RESULT_FAILE:
+        case AT_RESULT_NULL:
             at_server_printfln("");
             at_server_printfln("ERROR");
             break;
 
-        case AT_RESULT_NULL:
-            break;
+       // case AT_RESULT_NULL:
+       //     break;
 
         case AT_RESULT_CMD_ERR:
             at_server_printfln("ERR CMD MATCH FAILED!");
@@ -142,6 +143,9 @@ void at_server_print_result(at_result_t result)
            at_server_print_result(AT_RESULT_FAILE);
            break;
         default:
+            //at_server_printfln("");
+            //at_server_printfln("ERROR");
+            //break;
             break;
     }
 }
@@ -440,7 +444,7 @@ static void server_parser(at_server_t server)
 
     char cur_cmd_name[AT_CMD_NAME_LEN] = { 0 };
     at_cmd_t cur_cmd = RT_NULL;
-    char* cur_cmd_args = RT_NULL, ch, last_ch;
+    char* cur_cmd_args = RT_NULL, ch = 0, last_ch = 0;
 
     RT_ASSERT(server);
     RT_ASSERT(server->status != AT_STATUS_UNINITIALIZED);
@@ -560,7 +564,7 @@ int at_server_init(void)
         goto __exit;
     }
 
-    at_server_local->echo_mode = 1;
+    at_server_local->echo_mode = 0;
     at_server_local->status = AT_STATUS_UNINITIALIZED;
 
     memset(at_server_local->recv_buffer, 0x00, AT_SERVER_RECV_BUFF_LEN);
@@ -605,7 +609,7 @@ int at_server_init(void)
     at_server_local->parser = rt_thread_create("at_svr",
                                                (void (*)(void* parameter))server_parser,
                                                at_server_local,
-                                               2 * 1024,
+                                               2 * 1124,
                                                RT_THREAD_PRIORITY_MAX / 3 - 1,
                                                5);
     if (at_server_local->parser == RT_NULL)

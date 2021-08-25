@@ -6,6 +6,10 @@
     </Plugin>
   </Plugins>
   <VirtualDirectory Name="PS">
+    <VirtualDirectory Name="at">
+      <File Name="PS/at/at_factory.c"/>
+      <File Name="PS/at/at_wiota.c"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="app">
       <VirtualDirectory Name="include">
         <File Name="PS/app/include/uc_wiota_api.h"/>
@@ -41,6 +45,23 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="components">
+      <VirtualDirectory Name="net">
+        <VirtualDirectory Name="at">
+          <File Name="rt-thread/components/net/at/Kconfig"/>
+          <File Name="rt-thread/components/net/at/SConscript"/>
+          <VirtualDirectory Name="src">
+            <File Name="rt-thread/components/net/at/src/at_utils.c"/>
+            <File Name="rt-thread/components/net/at/src/at_client.c" ExcludeProjConfig="Debug;"/>
+            <File Name="rt-thread/components/net/at/src/at_cli.c" ExcludeProjConfig="Debug;"/>
+            <File Name="rt-thread/components/net/at/src/at_base_cmd.c" ExcludeProjConfig="Debug;"/>
+            <File Name="rt-thread/components/net/at/src/at_server.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="include">
+            <File Name="rt-thread/components/net/at/include/at.h"/>
+            <File Name="rt-thread/components/net/at/include/at_log.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="drivers">
         <VirtualDirectory Name="misc">
           <File Name="rt-thread/components/drivers/misc/pin.c"/>
@@ -254,7 +275,7 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="riscv( riscv32-unknown-elf )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D _UART_TOOL_FUNC_" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;-D UC8288_FACTORY;" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="applications"/>
         <IncludePath Value="board"/>
@@ -276,7 +297,7 @@
       </Compiler>
       <Linker Options=" -nostartfiles -Wl,--gc-sections  -T ./board/linker_scripts/link.flash.ld -Wl,-Map=rtthread.map" Required="yes">
         <LibraryPath Value="./PS/app/lib"/>
-        <Library Value="lib_wiota_dev"/>
+        <Library Value="liblinux_wiota_dev"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName).elf" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
