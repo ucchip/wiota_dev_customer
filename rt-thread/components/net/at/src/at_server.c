@@ -610,7 +610,7 @@ int at_server_init(void)
                                                (void (*)(void* parameter))server_parser,
                                                at_server_local,
                                                2 * 1124,
-                                               RT_THREAD_PRIORITY_MAX / 3 - 1,
+                                               /*RT_THREAD_PRIORITY_MAX / 3 - 1*/ 3,
                                                5);
     if (at_server_local->parser == RT_NULL)
     {
