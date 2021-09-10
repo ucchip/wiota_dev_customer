@@ -7,7 +7,7 @@
   </Plugins>
   <VirtualDirectory Name="PS">
     <VirtualDirectory Name="at">
-      <File Name="PS/at/at_factory.c"/>
+      <File Name="PS/at/ati_prs.h"/>
       <File Name="PS/at/at_wiota.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="app">
@@ -21,6 +21,8 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="applications">
+    <File Name="applications/uc_watchdog_app.c"/>
+    <File Name="applications/uc_watchdog_app.h"/>
     <File Name="applications/main.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="board">
@@ -275,7 +277,7 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="pulpino" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;-D UC8288_FACTORY;" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="applications"/>
         <IncludePath Value="board"/>
