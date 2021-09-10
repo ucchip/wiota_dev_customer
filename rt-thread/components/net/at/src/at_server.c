@@ -57,6 +57,11 @@ void at_server_printf(const char* format, ...)
     va_end(args);
 }
 
+void at_send_data(const void* buffer, unsigned int len)
+{
+    rt_device_write(at_server_local->device, 0, buffer, len);
+}
+
 /**
  * AT server send data and newline to AT device
  *

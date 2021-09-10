@@ -18,6 +18,9 @@
 #else
 #include "test_wiota_api.h"
 #endif
+#ifdef _WATCHDOG_APP_
+#include "uc_watchdog_app.h"
+#endif
 
 #define TIMESTAMP   (__DATE__ " " __TIME__)
 static const char *g_version = TIMESTAMP;
@@ -36,7 +39,10 @@ int main(void)
     rt_kprintf("main %s\n", g_version);
     
 //    l1_check_debug();
-
+    #ifdef _WATCHDOG_APP_
+    if(!watchdog_app_init())
+        watchdog_app_enable();
+    #endif
 
     #ifdef UC8288_MODULE
     at_server_init();

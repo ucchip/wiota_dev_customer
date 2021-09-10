@@ -193,6 +193,7 @@ int at_server_init(void);
 
 /* AT server send command execute result to AT device */
 void at_server_printf(const char* format, ...);
+void at_send_data(const void* buffer, unsigned int len);
 void at_server_printfln(const char* format, ...);
 void at_server_print_result(at_result_t result);
 rt_size_t at_server_send(at_server_t server, const char* buf, rt_size_t size);

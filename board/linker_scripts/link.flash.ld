@@ -10,8 +10,8 @@ MEMORY
 {
     uc_rom      : ORIGIN = 0x00000000, LENGTH = 0x3000  /*12K uncompressed code sys data, NO RODATA!!!!*/
     instrram    : ORIGIN = 0x00003000, LENGTH = 0x1fd00 /*127K actually rom... */
-    datarom     : ORIGIN = 0x00200000, LENGTH = 0x51400  /*352k data rom*/
-    staticdata  : ORIGIN = 0x00251400, LENGTH = 0x800   /*2k static data*/
+    datarom     : ORIGIN = 0x00200000, LENGTH = 0x4FC00 /*319k data rom*/
+    staticdata  : ORIGIN = 0x0024FC00, LENGTH = 0x2000   /*8k static data*/
     dataram     : ORIGIN = 0x00308000, LENGTH = 0x6c00
     traceram    : ORIGIN = 0x0030EC00, LENGTH = 0x400  /*1 K */
     stack       : ORIGIN = 0x0030F000, LENGTH = 0x100  /* 256 B */
@@ -113,6 +113,34 @@ _endtext = .;
         *(.rodata);
         *(.rodata.*);
         *(.srodata.*);
+	*(.srodata*);
+
+	*(FalPartTable);
+	
+	/* section information for finsh shell */
+	. = ALIGN(4);
+	__fsymtab_start = .;
+	KEEP(*(SORT(FSymTab)))
+	__fsymtab_end = .;
+	. = ALIGN(4);
+	__vsymtab_start = .;
+	KEEP(*(SORT(VSymTab)))
+	__vsymtab_end = .;
+	. = ALIGN(4);
+
+	. = ALIGN(4);
+	__rt_init_start = .;
+	KEEP(*(SORT(.rti_fn*)))
+	__rt_init_end = .;
+	. = ALIGN(4);
+
+	/* section information for modules */
+	. = ALIGN(4);
+	__rtmsymtab_start = .;
+	KEEP(*(SORT(RTMSymTab)))
+	__rtmsymtab_end = .;
+
+
     } > datarom
   
     .at_array     :

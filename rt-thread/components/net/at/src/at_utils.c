@@ -67,7 +67,8 @@ const char* at_get_last_cmd(rt_size_t* cmd_size)
 
 rt_size_t at_vprintf(rt_device_t device, const char* format, va_list args)
 {
-    last_cmd_len = vsnprintf(send_buf, sizeof(send_buf), format, args);
+    //last_cmd_len = vsnprintf(send_buf, sizeof(send_buf), format, args);
+    last_cmd_len = rt_vsnprintf(send_buf, sizeof(send_buf), format, args);
 
 #ifdef AT_PRINT_RAW_CMD
     at_print_raw_cmd("sendline", send_buf, last_cmd_len);

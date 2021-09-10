@@ -15,7 +15,8 @@
 #include <board.h>
 #include "uc_wiota_api.h"
 #include "at.h"
-#include "uc_string_lib.h"
+#include "ati_prs.h"
+//#include "uc_string_lib.h"
 
 enum at_wiota_state
 {
@@ -34,8 +35,15 @@ enum at_test_type
 #define WIOTA_SEND_TIMEOUT 60000
 #define WIOTA_WAIT_DATA_TIMEOUT 10000
 
+#define WIOTA_MUST_INIT(state) \
+if(state != AT_WIOTA_INIT) \
+{ \
+     return AT_RESULT_REPETITIVE_FAILE; \
+}
+
 extern at_server_t at_get_server(void);
 extern void set_rt_kprintf_switch(unsigned char sw);
+extern char *parse (char *b, char *f, ...);
 
 static int wiota_state = AT_WIOTA_DEFAULT;
 
@@ -49,11 +57,12 @@ static at_result_t at_freq_query(void)
 
 static at_result_t at_freq_setup(const char* args)
 {
-    int argc = 0, freq = 0;
-    const char* req_expr = "=%d";
+    int freq = 0;
 
-    argc = at_req_parse_args(args, req_expr, &freq);
-    if (argc != 1)
+    WIOTA_MUST_INIT(wiota_state)
+
+    args = parse ((char*)(++args),"d", &freq);
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
@@ -65,15 +74,16 @@ static at_result_t at_freq_setup(const char* args)
 
 static at_result_t at_dcxo_setup(const char* args)
 {
-    int argc = 0, dcxo = 0;
-    const char* req_expr = "=%x";
+    int dcxo = 0;
+    
+    WIOTA_MUST_INIT(wiota_state)
 
-    argc = at_req_parse_args(args, req_expr, &dcxo);
-    if (argc != 1)
+    args = parse ((char*)(++args),"y", &dcxo);
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
-
+    rt_kprintf("dcxo=0x%x\n", dcxo);
     uc_wiota_set_dcxo(dcxo);
 
     return AT_RESULT_OK;
@@ -82,11 +92,11 @@ static at_result_t at_dcxo_setup(const char* args)
 
 static at_result_t at_userid_query(void)
 {
-    unsigned char id[16] = {0};
+    unsigned int id[2] = {0};
     unsigned char len = 0;
     
-    uc_wiota_get_userid(id, &len);
-    at_server_printfln("+WIOTAUSERID=%s",id);
+    uc_wiota_get_userid(&(id[0]), &len);
+    at_server_printfln("+WIOTAUSERID=0x%x,0x%x", id[0], id[1]);
 
     return AT_RESULT_OK;
 }
@@ -94,28 +104,31 @@ static at_result_t at_userid_query(void)
 
 static at_result_t at_userid_setup(const char* args)
 {
-    int argc = 0;
-    unsigned char userid[8] = {0};
-    const char* req_expr = "=%s";
+    unsigned int userid[2] = {0};
 
-    argc = at_req_parse_args(args, req_expr, userid);
-    if (argc != 1)
+    WIOTA_MUST_INIT(wiota_state)
+
+    args = parse ((char*)(++args),"y,y", &userid[0], &userid[1]);
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
     
-    uc_wiota_set_userid(userid, strlen((const char *)userid));
+    uc_wiota_set_userid(userid, 4);
 
     return AT_RESULT_OK;
 }
 
 
-static at_result_t at_snr_query(void)
+static at_result_t at_radio_query(void)
 {
     radio_info_t radio;
+
+    WIOTA_MUST_INIT(wiota_state)
+
     uc_wiota_get_radio_info(&radio);
     
-    at_server_printfln("+WIOTASNR=%d", radio.snr);
+    at_server_printfln("+WIOTARADIO=%d,%d", radio.snr, radio.power);
 
     return AT_RESULT_OK;
 }
@@ -126,30 +139,29 @@ static at_result_t at_system_config_query(void)
     sub_system_config_t config;
     uc_wiota_get_system_config(&config);
 
-    at_server_printfln("+WIOTASYSTEMCONFIG=%d,%d,%d,%d,%d,%d,%d,%d", \
-        &config.id_len, \
-        &config.symbol_length, &config.dlul_ratio, &config.btvalue, \
-        config.group_number, &config.systemid, &config.subsystemid);
+    at_server_printfln("+WIOTASYSTEMCONFIG=%d,%d,%d,%d,%d,%d,%d", \
+        config.id_len, \
+        config.symbol_length, config.dlul_ratio, config.btvalue, \
+        config.group_number, config.systemid, config.subsystemid);
 
     return AT_RESULT_OK;
 }
 
 static at_result_t at_system_config_setup(const char* args)
 {
-    int argc = 0;
     sub_system_config_t config;
-    const char* req_expr = "=%d,%d,%d,%d,%d,%d,%d";
-    
-    rt_kprintf("%s line %d\n", __FUNCTION__, __LINE__);
-    
-    argc = at_req_parse_args(args, req_expr, \
-        &config.id_len,  &config.symbol_length, &config.dlul_ratio,\
+
+   WIOTA_MUST_INIT(wiota_state)
+
+    args = parse ((char*)(++args),"d,d,d,d,d,d,d", \
+    &config.id_len,  &config.symbol_length, &config.dlul_ratio,\
         &config.btvalue, &config.group_number, &config.systemid, \
         &config.subsystemid);
-    if (argc != 7)
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
+    
     
     config.pn_num = 1;
 
@@ -184,7 +196,8 @@ static void wiota_recv_callback(uc_recv_back_p data)
     
     if (0 == data->result)
     {
-        at_server_printf("+WIOTARECV,%d,%d:%s", data->type, data->data_len, data->data);
+        at_server_printf("+WIOTARECV,%d,%d,", data->type, data->data_len);
+        at_send_data(data->data, data->data_len);
         
         rt_free(data->data);
     }
@@ -192,15 +205,14 @@ static void wiota_recv_callback(uc_recv_back_p data)
 
 static at_result_t at_wiota_cfun_setup(const char* args)
 {
-    int argc = 0, state = 0;
-    const char* req_expr = "=%d";
+    int  state = 0;
 
-    argc = at_req_parse_args(args, req_expr, &state);
-    if (argc != 1)
+    args = parse ((char*)(++args),"d", &state);
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
-
+    rt_kprintf("state = %d\n", state);
 
     if (1 == state && wiota_state == AT_WIOTA_INIT)
     {
@@ -228,14 +240,15 @@ static at_result_t at_connect_query(void)
 
 static at_result_t at_connect_setup(const char* args)
 {
-    int argc = 0, state = 0, timeout = 0;
-    const char* req_expr = "=%d,%d";
+    int  state = 0, timeout = 0;
 
-    argc = at_req_parse_args(args, req_expr, &state, &timeout);
-    if (argc != 2)
+    args = parse ((char*)(++args),"d,d", &state, &timeout);
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
+
+    rt_kprintf("state = %d, timeout=%d\n", state, timeout);
 
     if (wiota_state != AT_WIOTA_RUN)
         return AT_RESULT_REPETITIVE_FAILE;
@@ -339,32 +352,35 @@ static at_result_t at_wiotasend_exec(void)
 static at_result_t at_wiotasend_setup(const char *args)
 {
     int length = 0, timeout = 0;
-    uint8_t * sendbuffer = NULL;
-    uint8_t * psendbuffer;
+    unsigned char * sendbuffer = NULL;
+    unsigned char * psendbuffer;
     
     if(0 == wiota_state)
     {
         return AT_RESULT_FAILE;
     }
 
-    if(at_req_parse_args(args, "=%d,%d", &timeout, &length) <= 1)
+    args = parse ((char*)(++args),"d,d",  &timeout, &length);
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
+    
+    rt_kprintf("state = %d, timeout=%d\n", timeout, length);
 
     if (wiota_state != AT_WIOTA_RUN)
         return AT_RESULT_REPETITIVE_FAILE;
     
     if(length > 0)
     {        
-        sendbuffer = (uint8_t *)rt_malloc(length);
+        sendbuffer = (unsigned char *)rt_malloc(length);
         if(sendbuffer == NULL)
         {
             at_server_printfln("SEND FAIL");
             return AT_RESULT_NULL;
         }
         psendbuffer = sendbuffer;
-        at_server_printfln("\r\nOK");
+        at_server_printfln("OK");
         at_server_printf(">");
         while(length)
         {
@@ -397,24 +413,86 @@ static at_result_t at_wiotasend_setup(const char *args)
     return AT_RESULT_OK;
 }
 
-static at_result_t at_test_setup(const char* args)
-{
-    int argc = 0, type = 0, length = 0, send_bytes = 0;
-    uint8_t * sendbuffer = RT_NULL;
-    uint8_t * psendbuffer ;
-    const char* req_expr = "=%d,%d";
 
-    argc = at_req_parse_args(args, req_expr, &type, &length);
-    if (argc != 2)
+static at_result_t at_wiotarecv_setup(const char *args)
+{
+    unsigned short timeout = 0;
+    uc_recv_back_t result;
+    
+    if(AT_WIOTA_DEFAULT == wiota_state)
+    {
+        return AT_RESULT_FAILE;
+    }
+
+   args = parse ((char*)(++args),"d", &timeout);
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
+    
+    if (timeout < 1)
+        timeout = WIOTA_WAIT_DATA_TIMEOUT;
+    
+    rt_kprintf("timeout = %d\n", timeout);
+    
+    uc_wiota_recv_data(&result, timeout, RT_NULL);
+    if (!result.result)
+    {
+        at_server_printf("+WIOTARECV,%d,%d,", result.type, result.data_len);
+
+        at_send_data(result.data, result.data_len);
+        
+        rt_free(result.data);
+        return AT_RESULT_OK;
+    }
+    else
+    {
+        return AT_RESULT_FAILE;
+     }
+}
+
+static at_result_t at_wiota_recv_exec(void)
+{
+    uc_recv_back_t result;
+    
+   if(AT_WIOTA_DEFAULT == wiota_state)
+    {
+        return AT_RESULT_FAILE;
+    }
+   
+    uc_wiota_recv_data(&result, WIOTA_WAIT_DATA_TIMEOUT, RT_NULL);
+    if (!result.result)
+    {
+        at_server_printf("+WIOTARECV,%d,%d,", result.type, result.data_len);
+        at_send_data(result.data, result.data_len);
+        rt_free(result.data);
+        return AT_RESULT_OK;
+    }
+    else
+    {
+        return AT_RESULT_FAILE;
+     }
+}
+
+
+static at_result_t at_test_setup(const char* args)
+{
+    int  type = 0, length = 0, send_bytes = 0;
+    unsigned char * sendbuffer = RT_NULL;
+    unsigned char * psendbuffer ;
+
+    args = parse ((char*)(++args),"d,d",  &type, &length);
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+    
     rt_kprintf("type = %d, len = %d\n", type, length);
 
     if ( length > 0)
     {
         send_bytes = length;
-        sendbuffer = (uint8_t *)rt_malloc(length);
+        sendbuffer = (unsigned char *)rt_malloc(length);
         if(sendbuffer == NULL)
         {
             at_server_printfln("SEND FAIL");
@@ -438,7 +516,7 @@ static at_result_t at_test_setup(const char* args)
     }
     else
     {
-        sendbuffer = (uint8_t *)rt_malloc(256);
+        sendbuffer = (unsigned char *)rt_malloc(256);
         psendbuffer = sendbuffer;
         length = 256;
         send_bytes = 256;
@@ -489,74 +567,18 @@ static at_result_t at_test_setup(const char* args)
     return AT_RESULT_OK;
 }
 
-static at_result_t at_wiotarecv_setup(const char *args)
-{
-    unsigned short timeout = 0;
-    uc_recv_back_t result;
-    
-    if(AT_WIOTA_DEFAULT == wiota_state)
-    {
-        return AT_RESULT_FAILE;
-    }
-
-    if(at_req_parse_args(args, "=%d", &timeout) <= 0)
-    {
-        return AT_RESULT_PARSE_FAILE;
-    }
-
-    if (timeout < 1)
-        timeout = WIOTA_WAIT_DATA_TIMEOUT;
-    rt_kprintf("timeout = %d\n", timeout);
-    
-    uc_wiota_recv_data(&result, timeout, RT_NULL);
-    if (!result.result)
-    {
-        at_server_printf("+WIOTARECV,%d,%d:%s", result.type, result.data_len, result.data);
-        rt_free(result.data);
-        return AT_RESULT_OK;
-    }
-    else
-    {
-        return AT_RESULT_FAILE;
-     }
-}
-
-static at_result_t at_wiota_recv_exec(void)
-{
-    uc_recv_back_t result;
-    
-   if(AT_WIOTA_DEFAULT == wiota_state)
-    {
-        return AT_RESULT_FAILE;
-    }
-   
-    uc_wiota_recv_data(&result, WIOTA_WAIT_DATA_TIMEOUT, RT_NULL);
-    if (!result.result)
-    {
-        at_server_printf("+WIOTARECV,%d,%d:%s", result.type, result.data_len, result.data);
-        rt_free(result.data);
-        return AT_RESULT_OK;
-    }
-    else
-    {
-        return AT_RESULT_FAILE;
-     }
-}
-
+AT_CMD_EXPORT("AT+WIOTAINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_init_exec);
 AT_CMD_EXPORT("AT+WIOTAFREQ", "=<freqpint>", RT_NULL, at_freq_query, at_freq_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTADCXO", "=<dcxo>", RT_NULL, RT_NULL, at_dcxo_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTAUSERID", "=<userid>", RT_NULL, at_userid_query, at_userid_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTASNR", RT_NULL, at_snr_query, RT_NULL, RT_NULL, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTAUSERID", "=<id0>,<id1>", RT_NULL, at_userid_query, at_userid_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTARADIO", "=<snr>,<power>", RT_NULL, at_radio_query, RT_NULL, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTACONFIG", "=<id_len>,<symbol>,<dlul>,<bt>,<group_num>,<systemid>,<subsystemid>", RT_NULL, at_system_config_query, at_system_config_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTAINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_init_exec);
 AT_CMD_EXPORT("AT+WIOTARUN", "=<state>", RT_NULL, RT_NULL, at_wiota_cfun_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTACONNECT", "=<state>,<contime>", RT_NULL, at_connect_query, at_connect_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTACONNECT", "=<state>,<activetime>", RT_NULL, at_connect_query, at_connect_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTASEND", "=<timeout>,<len>", RT_NULL, RT_NULL, at_wiotasend_setup, /*at_wiotasend_exec*/ RT_NULL );
 AT_CMD_EXPORT("AT+WIOTARECV", "=<timeout>", RT_NULL, RT_NULL, at_wiotarecv_setup, at_wiota_recv_exec );
 AT_CMD_EXPORT("AT+TEST", "=<type>,<len>", RT_NULL, RT_NULL, at_test_setup, RT_NULL);
 
-
 #endif
-
 
 //#endif
