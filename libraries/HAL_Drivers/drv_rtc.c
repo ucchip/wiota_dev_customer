@@ -97,6 +97,7 @@ static rt_err_t rt_rtc_config(struct rt_device* dev)
 static rt_err_t rt_rtc_control(rt_device_t dev, int cmd, void* args)
 {
     rt_err_t result = RT_EOK;
+    rtc_alarm_t rtc_time;
     RT_ASSERT(dev != RT_NULL);
     switch (cmd)
     {
@@ -111,6 +112,16 @@ static rt_err_t rt_rtc_control(rt_device_t dev, int cmd, void* args)
                 result = -RT_ERROR;
             }
             LOG_D("RTC: set rtc_time %d\n", *(time_t*)args);
+            break;
+        case RT_DEVICE_CTRL_RTC_GET_ALARM:
+            rtc_get_alarm(UC_RTC,&rtc_time);
+            *((rtc_alarm_t*)args) = rtc_time;
+            LOG_D("RTC: get rtc_alarm\n");
+            break;
+        case RT_DEVICE_CTRL_RTC_SET_ALARM:
+            rtc_time = *((rtc_alarm_t*)args);
+            rtc_set_alarm(UC_RTC,&rtc_time);
+            LOG_D("RTC: set rtc_alarm\n");
             break;
     }
 

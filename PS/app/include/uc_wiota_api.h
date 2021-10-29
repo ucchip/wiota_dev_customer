@@ -2,6 +2,25 @@
 #ifndef _UC_WIOTA_API_H__
 #define _UC_WIOTA_API_H__
 
+typedef unsigned long long  u64_t;
+typedef signed long long  s64_t;
+typedef unsigned long  ul32_t;
+typedef signed long  sl32_t;
+typedef signed int  s32_t;
+typedef unsigned int  u32_t;
+typedef signed short  s16_t;
+typedef unsigned short  u16_t;
+typedef char n8_t;
+typedef signed char  s8_t;
+typedef unsigned char  u8_t;
+typedef unsigned char boolean;
+#ifndef FALSE
+#define FALSE 0
+#endif
+#ifndef TRUE
+#define TRUE  1
+#endif
+
 #define MAX_USER_ID_LEN 8
 
 //200 k
@@ -13,10 +32,11 @@
 
 
 typedef enum {
-    UC_RECV_MSG = 0,
-    UC_RECV_BC,
-    UC_RECV_OTA,
-    UC_RECV_SCAN_FREQ,
+    UC_RECV_MSG = 0,    // normal msg from ap
+    UC_RECV_BC,         // broadcast msg from ap
+    UC_RECV_OTA,        // ota msg from ap
+    UC_RECV_SCAN_FREQ,  // result of freq scan by riscv 
+    UC_RECV_SYNC_LOST,  // sync lost notify by riscv, need scan freq
 }UC_RECV_DATA_TYPE;
 
 
@@ -38,20 +58,20 @@ typedef enum {
 typedef struct {
      unsigned int          rssi;
      unsigned int          ber;
-     char                  snr;
-     char                  power;
+     signed char           snr;
+     signed char           power;
 }radio_info_t;
 
 
 typedef struct {
-        unsigned char   apMaxPow;         // 21, 30,
+        unsigned char   ap_max_pow;         // 21, 30,
         unsigned char   id_len;           // 0: 2, 1: 4, 2: 6, 3: 8 
         unsigned char   pn_num;           // 0: 1, 1: 2, 2: 4, 3: not use 
         unsigned char   symbol_length;    //128,256,512,1024
         unsigned char   dlul_ratio;       // 0 1:1,  1 1:2
         unsigned char   btvalue;          //bt from rf 1: 0.3, 0: 1.2
         unsigned char   group_number;     //frame ul group number: 0,1,2,3: 1,2,4,8
-        unsigned char   spectrumIdx;      //default 3, 470M~510M;
+        unsigned char   spectrum_idx;      //default 3, 470M~510M;
         unsigned int    systemid;
         unsigned int    subsystemid;
         unsigned char   na[48];
@@ -93,8 +113,9 @@ typedef struct {
 
 typedef struct {
     unsigned char   freq_idx;  
-    char            snr;
-    short           rssi;
+    signed char     snr;
+    signed char     rssi;
+    unsigned char   is_synced;
 }uc_freq_scan_result_t,*uc_freq_scan_result_p;
 
 
@@ -140,7 +161,9 @@ void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_r
 
 void uc_wiota_register_recv_data(uc_recv callback);
 
-void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned short timeout, uc_recv callback, uc_recv_back_p recv_result);
+void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
+
+void uc_wiota_flash_backup_init(void);
 
 #endif
 

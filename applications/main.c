@@ -25,12 +25,24 @@
 #define TIMESTAMP   (__DATE__ " " __TIME__)
 static const char *g_version = TIMESTAMP;
 
+extern void uc_wiota_flash_backup_init(void);
+
+
+void task_callback(struct rt_thread* from, struct rt_thread* to)
+{
+    rt_kprintf("name = %s, 0x%x\n", from->name, from);
+}
+
+
+void init_statistical_task_info(void)
+{
+    rt_scheduler_sethook(task_callback);
+}
+
 
 int main(void)
 {
-    //    l1_config_static_inform_init();    
-    //IER = 0x0;
-    //IPR = 0x0;
+    uc_wiota_flash_backup_init();    
 
 #ifdef _ROMFUNC_    
     dll_open();
@@ -39,17 +51,19 @@ int main(void)
     rt_kprintf("main %s\n", g_version);
     
 //    l1_check_debug();
-    #ifdef _WATCHDOG_APP_
+#ifdef _WATCHDOG_APP_
     if(!watchdog_app_init())
         watchdog_app_enable();
-    #endif
+#endif
 
-    #ifdef UC8288_MODULE
+#ifdef UC8288_MODULE
     at_server_init();
-    #else
+#else
     app_task_init();
-    #endif
-
+#endif
+    
+//    app_task_init();
+    
 //
 //    while(1)
 //    {
@@ -65,6 +79,8 @@ int main(void)
 //        TRACE_PRINTF("total %d used %d maxused %d cCount %d l1Count %d\n",total,used,max_used,g_dfe_before,l1Count);
 //                
 //    }
+
+//    init_statistical_task_info();
 
     return 0;
 }

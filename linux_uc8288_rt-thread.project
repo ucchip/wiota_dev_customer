@@ -134,6 +134,9 @@
           </VirtualDirectory>
           <File Name="rt-thread/components/drivers/include/rtdevice.h"/>
         </VirtualDirectory>
+        <VirtualDirectory Name="rtc">
+          <File Name="rt-thread/components/drivers/rtc/alarm.c"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="finsh">
         <File Name="rt-thread/components/finsh/shell.c"/>
@@ -209,6 +212,7 @@
       <File Name="libraries/HAL_Drivers/drv_log.h"/>
       <File Name="libraries/HAL_Drivers/drv_onchip_flash.h"/>
       <File Name="libraries/HAL_Drivers/drv_spi.h"/>
+      <File Name="libraries/HAL_Drivers/drv_rtc.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="UC8288_HAL_Driver">
       <VirtualDirectory Name="src">

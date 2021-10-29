@@ -55,7 +55,7 @@ typedef enum
 // function
 //EXT_FLASH uint32_t ReadFlashID();
 EXT_FLASH void FlashEraseSector(uint32_t nBaseAddr);
-#if 0
+#if 1
 EXT_FLASH void FlashWrite(uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
 #endif
 #ifdef FLASH_USE_READ

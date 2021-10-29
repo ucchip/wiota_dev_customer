@@ -63,7 +63,9 @@ struct rt_alarm_container
 {
     rt_list_t head;
     struct rt_mutex mutex;
+#ifdef RT_USING_EVENT
     struct rt_event event;
+#endif
     struct rt_alarm* current;
 };
 
@@ -75,5 +77,6 @@ rt_err_t rt_alarm_delete(rt_alarm_t alarm);
 rt_err_t rt_alarm_start(rt_alarm_t alarm);
 rt_err_t rt_alarm_stop(rt_alarm_t alarm);
 int rt_alarm_system_init(void);
+rt_err_t rt_alarm_simple(rt_int32_t alarm_sec);
 
 #endif /* __ALARM_H__ */
