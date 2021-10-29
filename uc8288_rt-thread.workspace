@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Database="" Name="uc8288_rt_thread" Version="10000">
-  <Project Name="wind_uc8288_rt-thread" Path="wind_uc8288_rt-thread.project" Active="No"/>
-  <Project Name="linux_uc8288_rt-thread" Path="linux_uc8288_rt-thread.project" Active="Yes"/>
+  <Project Name="wind_uc8288_rt-thread" Path="wind_uc8288_rt-thread.project" Active="Yes"/>
+  <Project Name="linux_uc8288_rt-thread" Path="linux_uc8288_rt-thread.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>

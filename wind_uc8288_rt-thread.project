@@ -86,7 +86,6 @@
         <VirtualDirectory Name="include">
           <VirtualDirectory Name="drivers">
             <File Name="rt-thread/components/drivers/include/drivers/adc.h"/>
-            <File Name="rt-thread/components/drivers/include/drivers/alarm.h"/>
             <File Name="rt-thread/components/drivers/include/drivers/audio.h"/>
             <File Name="rt-thread/components/drivers/include/drivers/can.h"/>
             <File Name="rt-thread/components/drivers/include/drivers/cputime.h"/>
@@ -133,6 +132,9 @@
             <File Name="rt-thread/components/drivers/include/ipc/workqueue.h"/>
           </VirtualDirectory>
           <File Name="rt-thread/components/drivers/include/rtdevice.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="rtc">
+          <File Name="rt-thread/components/drivers/rtc/alarm.c"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="finsh">
@@ -209,6 +211,7 @@
       <File Name="libraries/HAL_Drivers/drv_log.h"/>
       <File Name="libraries/HAL_Drivers/drv_onchip_flash.h"/>
       <File Name="libraries/HAL_Drivers/drv_spi.h"/>
+      <File Name="libraries/HAL_Drivers/drv_rtc.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="UC8288_HAL_Driver">
       <VirtualDirectory Name="src">
@@ -218,7 +221,6 @@
         <File Name="libraries/UC8288_HAL_Driver/src/uc_exceptions.c"/>
         <File Name="libraries/UC8288_HAL_Driver/src/uc_uartx.c"/>
         <File Name="libraries/UC8288_HAL_Driver/src/uc_timer.c"/>
-        <File Name="libraries/UC8288_HAL_Driver/src/uc_rtc.c"/>
         <File Name="libraries/UC8288_HAL_Driver/src/uc_uart.c"/>
         <File Name="libraries/UC8288_HAL_Driver/src/uc_smartcard.c"/>
         <File Name="libraries/UC8288_HAL_Driver/src/uc_spim.c"/>
@@ -244,7 +246,6 @@
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_puf.h"/>
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_pulpino.h"/>
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_pwm.h"/>
-        <File Name="libraries/UC8288_HAL_Driver/inc/uc_rtc.h"/>
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_sectdefs.h"/>
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_smartcard.h"/>
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_spi.h"/>
