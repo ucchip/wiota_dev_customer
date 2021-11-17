@@ -54,7 +54,7 @@ According to the network size, multiple functional entity can be combined into a
       adjustable mechanism to maximize capacity in asynchronous mode .</br>
       
   ★ MESH mode</br>
-      &emsp; This is no center mode. In asynchronous mode, the support of no center radio between IOT terminal is ebable.</br>
+      &emsp; This is no center mode. In asynchronous mode, the support of no center radio between IOT terminals is ebable.</br>
 </br>
 
 
