@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include <rthw.h>
+#include <rtdevice.h>
 
 #define LOG_TAG              "at.svr"
 #include <at_log.h>
@@ -38,9 +39,15 @@ static at_server_t at_server_local = RT_NULL;
 static at_cmd_t cmd_table = RT_NULL;
 static rt_size_t cmd_num;
 
+#ifdef SUPPORT_SPI_AT
+__attribute__((section(".spicmd"))) volatile spi_at_buf spi_at_cmd;
+__attribute__((section(".spiresult"))) volatile spi_at_buf spi_at_result;
+extern void at_vprintf(spi_at_buf *buf, const char* format, va_list args);
+extern void at_vprintfln(spi_at_buf *buf, const char* format, va_list args);
+#else
 extern void at_vprintf(rt_device_t device, const char* format, va_list args);
 extern void at_vprintfln(rt_device_t device, const char* format, va_list args);
-
+#endif
 /**
  * AT server send data to AT device
  *
@@ -51,15 +58,45 @@ void at_server_printf(const char* format, ...)
     va_list args;
 
     va_start(args, format);
-
+#ifdef SUPPORT_SPI_AT
+    at_vprintf(at_server_local->spi_result, format, args);
+#else
     at_vprintf(at_server_local->device, format, args);
-
+#endif
     va_end(args);
 }
 
 void at_send_data(const void* buffer, unsigned int len)
 {
+#ifdef SUPPORT_SPI_AT
+    const void *data = buffer;
+    int timeout = 5000;/* 5s */
+
+    while(len > 0 && timeout > 0)
+    {
+        if (SPI_FLAG_IDLE == at_server_local->spi_result->flag)
+        {
+            if (len > SPI_AT_DATA_MAX)
+            {
+                memcpy(at_server_local->spi_result->data, data, SPI_AT_DATA_MAX);
+                len -= SPI_AT_DATA_MAX;
+                at_server_local->spi_result->len = SPI_AT_DATA_MAX;
+            }
+            else
+            {
+                memcpy(at_server_local->spi_result->data, data, len);
+                at_server_local->spi_result->len = len;
+                len = 0;
+            }            
+            at_server_local->spi_result->flag = SPI_FLAG_READY;
+            continue;
+        }
+        rt_thread_mdelay(4);
+        timeout -= 4;
+    }
+#else
     rt_device_write(at_server_local->device, 0, buffer, len);
+#endif
 }
 
 /**
@@ -72,9 +109,11 @@ void at_server_printfln(const char* format, ...)
     va_list args;
 
     va_start(args, format);
-
+#ifdef SUPPORT_SPI_AT
+at_vprintfln(at_server_local->spi_result, format, args);
+#else
     at_vprintfln(at_server_local->device, format, args);
-
+#endif
     va_end(args);
 }
 
@@ -178,7 +217,7 @@ void rt_at_server_print_all_cmd(void)
         }
     }
 }
-
+#ifndef SUPPORT_SPI_AT
 /**
  * Send data to AT Client by uart device.
  *
@@ -201,7 +240,7 @@ rt_size_t at_server_send(at_server_t server, const char* buf, rt_size_t size)
 
     return rt_device_write(server->device, 0, buf, size);
 }
-
+#endif
 /**
  * AT Server receive fixed-length data.
  *
@@ -423,14 +462,40 @@ static rt_err_t at_cmd_get_name(const char* cmd_buffer, char* cmd_name)
 
     return -RT_ERROR;
 }
+#ifdef SUPPORT_SPI_AT
+static rt_err_t at_server_getchar(at_server_t server, char* ch, rt_int32_t timeout)
+{
+    static char *tmp = NULL;
+    if (RT_NULL == tmp)
+        tmp = server->spi_cmd->data;
 
-static rt_err_t at_server_gerchar(at_server_t server, char* ch, rt_int32_t timeout)
+    while(timeout < 0? 1: timeout)
+   {
+        if (SPI_FLAG_READY == server->spi_cmd->flag /*&& ((server->spi_cmd->len -- ) > 0)*/)
+        {
+            * ch = *tmp;
+            tmp ++;            
+            return RT_EOK;
+        }
+        else
+        {
+            tmp = server->spi_cmd->data;
+        }
+        rt_thread_mdelay(4);
+        timeout -= 4;
+    }
+
+    return RT_ETIMEOUT;
+}
+
+#else
+static rt_err_t at_server_getchar(at_server_t server, char* ch, rt_int32_t timeout)
 {
     rt_err_t result = RT_EOK;
 
     while (rt_device_read(at_server_local->device, 0, ch, 1) == 0)
     {
-        rt_sem_control(at_server_local->rx_notice, RT_IPC_CMD_RESET, RT_NULL);
+//        rt_sem_control(at_server_local->rx_notice, RT_IPC_CMD_RESET, RT_NULL);
         result = rt_sem_take(at_server_local->rx_notice, rt_tick_from_millisecond(timeout));
         if (result != RT_EOK)
         {
@@ -440,6 +505,7 @@ static rt_err_t at_server_gerchar(at_server_t server, char* ch, rt_int32_t timeo
 
     return result;
 }
+#endif
 
 static void server_parser(at_server_t server)
 {
@@ -456,7 +522,9 @@ static void server_parser(at_server_t server)
 
     while (1)
     {
-        server->get_char(server, &ch, RT_WAITING_FOREVER);
+        if (RT_EOK != server->get_char(server, &ch, RT_WAITING_FOREVER))
+            continue;
+        
         if (ESC_KEY == ch)
         {
             break;
@@ -518,9 +586,14 @@ static void server_parser(at_server_t server)
 __retry:
         memset(server->recv_buffer, 0x00, AT_SERVER_RECV_BUFF_LEN);
         server->cur_recv_len = 0;
+        
+#ifdef SUPPORT_SPI_AT
+    memset(server->spi_cmd->data, 0x00, SPI_AT_DATA_MAX);
+    server->spi_cmd->flag = SPI_FLAG_IDLE;
+#endif
     }
 }
-
+#ifndef SUPPORT_SPI_AT
 static rt_err_t at_rx_ind(rt_device_t dev, rt_size_t size)
 {
     if (size > 0)
@@ -530,7 +603,7 @@ static rt_err_t at_rx_ind(rt_device_t dev, rt_size_t size)
 
     return RT_EOK;
 }
-
+#endif
 #if defined(__ICCARM__) || defined(__ICCRX__)               /* for IAR compiler */
 #pragma section="RtAtCmdTab"
 #endif
@@ -538,7 +611,9 @@ static rt_err_t at_rx_ind(rt_device_t dev, rt_size_t size)
 int at_server_init(void)
 {
     rt_err_t result = RT_EOK;
+#ifndef SUPPORT_SPI_AT
     rt_err_t open_result = RT_EOK;
+#endif
 
     if (at_server_local)
     {
@@ -574,7 +649,15 @@ int at_server_init(void)
 
     memset(at_server_local->recv_buffer, 0x00, AT_SERVER_RECV_BUFF_LEN);
     at_server_local->cur_recv_len = 0;
+#ifdef SUPPORT_SPI_AT
 
+    at_server_local->spi_cmd = &spi_at_cmd;
+    at_server_local->spi_cmd->flag = SPI_FLAG_IDLE;
+
+    at_server_local->spi_result = &spi_at_result;
+    at_server_local->spi_result->flag = SPI_FLAG_IDLE;
+
+#else
     at_server_local->rx_notice = rt_sem_create("at_svr", 0, RT_IPC_FLAG_FIFO);
     if (!at_server_local->rx_notice)
     {
@@ -583,19 +666,32 @@ int at_server_init(void)
         goto __exit;
     }
 
+#ifdef AT_UART0_DEBUG_
     /* Find and open command device */
+    at_server_local->device = rt_device_find(RT_CONSOLE_DEVICE_NAME);
+#else
     at_server_local->device = rt_device_find(AT_SERVER_DEVICE);
+#endif
+    
+        
     if (at_server_local->device)
     {
+#ifndef AT_UART0_DEBUG_
+        struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT; /*init default parment*/
+#endif
         RT_ASSERT(at_server_local->device->type == RT_Device_Class_Char);
-
+#ifndef AT_UART0_DEBUG_
+        //config baud rate 115200
+        config.baud_rate = BAUD_RATE_115200;
+        rt_device_control(at_server_local->device, RT_DEVICE_CTRL_CONFIG, &config);
+#endif
         /* using DMA mode first */
-        open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_DMA_RX);
+        //open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_DMA_RX);
         /* using interrupt mode when DMA mode not supported */
-        if (open_result == -RT_EIO)
-        {
+       // if (open_result == -RT_EIO)
+        //{
             open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX);
-        }
+        //}
         RT_ASSERT(open_result == RT_EOK);
 
         rt_device_set_rx_indicate(at_server_local->device, at_rx_ind);
@@ -606,8 +702,9 @@ int at_server_init(void)
         result = -RT_ERROR;
         goto __exit;
     }
+#endif
 
-    at_server_local->get_char = at_server_gerchar;
+    at_server_local->get_char = at_server_getchar;
     memcpy(at_server_local->end_mark, AT_CMD_END_MARK, sizeof(AT_CMD_END_MARK));
 
     at_server_local->parser_entry = server_parser;

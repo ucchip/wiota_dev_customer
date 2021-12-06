@@ -82,7 +82,7 @@ rt_err_t rt_hw_adc_register(rt_adc_device_t device, const char* name, const stru
     device->parent.tx_complete = RT_NULL;
 
 #ifdef RT_USING_DEVICE_OPS
-    device->parent.ops         = &adc_ops;
+    device->parent.ops         = &adc_ops; 
 #else
     device->parent.init        = RT_NULL;
     device->parent.open        = RT_NULL;
@@ -91,6 +91,7 @@ rt_err_t rt_hw_adc_register(rt_adc_device_t device, const char* name, const stru
     device->parent.write       = RT_NULL;
     device->parent.control     = _adc_control;
 #endif
+
     device->ops = ops;
     device->parent.user_data = (void*)user_data;
 

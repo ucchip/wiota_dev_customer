@@ -14,8 +14,8 @@
 #define RT_USING_OVERFLOW_CHECK
 #define RT_USING_HOOK
 #define RT_USING_IDLE_HOOK
-#define RT_IDLE_HOOK_LIST_SIZE 2
-#define IDLE_THREAD_STACK_SIZE 256
+#define RT_IDLE_HOOK_LIST_SIZE 3
+#define IDLE_THREAD_STACK_SIZE 512
 
 /* kservice optimization */
 
@@ -63,7 +63,13 @@
 #define RT_USING_DEVICE_IPC
 #define RT_PIPE_BUFSZ 512
 #define RT_USING_SERIAL
-#define RT_SERIAL_RB_BUFSZ 128
+#define RT_SERIAL_RB_BUFSZ 256
+#define RT_USING_CAN
+#define RT_USING_I2C
+#define RT_USING_PIN
+#define RT_USING_ADC
+#define RT_USING_DAC
+#define RT_USING_PWM
 #define RT_USING_WDT
 #define RT_USING_RTC
 #define RT_USING_ALARM
@@ -89,7 +95,7 @@
 
 #define RT_USING_AT
 #define AT_USING_SERVER
-#define AT_SERVER_DEVICE "uart0"
+#define AT_SERVER_DEVICE "uart1"
 #define AT_SERVER_RECV_BUFF_LEN 256
 #define AT_CMD_END_MARK_CRLF
 #define AT_CMD_MAX_LEN 128

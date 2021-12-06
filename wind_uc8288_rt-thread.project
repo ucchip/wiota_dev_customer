@@ -9,10 +9,12 @@
     <VirtualDirectory Name="at">
       <File Name="PS/at/ati_prs.h"/>
       <File Name="PS/at/at_wiota.c"/>
+      <File Name="PS/at/at_factory.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="app">
       <VirtualDirectory Name="include">
         <File Name="PS/app/include/uc_wiota_api.h"/>
+        <File Name="PS/app/include/uc_wiota_version.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="test">
         <File Name="PS/app/test/test_wiota_api.c"/>
@@ -67,6 +69,9 @@
       <VirtualDirectory Name="drivers">
         <VirtualDirectory Name="misc">
           <File Name="rt-thread/components/drivers/misc/pin.c"/>
+          <File Name="rt-thread/components/drivers/misc/adc.c"/>
+          <File Name="rt-thread/components/drivers/misc/dac.c"/>
+          <File Name="rt-thread/components/drivers/misc/rt_drv_pwm.c"/>
         </VirtualDirectory>
         <VirtualDirectory Name="serial">
           <File Name="rt-thread/components/drivers/serial/serial.c"/>
@@ -86,6 +91,7 @@
         <VirtualDirectory Name="include">
           <VirtualDirectory Name="drivers">
             <File Name="rt-thread/components/drivers/include/drivers/adc.h"/>
+            <File Name="rt-thread/components/drivers/include/drivers/alarm.h"/>
             <File Name="rt-thread/components/drivers/include/drivers/audio.h"/>
             <File Name="rt-thread/components/drivers/include/drivers/can.h"/>
             <File Name="rt-thread/components/drivers/include/drivers/cputime.h"/>
@@ -135,6 +141,16 @@
         </VirtualDirectory>
         <VirtualDirectory Name="rtc">
           <File Name="rt-thread/components/drivers/rtc/alarm.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="can">
+          <File Name="rt-thread/components/drivers/can/SConscript"/>
+          <File Name="rt-thread/components/drivers/can/can.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="i2c">
+          <File Name="rt-thread/components/drivers/i2c/SConscript"/>
+          <File Name="rt-thread/components/drivers/i2c/i2c-bit-ops.c"/>
+          <File Name="rt-thread/components/drivers/i2c/i2c_core.c"/>
+          <File Name="rt-thread/components/drivers/i2c/i2c_dev.c"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="finsh">
@@ -212,6 +228,13 @@
       <File Name="libraries/HAL_Drivers/drv_onchip_flash.h"/>
       <File Name="libraries/HAL_Drivers/drv_spi.h"/>
       <File Name="libraries/HAL_Drivers/drv_rtc.c"/>
+      <File Name="libraries/HAL_Drivers/drv_adc.c"/>
+      <File Name="libraries/HAL_Drivers/drv_can.c"/>
+      <File Name="libraries/HAL_Drivers/drv_can.h"/>
+      <File Name="libraries/HAL_Drivers/drv_dac.c"/>
+      <File Name="libraries/HAL_Drivers/drv_hw_i2c.c"/>
+      <File Name="libraries/HAL_Drivers/drv_soft_i2c.c"/>
+      <File Name="libraries/HAL_Drivers/drv_soft_i2c.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="UC8288_HAL_Driver">
       <VirtualDirectory Name="src">
@@ -234,6 +257,8 @@
         <File Name="libraries/UC8288_HAL_Driver/src/uc_puf.c"/>
         <File Name="libraries/UC8288_HAL_Driver/src/uc_udma.c"/>
         <File Name="libraries/UC8288_HAL_Driver/src/uc_pwm.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_rtc.c"/>
+        <File Name="libraries/UC8288_HAL_Driver/src/uc_can.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="inc">
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_stack_trace.h"/>
@@ -259,6 +284,8 @@
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_utils.h"/>
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_watchdog.h"/>
         <File Name="libraries/UC8288_HAL_Driver/inc/uc_aon.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_rtc.h"/>
+        <File Name="libraries/UC8288_HAL_Driver/inc/uc_can.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
@@ -278,7 +305,7 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="pulpino" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;-D UC8288_FACTORY;-D AT_UART0_DEBUG_;-D _L1_FACTORY_FUNC_;-D _CLK_GATING_;" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="applications"/>
         <IncludePath Value="board"/>
@@ -304,7 +331,6 @@
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
-      <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>

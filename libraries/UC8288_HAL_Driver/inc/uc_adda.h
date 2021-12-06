@@ -38,6 +38,20 @@
 #define PARAM_DAC_WT_RATE(dac_wt)           (dac_wt  <= (0x3FF)  && dac_wt  >= (0x00))
 #define PARAM_ADDC(adda)                     (adda    == UC_ADDA)
 
+
+typedef enum
+{
+    ADC_CONFIG_CHANNEL_A = 1,
+    ADC_CONFIG_CHANNEL_B,
+    ADC_CONFIG_CHANNEL_C,
+    ADC_CONFIG_CHANNEL_BAT1,  // 4
+    ADC_CONFIG_CHANNEL_TEMP_A1,
+    ADC_CONFIG_CHANNEL_TEMP_A2,
+    ADC_CONFIG_CHANNEL_TEMP_B,
+    ADC_CONFIG_CHANNEL_CHIP_TEMP, // 8
+} ADC_CHANNEL_CONFIG;
+
+
 typedef enum
 {
     ADC_CHANNEL_TEMP = 1 << 31, /* channel for temperature measure */
@@ -62,7 +76,7 @@ typedef enum
     ADC_TEMP_B = 1 << 24, /* body temperature */
     ADC_TEMP_C = 1 << 23, /* in-chip temperature */
 } ADC_TEMP_SRC;
-
+extern void temp_in_b_config(ADDA_TypeDef* ADDA);
 extern void adc_power_set(ADDA_TypeDef* ADDA);
 //extern void temperature_set(ADDA_TypeDef *ADDA);
 extern void adc_set_sample_rate(ADDA_TypeDef* ADDA, ADC_SAMPLE_RATE sample_rate);
@@ -76,6 +90,10 @@ extern void adc_watermark_set(ADDA_TypeDef* ADDA, uint8_t water_mark);
 extern bool is_adc_fifo_over_watermark(ADDA_TypeDef* ADDA);
 extern bool is_adc_fifo_empty(ADDA_TypeDef* ADDA);
 extern void adc_fifo_clear(ADDA_TypeDef* ADDA);
+extern signed int adc_temperature_read(ADDA_TypeDef* ADDA);
+extern int adc_battery_voltage(ADDA_TypeDef* ADDA);
+extern float adc_read_temp_inb(ADDA_TypeDef* ADDA);
+
 extern void adc_vbat_measure_enable(bool enable);
 extern void adc_temp_source_sel(ADDA_TypeDef* ADDA, ADC_TEMP_SRC temp_src);
 extern void adc_temp_sensor_enable(ADDA_TypeDef* ADDA, bool enable);

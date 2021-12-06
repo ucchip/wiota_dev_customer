@@ -11,12 +11,21 @@
 
 /*------- uart driver config -------*/
 #define BSP_USING_UART0
-//#define BSP_USING_UART1
+#define BSP_USING_UART1
 
 /*------- i2c driver config -------*/
 //#define BSP_USING_I2C1
 //#define BSP_I2C1_SCL_PIN    GET_PIN(A, 5)//"A5"
 //#define BSP_I2C1_SDA_PIN    GET_PIN(A, 6)//"A6"
+
+//#define BSP_USING_HW_I2C1
+//#define BSP_HW_I2C1_SCL_PIN    GET_PIN(A, 5)
+//#define BSP_HW_I2C1_SDA_PIN    GET_PIN(A, 6)
+
+// #define BSP_USING_HW_I2C2
+// #define BSP_HW_I2C2_SCL_PIN    GET_PIN(A, 4)
+// #define BSP_HW_I2C2_SDA_PIN    GET_PIN(A, 14)
+
 
 /*------- spi master driver config -------*/
 //#define BSP_USING_SOFTWARE_SPIM
@@ -27,7 +36,7 @@
 //#define BSP_SPIM_RX_USING_DMA
 
 /*------- pwm driver config -------*/
-//#define BSP_USING_PWM0
+#define BSP_USING_PWM0
 //#define BSP_USING_PWM1
 //#define BSP_USING_PWM2
 //#define BSP_USING_PWM3

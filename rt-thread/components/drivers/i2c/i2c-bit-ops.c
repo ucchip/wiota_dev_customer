@@ -18,6 +18,7 @@
 #endif
 #include <rtdbg.h>
 
+#ifdef RT_USING_I2C_BITOPS
 #define SET_SDA(ops, val)   ops->set_sda(ops->data, val)
 #define SET_SCL(ops, val)   ops->set_scl(ops->data, val)
 #define GET_SDA(ops)        ops->get_sda(ops->data)
@@ -456,3 +457,4 @@ rt_err_t rt_i2c_bit_add_bus(struct rt_i2c_bus_device* bus,
 
     return rt_i2c_bus_device_register(bus, bus_name);
 }
+#endif

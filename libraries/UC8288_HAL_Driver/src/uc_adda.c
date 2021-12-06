@@ -39,6 +39,12 @@
 
 #define BIT(x)  (1 << (x))
 
+void temp_in_b_config(ADDA_TypeDef* ADDA)
+{
+    ADDA->ADC_CTRL0 = 0x807F8E5A; //disable channel a, channel b, channel c and inside temp channel
+    ADDA->ADC_CTRL1 = 0x20060000;
+}
+
 //static void avdd_cap_calibrate(ADDA_TypeDef* ADDA)
 //{
 //    REG(0x1A104230) = (REG(0x1A104230) & (~(0x0f << 20))) | (ADC_VOLTAGE_TRIM << 20); //calibrate voltage
@@ -123,10 +129,131 @@ uint16_t adc_read(ADDA_TypeDef* ADDA)
     return ADDA->ADC_FIFO_READ;
 }
 
+uint32_t adc_fifo_read(ADDA_TypeDef* ADDA)
+{
+    int adc_sum = 0;
+    int adc_val = 0;
+
+    adc_wait_data_ready(ADDA);
+
+    for(int i = 0; i < 2; i++)
+    {
+        adc_wait_data_ready(ADDA);
+        adc_read( ADDA);
+        adc_sum += adc_read( ADDA);
+         adc_sum += adc_read( ADDA);
+         adc_read( ADDA);
+    }
+
+    adc_val = (adc_sum + (1 << 5)) >> 2; //div 4
+
+    return adc_val;
+}
+
 void adc_watermark_set(ADDA_TypeDef* ADDA, uint8_t water_mark)
 {
     CHECK_PARAM(PARAM_ADDC(ADDA));
     ADDA->ADC_FIFO_CTRL = water_mark << 8;
+}
+
+void internal_temp_measure(ADDA_TypeDef *ADDA)
+{
+   //ADDA->ADC_CTRL0 = 0x80FF8E42;
+    ADDA->ADC_CTRL0 = 0x80FF8E5A;
+    ADDA->ADC_CTRL1 = 0xA0060000;
+}
+
+void dc_off_control(int control)
+{
+    unsigned int *ptr = (unsigned int *)(0x1a109000);
+    if (control)
+        *ptr |= 1<<27;
+    else
+        *ptr &= ~(1<<27);
+}
+
+
+void adc_fifo_clear(ADDA_TypeDef* ADDA)
+{
+    CHECK_PARAM(PARAM_ADDC(ADDA));
+    ADDA->ADC_FIFO_CTRL |= 1 << 31;
+    ADDA->ADC_FIFO_CTRL &= ~BIT(31);//must clear the bit manually
+}
+
+
+unsigned int adc_temp_read_times(ADDA_TypeDef* ADDA) 
+{
+    adc_read(ADDA);
+    return (unsigned int)adc_read(ADDA);
+}
+
+
+signed int adc_temperature_read(ADDA_TypeDef* ADDA) 
+{
+    signed int adc_val;
+    signed int adc_val1, adc_val2;
+    
+    dc_off_control(1);
+    adc_fifo_clear(ADDA);
+    adc_wait_data_ready(ADDA);
+    adc_wait_data_ready(ADDA);
+    adc_val1 = adc_temp_read_times(ADDA);
+    
+    dc_off_control(0);
+    adc_fifo_clear(ADDA);
+    adc_wait_data_ready(ADDA);
+    adc_wait_data_ready(ADDA);
+    adc_val2 = adc_temp_read_times(ADDA); 
+
+    adc_val = (signed int)(adc_val2 - adc_val1);
+
+    adc_val = adc_val * 1450 * 554 / (4096 * 8 * 100) - 274;
+
+    return (signed int)adc_val;
+}
+
+int adc_battery_voltage(ADDA_TypeDef* ADDA)
+{
+    int adc_val = 0;
+    unsigned int adc = 0;
+
+    adc_fifo_clear(ADDA);
+    for(adc = 0; adc < 64; adc++)
+    {
+        adc_wait_data_ready(ADDA);
+        adc += adc_read(ADDA);
+    }
+
+    adc_val = ((adc + (1 << 5))>> 6);// div 64
+
+    return adc_val;
+}
+
+// temp_in_b 0.177v ~ 0.532v
+float adc_read_temp_inb(ADDA_TypeDef* ADDA)
+{
+    int adc_data1, adc_data2, delta_adc;
+
+    dc_off_control(1);
+    adc_fifo_clear(ADDA);
+
+    adc_data1 = adc_fifo_read(ADDA);
+    dc_off_control(0);
+
+    adc_temp_source_sel( ADDA, ADC_TEMP_B);
+    adc_fifo_clear(ADDA);
+    adc_data2 = adc_fifo_read(ADDA);
+
+    delta_adc = adc_data2 - (adc_data1 - 2048);
+
+//    {
+//    float val = 0.0;
+//    rt_kprintf("%s line %d %d %d %d\n", __FUNCTION__, __LINE__, adc_data1, adc_data2, delta_adc);
+//    val = (float)(1.42/4 + (delta_adc - 2048)* 1.42/2048/8);
+//    rt_kprintf("val = %f\n", rt_kprintf);
+//    }
+    
+    return delta_adc;
 }
 
 bool is_adc_fifo_over_watermark(ADDA_TypeDef* ADDA)
@@ -152,12 +279,7 @@ bool is_adc_fifo_empty(ADDA_TypeDef* ADDA)
     }
 }
 
-void adc_fifo_clear(ADDA_TypeDef* ADDA)
-{
-    CHECK_PARAM(PARAM_ADDC(ADDA));
-    ADDA->ADC_FIFO_CTRL |= 1 << 31;
-    ADDA->ADC_FIFO_CTRL &= ~BIT(31);//must clear the bit manually
-}
+
 
 void adc_vbat_measure_enable(bool enable)
 {
@@ -289,17 +411,6 @@ void auxdac_level_set(ADDA_TypeDef* ADDA, uint16_t ele_level)
     ADDA->AUX_DAC_LV = ele_level;
 }
 
-void internal_temp_measure(ADDA_TypeDef *ADDA)
-{
-    ADDA->ADC_CTRL0 = 0x80FF8E42;
-    ADDA->ADC_CTRL1 = 0xA0060000;
-}
 
-void dc_off_control(int control)
-{
-    unsigned int *ptr = (unsigned int *)(0x1a109000);
-    if (control)
-        *ptr |= 1<<27;
-    else
-        *ptr &= ~(1<<27);
-}
+
+

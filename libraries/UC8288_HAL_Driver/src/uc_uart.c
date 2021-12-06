@@ -29,7 +29,7 @@ __crt0 void uart_set_cfg(int parity, uint16_t clk_counter)
     *(volatile unsigned int*)(UART_REG_LCR) = 0x83; //sets 8N1 and set DLAB to 1
     *(volatile unsigned int*)(UART_REG_DLM) = (clk_counter >> 8) & 0xFF;
     *(volatile unsigned int*)(UART_REG_DLL) =  clk_counter       & 0xFF;
-    *(volatile unsigned int*)(UART_REG_FCR) = 0xA7; //enables 16byte FIFO and clear FIFOs
+    *(volatile unsigned int*)(UART_REG_FCR) = 0x27; //enables 16byte FIFO and clear FIFOs
     *(volatile unsigned int*)(UART_REG_LCR) = 0x03; //sets 8N1 and set DLAB to 0
 
     *(volatile unsigned int*)(UART_REG_IER) = ((*(volatile unsigned int*)(UART_REG_IER)) & 0xF0) | 0x01; // set IER (interrupt enable register) on UART
@@ -130,7 +130,7 @@ void uc_uart_init(UART_TYPE* uartx, uint32_t baud_rate, uint8_t data_bits, uint8
     uartx->LCR = line_reg | 0x80; //sets 8N1 and set DLAB to 1
     uartx->DLM = (integerdivider >> 8) & 0xFF;
     uartx->DLL =  integerdivider       & 0xFF;
-    uartx->FCR = 0xA7; //enables 16byte FIFO and clear FIFOs
+    uartx->FCR = 0x27; //enables 1byte FIFO and clear FIFOs
     uartx->LCR = line_reg; //sets 8N1 and set DLAB to 0
 
 }

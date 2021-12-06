@@ -65,6 +65,35 @@ const char* at_get_last_cmd(rt_size_t* cmd_size)
     return send_buf;
 }
 
+#ifdef SUPPORT_SPI_AT
+rt_size_t at_vprintf(spi_at_buf *buf, const char* format, va_list args)
+{
+    last_cmd_len = rt_vsnprintf(send_buf, sizeof(send_buf), format, args);
+    
+#ifdef AT_PRINT_RAW_CMD
+        at_print_raw_cmd("sendline", send_buf, last_cmd_len);
+#endif
+    memcpy(buf->data, send_buf, last_cmd_len);
+    buf->len = last_cmd_len;
+    buf->flag = SPI_FLAG_READY;
+    return last_cmd_len;
+}
+
+rt_size_t at_vprintfln(spi_at_buf *buf, const char* format, va_list args)
+{
+    last_cmd_len = rt_vsnprintf(send_buf, sizeof(send_buf), format, args);
+    
+#ifdef AT_PRINT_RAW_CMD
+    at_print_raw_cmd("sendline", send_buf, last_cmd_len);
+#endif
+    memcpy(buf->data, send_buf, last_cmd_len);
+    memcpy(buf->data + last_cmd_len, "\r\n", 2);
+    buf->len = last_cmd_len + 2;
+    buf->flag = SPI_FLAG_READY;
+    return last_cmd_len;
+}
+
+#else
 rt_size_t at_vprintf(rt_device_t device, const char* format, va_list args)
 {
     //last_cmd_len = vsnprintf(send_buf, sizeof(send_buf), format, args);
@@ -87,3 +116,4 @@ rt_size_t at_vprintfln(rt_device_t device, const char* format, va_list args)
 
     return len + 2;
 }
+#endif

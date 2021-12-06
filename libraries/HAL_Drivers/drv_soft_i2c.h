@@ -14,7 +14,7 @@
 #include <rtthread.h>
 #include <rthw.h>
 #include <rtdevice.h>
-
+#ifdef RT_USING_I2C_BITOPS
 /* uc8088 config class */
 struct uc8088_soft_i2c_config
 {
@@ -65,5 +65,5 @@ struct uc8088_i2c
     }
 #endif
 int rt_hw_i2c_init(void);
-
+#endif
 #endif

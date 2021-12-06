@@ -78,5 +78,7 @@ rt_err_t rt_alarm_start(rt_alarm_t alarm);
 rt_err_t rt_alarm_stop(rt_alarm_t alarm);
 int rt_alarm_system_init(void);
 rt_err_t rt_alarm_simple(rt_int32_t alarm_sec);
+void rt_alarm_read(void);
+time_t rt_time_read(struct tm* p_tm);
 
 #endif /* __ALARM_H__ */

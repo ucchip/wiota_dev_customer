@@ -14,7 +14,7 @@
 #include "uc_timer.h"
 
 #ifdef RT_USING_I2C
-
+#ifdef RT_USING_I2C_BITOPS
 //#define DRV_DEBUG
 #define LOG_TAG              "drv.i2c"
 #include <drv_log.h>
@@ -224,5 +224,5 @@ int rt_hw_i2c_init(void)
     return result;
 }
 INIT_BOARD_EXPORT(rt_hw_i2c_init);
-
+#endif
 #endif /* RT_USING_I2C */

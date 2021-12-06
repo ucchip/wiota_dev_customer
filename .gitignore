@@ -4,6 +4,7 @@ Debug/
 *.txt
 *.uzf
 *.bin
+*.a
 .build-debug/
 rtthread.map
 Makefile

@@ -10,16 +10,25 @@
 
 #include <uc_i2c.h>
 #include "uc_gpio.h"
+#include "board.h"
 
 void i2c_setup(I2C_TYPE* I2C, I2C_CFG_Type* I2CconfigStruct)
 {
     CHECK_PARAM(PARAM_I2C(I2C));
     CHECK_PARAM(PARAM_I2C_TRANSFER_RATE(I2CconfigStruct->prescaler));
 
-    gpio_set_pin_mux(UC_GPIO_CFG, GPIO_PIN_5, GPIO_FUNC_1);
-    gpio_set_pin_pupd(UC_GPIO_CFG, GPIO_PIN_5, GPIO_PUPD_UP);
-    gpio_set_pin_mux(UC_GPIO_CFG, GPIO_PIN_6, GPIO_FUNC_1);
-    gpio_set_pin_pupd(UC_GPIO_CFG, GPIO_PIN_6, GPIO_PUPD_UP);
+    // GPIO 5 / 6  OR GPIO4 / 14
+    #ifdef BSP_USING_HW_I2C1
+    gpio_set_pin_mux(UC_GPIO_CFG, BSP_HW_I2C1_SCL_PIN, GPIO_FUNC_1);
+    gpio_set_pin_pupd(UC_GPIO_CFG, BSP_HW_I2C1_SCL_PIN, GPIO_PUPD_UP);
+    gpio_set_pin_mux(UC_GPIO_CFG, BSP_HW_I2C1_SDA_PIN, GPIO_FUNC_1);
+    gpio_set_pin_pupd(UC_GPIO_CFG, BSP_HW_I2C1_SDA_PIN, GPIO_PUPD_UP);
+    #elif defined(BSP_USING_HW_I2C2)
+    gpio_set_pin_mux(UC_GPIO_CFG, GPIO_PIN_4, GPIO_FUNC_2);
+    gpio_set_pin_pupd(UC_GPIO_CFG, GPIO_PIN_4, GPIO_PUPD_UP);
+    gpio_set_pin_mux(UC_GPIO_CFG, GPIO_PIN_14, GPIO_FUNC_2);
+    gpio_set_pin_pupd(UC_GPIO_CFG, GPIO_PIN_14, GPIO_PUPD_UP);
+    #endif
 
     I2C->CPR = I2CconfigStruct->prescaler & I2C_PRESCALER_MASK;
 
@@ -101,4 +110,3 @@ I2CStatus i2c_busy(I2C_TYPE* I2C)
 
     return ((I2C->STR & I2C_BUSY_MASK) == I2C_BUSY_MASK);
 }
-

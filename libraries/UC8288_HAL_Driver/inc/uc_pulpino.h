@@ -34,8 +34,8 @@
 #define SOC_PERIPHERALS_BASE_ADDR     ( PULPINO_BASE_ADDR + 0xA100000 )
 
 #define UART_BASE_ADDR                ( SOC_PERIPHERALS_BASE_ADDR + 0x0000 )
-#define UART0_BASE_ADDR                ( SOC_PERIPHERALS_BASE_ADDR + 0x0000 )
-#define UART1_BASE_ADDR                ( SOC_PERIPHERALS_BASE_ADDR + 0x0020 )
+#define UART0_BASE_ADDR               ( SOC_PERIPHERALS_BASE_ADDR + 0x0000 )
+#define UART1_BASE_ADDR               ( SOC_PERIPHERALS_BASE_ADDR + 0x0020 )
 #define GPIO_BASE_ADDR                ( SOC_PERIPHERALS_BASE_ADDR + 0x1000 )
 #define SPIM_BASE_ADDR                ( SOC_PERIPHERALS_BASE_ADDR + 0x2000 )
 #define TIMER0_BASE_ADDR              ( SOC_PERIPHERALS_BASE_ADDR + 0x3000 )
@@ -44,7 +44,7 @@
 #define WATCHDOG_BASE_ADDR            ( SOC_PERIPHERALS_BASE_ADDR + 0x4200 )
 
 #define I2C_BASE_ADDR                 ( SOC_PERIPHERALS_BASE_ADDR + 0x5000 )
-#define FLL_BASE_ADDR                 ( SOC_PERIPHERALS_BASE_ADDR + 0x6000 )
+#define CAN_BASE_ADDR                 ( SOC_PERIPHERALS_BASE_ADDR + 0x6000 )
 #define SOC_CTRL_BASE_ADDR            ( SOC_PERIPHERALS_BASE_ADDR + 0x7000 )
 #define ADDC_BASE_ADDR                ( SOC_PERIPHERALS_BASE_ADDR + 0x9000 )
 #define PMU_BASE_ADDR                 ( SOC_PERIPHERALS_BASE_ADDR + 0xA000 )
@@ -271,6 +271,59 @@ typedef struct
     __IO    uint32_t    DUTY;
 } PWM_TypeDef;
 
+typedef struct{
+	__IO	uint32_t CAN_MCR;
+	__IO	uint32_t CAN_MSR;
+	__IO	uint32_t CAN_TSR;
+	__IO	uint32_t CAN_RFR;
+	__I 	uint32_t Reserve;
+	__IO	uint32_t CAN_IER;
+	__IO	uint32_t CAN_ESR;
+	__IO	uint32_t CAN_BTR;
+}CAN_CTRL_TypeDef;
+
+typedef struct{
+	__I		uint32_t CAN_MB0;
+	__I		uint32_t CAN_MB1;
+	__I		uint32_t CAN_MB2;
+	__I		uint32_t CAN_MB3;
+	__IO	uint32_t CAN_ARBF;
+	__IO	uint32_t CAN_MACR;
+	__IO	uint32_t CAN_CNTR;
+}CAN_Debug_TypeDef;
+
+typedef struct{
+	__IO	uint32_t TIR;
+	__IO	uint32_t TDTR;
+	__IO	uint32_t TDLR;
+	__IO	uint32_t TDHR;
+}CAN_TXMailBox_TypeDef;
+
+typedef struct{
+	__I	uint32_t RIR;
+	__I	uint32_t RDTR;
+	__I	uint32_t RDLR;
+	__I	uint32_t RDHR;
+}CAN_FIFOMailBox_TypeDef;
+
+typedef struct
+{
+ 
+  __IO uint32_t FR0;
+  __IO uint32_t FR1;
+  __IO uint32_t FR2;
+  __IO uint32_t FR3;
+} CAN_FilterRegister_TypeDef;
+
+typedef struct{
+	__IO  uint32_t CAN_FMR;
+	__IO  uint32_t CAN_FM1R;
+	const uint32_t Reserve;
+	__IO  uint32_t CAN_FS1R;
+	const uint32_t Reserve1[3];
+	__IO  uint32_t CAN_FA1R;
+}CAN_FILTER_TypeDef;
+
 typedef struct
 {
     __IO    uint32_t    ADC_CTRL0;
@@ -338,5 +391,13 @@ typedef struct
 #define UC_DMA_CHAN1            ((UDCHAN_TypeDef    *) DMA_CHAN1_ADDR)
 #define UC_DMA_CHAN2            ((UDCHAN_TypeDef    *) DMA_CHAN2_ADDR)
 #define UC_DMA_CHAN3            ((UDCHAN_TypeDef    *) DMA_CHAN3_ADDR)
+#define UC_CAN_CRTL				((CAN_CTRL_TypeDef  	*) CAN_BASE_ADDR)
+#define UC_CAN_DBG				((CAN_Debug_TypeDef		*) (CAN_BASE_ADDR+0x80))
+#define UC_CAN_TX				((CAN_TXMailBox_TypeDef *) (CAN_BASE_ADDR+0x180))
+//#define UC_CAN_TX1				((CAN_TXMailBox_TypeDef *) CAN_BASE_ADDR+0x190)
+//#define UC_CAN_TX2				((CAN_TXMailBox_TypeDef *) CAN_BASE_ADDR+0x1A0)
+#define UC_CAN_RX_FIFO			((CAN_FIFOMailBox_TypeDef 		*) (CAN_BASE_ADDR+0x1B0))
+#define UC_CAN_FILTER			((CAN_FILTER_TypeDef	  		*) (CAN_BASE_ADDR+0x200))
+#define UC_CAN_FR				(( CAN_FilterRegister_TypeDef 	*) (CAN_BASE_ADDR+0x240))
 
 #endif

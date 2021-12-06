@@ -22,8 +22,9 @@
 #include "uc_watchdog_app.h"
 #endif
 
-#define TIMESTAMP   (__DATE__ " " __TIME__)
-static const char *g_version = TIMESTAMP;
+#ifdef _ROMFUNC_    
+#include "dll.h"
+#endif
 
 extern void uc_wiota_flash_backup_init(void);
 
@@ -42,14 +43,12 @@ void init_statistical_task_info(void)
 
 int main(void)
 {
-    uc_wiota_flash_backup_init();    
-
 #ifdef _ROMFUNC_    
     dll_open();
 #endif
 
-    rt_kprintf("main %s\n", g_version);
-    
+    uc_wiota_flash_backup_init();    
+
 //    l1_check_debug();
 #ifdef _WATCHDOG_APP_
     if(!watchdog_app_init())
