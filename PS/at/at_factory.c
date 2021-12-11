@@ -11,7 +11,7 @@
 #include "at.h"
 
 #ifdef _L1_FACTORY_FUNC_
-extern void factory_msg_handler(signed int subtype, signed int value);
+extern unsigned char factory_msg_handler(signed int subtype, signed int value);
 #endif
 
 enum factory_can_write_read_type
@@ -288,7 +288,9 @@ static at_result_t at_factory_setup(const char *args)
     case FACTORY_WIOTA:
     {
 #ifdef _L1_FACTORY_FUNC_
-        factory_msg_handler(data, data1);
+        if (!factory_msg_handler(data, data1)) {
+			return AT_RESULT_FAILE;	
+		}
 #endif
         break;
     }

@@ -56,6 +56,17 @@ typedef enum {
     UC_OP_FAIL,
 }UC_OP_RESULT;
 
+typedef enum {
+	UC_MCS_LEVEL_0 = 0,
+	UC_MCS_LEVEL_1,
+	UC_MCS_LEVEL_2,
+	UC_MCS_LEVEL_3,
+	UC_MCS_LEVEL_4,
+	UC_MCS_LEVEL_5,
+	UC_MCS_LEVEL_6,
+	UC_MCS_LEVEL_7,
+	UC_MCS_LEVEL_INVALID = 8,
+}UC_MCS_LEVEL;
 
 typedef struct {
      unsigned char         rssi;        // absolute value, 0~150, always negative
@@ -170,4 +181,5 @@ void uc_wiota_flash_backup_init(void);
 
 void uc_wiota_set_is_gating(boolean is_gating);
 
+void uc_wiota_set_mcs_limit(unsigned char mcs_limit);
 #endif

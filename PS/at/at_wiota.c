@@ -618,6 +618,16 @@ static at_result_t at_wiotalpm_setup(const char *args)
     return AT_RESULT_OK;
 }
 
+static at_result_t at_wiotamcs_setup(const char *args)
+{
+	int mcs_limit = 0XFF;
+	
+	args = parse ((char*)(++args),"d", &mcs_limit);
+
+	uc_wiota_set_mcs_limit((unsigned char)mcs_limit);
+	
+	return AT_RESULT_OK;
+}
 
 AT_CMD_EXPORT("AT+WIOTAINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_init_exec);
 AT_CMD_EXPORT("AT+WIOTASCANF", "=<timeout>,<len>", RT_NULL, RT_NULL, at_scan_freq_setup, at_scan_freq_exec);
@@ -631,6 +641,7 @@ AT_CMD_EXPORT("AT+WIOTACONNECT", "=<state>,<activetime>", RT_NULL, at_connect_qu
 AT_CMD_EXPORT("AT+WIOTASEND", "=<timeout>,<len>", RT_NULL, RT_NULL, at_wiotasend_setup, at_wiotasend_exec);
 AT_CMD_EXPORT("AT+WIOTARECV", "=<timeout>", RT_NULL, RT_NULL, at_wiotarecv_setup, at_wiota_recv_exec );
 AT_CMD_EXPORT("AT+WIOTALPM", "=<mode>,<state>", RT_NULL, RT_NULL, at_wiotalpm_setup, RT_NULL );
+AT_CMD_EXPORT("AT+WIOTAMCS", "=<mcs>", RT_NULL, RT_NULL, at_wiotamcs_setup, RT_NULL );
 
 #endif
 

@@ -155,13 +155,13 @@ void at_server_print_result(at_result_t result)
     switch (result)
     {
         case AT_RESULT_OK:
-            at_server_printfln("");
+//            at_server_printfln("");
             at_server_printfln("OK");
             break;
 
         case AT_RESULT_FAILE:
         case AT_RESULT_NULL:
-            at_server_printfln("");
+//            at_server_printfln("");
             at_server_printfln("ERROR");
             break;
 
