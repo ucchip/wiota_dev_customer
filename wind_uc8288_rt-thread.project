@@ -343,7 +343,7 @@ load</PostConnectCommands>
         <StartupCommands/>
       </Debugger>
       <PreBuild>
-        <Command Enabled="yes">python .\packages\current_version.py</Command>
+        <Command Enabled="yes">.\packages\current_version.exe</Command>
         <Command Enabled="yes"/>
       </PreBuild>
       <PostBuild>
