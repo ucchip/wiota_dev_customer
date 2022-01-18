@@ -1,15 +1,23 @@
 v0.01 修改如下：
- 1、增加wiota at指令功能；
- 2、修改发送数据信号量释放逻辑异常造成的dump；
- 3、解决内存泄露问题；
- 4、增加生存时间接口，解决终端和AP的状态同步问题；
- 5、增加广播和OTA业务支持；
+	1、增加wiota at指令功能；
+	2、修改发送数据信号量释放逻辑异常造成的dump；
+	3、解决内存泄露问题；
+	4、增加生存时间接口，解决终端和AP的状态同步问题；
+	5、增加广播和OTA业务支持；
 v0.04修改如下：
-1. new chip/ROM support
-2. AT interface update
-3. factory test support
-4. riscv bugs fixed
-5. riscv clock gating
-6. paging receive support
+	1. new chip/ROM support
+	2. AT interface update
+	3. factory test support
+	4. riscv bugs fixed
+	5. riscv clock gating
+	6. paging receive support
 v0.041修改如下：
 	1、增加mcs设置接口
+v0.05修改如下：
+	1. basic traffic control function
+	2. rv internal bugs fixed
+	3. rv/cce version show at
+	4. report radio info of max power and current mcs
+	5. support ul/dl when OTA
+	6. light indicate: (1) light off: not sync, (2) flash slow: synced, (3) flash fast: ul, (4) light on: ota/dl
+	7. auto mcs strategy update

@@ -14,6 +14,7 @@ typedef char n8_t;
 typedef signed char  s8_t;
 typedef unsigned char  u8_t;
 typedef unsigned char boolean;
+
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -56,38 +57,42 @@ typedef enum {
     UC_OP_FAIL,
 }UC_OP_RESULT;
 
+
 typedef enum {
-	UC_MCS_LEVEL_0 = 0,
-	UC_MCS_LEVEL_1,
-	UC_MCS_LEVEL_2,
-	UC_MCS_LEVEL_3,
-	UC_MCS_LEVEL_4,
-	UC_MCS_LEVEL_5,
-	UC_MCS_LEVEL_6,
-	UC_MCS_LEVEL_7,
-	UC_MCS_LEVEL_INVALID = 8,
+    UC_MCS_LEVEL_0 = 0,
+    UC_MCS_LEVEL_1,
+    UC_MCS_LEVEL_2,
+    UC_MCS_LEVEL_3,
+    UC_MCS_LEVEL_4,
+    UC_MCS_LEVEL_5,
+    UC_MCS_LEVEL_6,
+    UC_MCS_LEVEL_7,
+    UC_MCS_LEVEL_INVALID = 8,
 }UC_MCS_LEVEL;
 
+
 typedef struct {
-     unsigned char         rssi;        // absolute value, 0~150, always negative
-     unsigned char         ber;
-     signed char           snr;
-     signed char           power;
+    unsigned char   rssi;        // absolute value, 0~150, always negative
+    unsigned char   ber;
+    signed char     snr;
+    signed char     cur_power;
+    signed char     max_power;
+    unsigned char   cur_mcs;
 }radio_info_t;
 
 
 typedef struct {
-        unsigned char   ap_max_pow;         // 21, 30,
-        unsigned char   id_len;           // 0: 2, 1: 4, 2: 6, 3: 8
-        unsigned char   pn_num;           // 0: 1, 1: 2, 2: 4, 3: not use
-        unsigned char   symbol_length;    //128,256,512,1024
-        unsigned char   dlul_ratio;       // 0 1:1,  1 1:2
-        unsigned char   btvalue;          //bt from rf 1: 0.3, 0: 1.2
-        unsigned char   group_number;     //frame ul group number: 0,1,2,3: 1,2,4,8
-        unsigned char   spectrum_idx;      //default 3, 470M~510M;
-        unsigned int    systemid;
-        unsigned int    subsystemid;
-        unsigned char   na[48];
+    unsigned char   ap_max_pow;         // 21, 30,
+    unsigned char   id_len;           // 0: 2, 1: 4, 2: 6, 3: 8
+    unsigned char   pn_num;           // 0: 1, 1: 2, 2: 4, 3: not use
+    unsigned char   symbol_length;    //128,256,512,1024
+    unsigned char   dlul_ratio;       // 0 1:1,  1 1:2
+    unsigned char   btvalue;          //bt from rf 1: 0.3, 0: 1.2
+    unsigned char   group_number;     //frame ul group number: 0,1,2,3: 1,2,4,8
+    unsigned char   spectrum_idx;      //default 3, 470M~510M;
+    unsigned int    systemid;
+    unsigned int    subsystemid;
+    unsigned char   na[48];
 }sub_system_config_t;
 
 
@@ -135,7 +140,7 @@ typedef struct {
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
 
-void uc_wiota_get_version(u8_t *version, u8_t *time);
+void uc_wiota_get_version(u8_t *version, u8_t *version_info, u8_t *time);
 
 void uc_wiota_init(void);
 
@@ -149,7 +154,7 @@ void uc_wiota_disconnect(void);
 
 UC_WIOTA_STATUS uc_wiota_get_state(void);
 
-void uc_wiota_set_dcxo(unsigned int  dcxo);
+void uc_wiota_set_dcxo(unsigned int dcxo);
 
 void uc_wiota_set_freq_info(unsigned char freq_idx);
 
@@ -179,7 +184,14 @@ void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned int ti
 
 void uc_wiota_flash_backup_init(void);
 
-void uc_wiota_set_is_gating(boolean is_gating);
+void uc_wiota_set_is_gating(unsigned char is_gating);
+
+void uc_wiota_set_gating_event(unsigned char action, unsigned char event_id);
 
 void uc_wiota_set_mcs_limit(unsigned char mcs_limit);
+
+void uc_wiota_set_cur_power(signed char power);
+
+void uc_wiota_set_max_power(signed char power);
+
 #endif
