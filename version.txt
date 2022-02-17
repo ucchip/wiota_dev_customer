@@ -21,3 +21,15 @@ v0.05修改如下：
 	5. support ul/dl when OTA
 	6. light indicate: (1) light off: not sync, (2) flash slow: synced, (3) flash fast: ul, (4) light on: ota/dl
 	7. auto mcs strategy update
+v0.07修改如下：
+	iote：
+		1. riscv bugs fixed
+		2. auto mcs strategy update
+		3. cce bugs fixed
+		4. dl ul ratio = 1:2, muti mode update
+		5. optimit version query
+		6. log default uart1 bound rate 460800, at cmd default uart0 bound rate 115200
+		7. relevant at and api update.
+	ap8288：
+		1. close riscv log except init log
+		2. cce ul ack bug fixed

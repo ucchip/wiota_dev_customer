@@ -71,6 +71,12 @@ typedef enum {
 }UC_MCS_LEVEL;
 
 
+typedef enum {
+    UC_LOG_UART = 0,
+    UC_LOG_SPI,
+}UC_LOG_TYPE;
+
+
 typedef struct {
     unsigned char   rssi;        // absolute value, 0~150, always negative
     unsigned char   ber;
@@ -140,7 +146,7 @@ typedef struct {
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
 
-void uc_wiota_get_version(u8_t *version, u8_t *version_info, u8_t *time);
+void uc_wiota_get_version(u8_t *wiota_version, u8_t *git_info, u8_t *time, u32_t *cce_version);
 
 void uc_wiota_init(void);
 
@@ -193,5 +199,7 @@ void uc_wiota_set_mcs_limit(unsigned char mcs_limit);
 void uc_wiota_set_cur_power(signed char power);
 
 void uc_wiota_set_max_power(signed char power);
+
+void uc_wiota_log_switch(unsigned char log_type, unsigned char is_open);
 
 #endif

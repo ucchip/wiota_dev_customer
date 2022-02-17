@@ -110,7 +110,7 @@ void at_server_printfln(const char* format, ...)
 
     va_start(args, format);
 #ifdef SUPPORT_SPI_AT
-at_vprintfln(at_server_local->spi_result, format, args);
+    at_vprintfln(at_server_local->spi_result, format, args);
 #else
     at_vprintfln(at_server_local->device, format, args);
 #endif
@@ -666,25 +666,16 @@ int at_server_init(void)
         goto __exit;
     }
 
-#ifdef AT_UART0_DEBUG_
     /* Find and open command device */
-    at_server_local->device = rt_device_find(RT_CONSOLE_DEVICE_NAME);
-#else
     at_server_local->device = rt_device_find(AT_SERVER_DEVICE);
-#endif
-    
         
     if (at_server_local->device)
     {
-#ifndef AT_UART0_DEBUG_
         struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT; /*init default parment*/
-#endif
         RT_ASSERT(at_server_local->device->type == RT_Device_Class_Char);
-#ifndef AT_UART0_DEBUG_
         //config baud rate 115200
         config.baud_rate = BAUD_RATE_115200;
         rt_device_control(at_server_local->device, RT_DEVICE_CTRL_CONFIG, &config);
-#endif
         /* using DMA mode first */
         //open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_DMA_RX);
         /* using interrupt mode when DMA mode not supported */
@@ -711,7 +702,7 @@ int at_server_init(void)
     at_server_local->parser = rt_thread_create("at_svr",
                                                (void (*)(void* parameter))server_parser,
                                                at_server_local,
-                                               2 * 1124,
+                                               2 * 1524,
                                                /*RT_THREAD_PRIORITY_MAX / 3 - 1*/ 3,
                                                5);
     if (at_server_local->parser == RT_NULL)

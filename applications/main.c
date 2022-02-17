@@ -29,16 +29,16 @@
 extern void uc_wiota_flash_backup_init(void);
 
 
-void task_callback(struct rt_thread* from, struct rt_thread* to)
-{
-    rt_kprintf("name = %s, 0x%x\n", from->name, from);
-}
-
-
-void init_statistical_task_info(void)
-{
-    rt_scheduler_sethook(task_callback);
-}
+//void task_callback(struct rt_thread* from, struct rt_thread* to)
+//{
+//    rt_kprintf("name = %s, 0x%x\n", from->name, from);
+//}
+//
+//
+//void init_statistical_task_info(void)
+//{
+//    rt_scheduler_sethook(task_callback);
+//}
 
 
 int main(void)

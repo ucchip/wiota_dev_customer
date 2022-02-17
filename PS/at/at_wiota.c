@@ -34,6 +34,17 @@ enum at_wiota_lpm
 };
 
 
+enum at_wiota_log
+{
+    AT_LOG_CLOSE = 0,
+    AT_LOG_OPEN,
+    AT_LOG_UART0,
+    AT_LOG_UART1,
+    AT_LOG_SPI_CLOSE,
+    AT_LOG_SPI_OPEN,
+};
+
+
 #define ADC_DEV_NAME                      "adc"  
 
 #define WIOTA_SCAN_FREQ_TIMEOUT 120000
@@ -64,12 +75,14 @@ static at_result_t at_wiota_version_exec(void)
     u8_t version[8] = {0};
     u8_t git_info[36] = {0};
     u8_t time[36] = {0};
+    u32_t cce_version = 0;
     
-    uc_wiota_get_version(version, git_info, time);
+    uc_wiota_get_version(version, git_info, time, &cce_version);
 
-    at_server_printfln("+VERSION:%s", version);
+    at_server_printfln("+WIOTAVERSION:%s", version);
     at_server_printfln("+GITINFO:%s", git_info);
     at_server_printfln("+TIME:%s", time);
+    at_server_printfln("+CCEVERSION:%x", cce_version);
       
     return AT_RESULT_OK;
 }
@@ -291,10 +304,10 @@ static at_result_t at_system_config_query(void)
     sub_system_config_t config;
     uc_wiota_get_system_config(&config);
 
-    at_server_printfln("+WIOTASYSTEMCONFIG=%d,%d,%d,%d,%d,%d,%d", \
-        config.id_len, \
-        config.symbol_length, config.dlul_ratio, config.btvalue, \
-        config.group_number, config.systemid, config.subsystemid);
+    at_server_printfln("+WIOTASYSTEMCONFIG=%d,%d,%d,%d,%d,%d,%d,0x%x,0x%x", \
+        config.id_len, config.symbol_length, config.dlul_ratio, \
+        config.btvalue, config.group_number, config.ap_max_pow, \
+        config.spectrum_idx,config.systemid, config.subsystemid);
 
     return AT_RESULT_OK;
 }
@@ -302,13 +315,23 @@ static at_result_t at_system_config_query(void)
 static at_result_t at_system_config_setup(const char* args)
 {
     sub_system_config_t config;
+    unsigned int temp[7];
 
     WIOTA_MUST_INIT(wiota_state)
 
-    args = parse ((char*)(++args),"d,d,d,d,d,y,y", \
-    &config.id_len,  &config.symbol_length, &config.dlul_ratio,\
-        &config.btvalue, &config.group_number, &config.systemid, \
-        &config.subsystemid);
+    args = parse ((char*)(++args),"d,d,d,d,d,d,d,y,y", \
+        &temp[0],  &temp[1], &temp[2], \
+        &temp[3],  &temp[4], &temp[5], \
+        &temp[6],  &config.systemid, &config.subsystemid);   
+   
+    config.id_len = (unsigned char)temp[0];
+    config.symbol_length = (unsigned char)temp[1];
+    config.dlul_ratio = (unsigned char)temp[2];
+    config.btvalue = (unsigned char)temp[3];
+    config.group_number = (unsigned char)temp[4];
+    config.ap_max_pow = (unsigned char)temp[5];
+    config.spectrum_idx = (unsigned char)temp[6];
+
     if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
@@ -316,12 +339,11 @@ static at_result_t at_system_config_setup(const char* args)
 
     // default config
     config.pn_num = 1;
-    config.ap_max_pow = 21;
-    config.spectrum_idx = 3;
 
-    rt_kprintf("len=%d,symbol_length=%d,dlul_ratio=%d,btvalue=%d,group_number=%d,systemid=0x%x,subsystemid=0x%x\n",
+    rt_kprintf("id_len=%d,symbol_len=%d,dlul=%d,bt=%d,group_num=%d,ap_max_pow=%d,spec_idx=%d,systemid=0x%x,subsystemid=0x%x\n",
                 config.id_len, config.symbol_length, config.dlul_ratio,
-                config.btvalue, config.group_number, config.systemid, config.subsystemid);
+                config.btvalue, config.group_number, config.ap_max_pow,
+                config.spectrum_idx,config.systemid, config.subsystemid);
 
     uc_wiota_set_system_config(&config);
 
@@ -405,7 +427,7 @@ static at_result_t at_connect_setup(const char* args)
     if (wiota_state != AT_WIOTA_RUN)
         return AT_RESULT_REPETITIVE_FAILE;
 
-    rt_kprintf("state = %d, timeout=%d", state, timeout);
+    rt_kprintf("state = %d, timeout=%d\n", state, timeout);
 
     if (timeout)
         uc_wiota_set_activetime((unsigned int)timeout);
@@ -673,6 +695,79 @@ static at_result_t at_wiotapow_setup(const char *args)
 }
 
 
+#if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
+
+void at_handle_log_uart(int uart_number) 
+{
+    rt_device_t device = NULL;
+//    rt_device_t old_device = NULL;
+    struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT; /*init default parment*/
+    
+    device = rt_device_find(AT_SERVER_DEVICE);
+
+    if (device)
+    {
+        rt_device_close(device);
+    }
+
+    if (0 == uart_number) 
+    {
+        config.baud_rate = BAUD_RATE_460800;
+        rt_console_set_device(AT_SERVER_DEVICE);
+    } 
+    else if (1 == uart_number) 
+    {
+        config.baud_rate = BAUD_RATE_115200;
+        rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
+    }
+    
+    if (device)
+    {
+        rt_device_control(device, RT_DEVICE_CTRL_CONFIG, &config);    
+        rt_device_open(device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX);
+    }
+}
+
+#endif
+
+
+static at_result_t at_wiotalog_setup(const char *args)
+{
+    int mode = 0;
+    
+    args = parse ((char*)(++args),"d",&mode);
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+    
+    switch(mode)
+    {
+        case AT_LOG_CLOSE:
+        case AT_LOG_OPEN:
+            uc_wiota_log_switch(UC_LOG_UART,mode-AT_LOG_CLOSE);
+            break;
+        
+        case AT_LOG_UART0:
+        case AT_LOG_UART1:
+#if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
+            at_handle_log_uart(mode-AT_LOG_UART0);
+#endif
+            break;
+
+        case AT_LOG_SPI_CLOSE:
+        case AT_LOG_SPI_OPEN:
+            uc_wiota_log_switch(UC_LOG_SPI,mode-AT_LOG_SPI_CLOSE);
+            break;
+      
+        default:
+            return AT_RESULT_FAILE;
+    }
+    
+    return AT_RESULT_OK;
+}
+
+
 AT_CMD_EXPORT("AT+WIOTAVERSION", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_version_exec);
 AT_CMD_EXPORT("AT+WIOTAINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_init_exec);
 AT_CMD_EXPORT("AT+WIOTALPM", "=<mode>,<state>", RT_NULL, RT_NULL, at_wiotalpm_setup, RT_NULL );
@@ -682,12 +777,13 @@ AT_CMD_EXPORT("AT+WIOTASCANF", "=<timeout>,<len>", RT_NULL, RT_NULL, at_scan_fre
 AT_CMD_EXPORT("AT+WIOTAFREQ", "=<freqpint>", RT_NULL, at_freq_query, at_freq_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTADCXO", "=<dcxo>", RT_NULL, RT_NULL, at_dcxo_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAUSERID", "=<id0>,<id1>", RT_NULL, at_userid_query, at_userid_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTARADIO", "=<temp>,<rssi>,<ber>,<snr><power>", RT_NULL, at_radio_query, RT_NULL, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTACONFIG", "=<id_len>,<symbol>,<dlul>,<bt>,<group_num>,<systemid>,<subsystemid>", RT_NULL, at_system_config_query, at_system_config_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTARADIO", "=<temp>,<rssi>,<ber>,<snr>,<cur_pow>,<max_pow>,<cur_mcs>", RT_NULL, at_radio_query, RT_NULL, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTACONFIG", "=<id_len>,<symbol>,<dlul>,<bt>,<group_num>,<ap_max_pow>,<spec_idx>,<systemid>,<subsystemid>", RT_NULL, at_system_config_query, at_system_config_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTARUN", "=<state>", RT_NULL, RT_NULL, at_wiota_cfun_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTACONNECT", "=<state>,<activetime>", RT_NULL, at_connect_query, at_connect_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTASEND", "=<timeout>,<len>", RT_NULL, RT_NULL, at_wiotasend_setup, at_wiotasend_exec);
-AT_CMD_EXPORT("AT+WIOTARECV", "=<timeout>", RT_NULL, RT_NULL, at_wiotarecv_setup, at_wiota_recv_exec );
+AT_CMD_EXPORT("AT+WIOTARECV", "=<timeout>", RT_NULL, RT_NULL, at_wiotarecv_setup, at_wiota_recv_exec);
+AT_CMD_EXPORT("AT+WIOTALOG", "=<mode>", RT_NULL, RT_NULL, at_wiotalog_setup, RT_NULL);
 
 
 #endif

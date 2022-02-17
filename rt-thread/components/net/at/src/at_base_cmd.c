@@ -8,13 +8,14 @@
  * 2018-04-01     armink       first version
  * 2018-04-04     chenyong     add base commands
  */
+#ifdef UC8288_MODULE
 
 #include <at.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <rtdevice.h>
-
+#include "ati_prs.h"
 #ifdef AT_USING_SERVER
 
 #define AT_ECHO_MODE_CLOSE             0
@@ -26,8 +27,7 @@ static at_result_t at_exec(void)
 {
     return AT_RESULT_OK;
 }
-AT_CMD_EXPORT("AT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_exec);
-
+/*
 static at_result_t atz_exec(void)
 {
     at_server_printfln("OK");
@@ -36,22 +36,55 @@ static at_result_t atz_exec(void)
 
     return AT_RESULT_NULL;
 }
-AT_CMD_EXPORT("ATZ", RT_NULL, RT_NULL, RT_NULL, RT_NULL, atz_exec);
+*/
+#define AT_WDT_DEVICE_NAME    "wdt" 
+
+static int watchdog_reset(void)
+{
+    rt_err_t ret = RT_EOK;
+    rt_uint32_t timeout = 1;     
+    rt_device_t at_wdg_dev = rt_device_find(AT_WDT_DEVICE_NAME);
+    if (!at_wdg_dev)
+    {
+        rt_kprintf("find %s failed!\n", AT_WDT_DEVICE_NAME);
+        return 1;
+    }
+
+    ret = rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_SET_TIMEOUT, &timeout);
+    if (ret != RT_EOK)
+    {
+        rt_kprintf("set %s timeout failed!\n", AT_WDT_DEVICE_NAME);
+        return 2;
+    }
+
+    if (rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_START, RT_NULL) != RT_EOK)
+    {
+        rt_kprintf("start %s failed!\n", AT_WDT_DEVICE_NAME);
+        return 3;
+    }
+    
+    rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_KEEPALIVE, NULL);
+    
+    return 0;
+}
 
 static at_result_t at_rst_exec(void)
 {
-    at_server_printfln("OK");
-
-    at_port_reset();
-
-    return AT_RESULT_NULL;
+    if (!watchdog_reset())
+    {
+        at_server_printfln("OK");
+        while(1);
+    }
+    return AT_RESULT_FAILE;
 }
-AT_CMD_EXPORT("AT+RST", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_rst_exec);
+
 
 static at_result_t ate_setup(const char* args)
 {
-    int echo_mode = atoi(args);
-
+    int echo_mode = 0;
+    
+    args = parse ((char*)(args),"d", &echo_mode);
+    
     if (echo_mode == AT_ECHO_MODE_CLOSE || echo_mode == AT_ECHO_MODE_OPEN)
     {
         at_get_server()->echo_mode = echo_mode;
@@ -63,7 +96,6 @@ static at_result_t ate_setup(const char* args)
 
     return AT_RESULT_OK;
 }
-AT_CMD_EXPORT("ATE", "<value>", RT_NULL, RT_NULL, ate_setup, RT_NULL);
 
 static at_result_t at_show_cmd_exec(void)
 {
@@ -73,13 +105,12 @@ static at_result_t at_show_cmd_exec(void)
 
     return AT_RESULT_OK;
 }
-AT_CMD_EXPORT("AT&L", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_show_cmd_exec);
 
 static at_result_t at_uart_query(void)
 {
     struct rt_serial_device* serial = (struct rt_serial_device*)at_get_server()->device;
 
-    at_server_printfln("AT+UART=%d,%d,%d,%d,%d", serial->config.baud_rate, serial->config.data_bits,
+    at_server_printfln("+UART=%d,%d,%d,%d,%d", serial->config.baud_rate, serial->config.data_bits,
                        serial->config.stop_bits, serial->config.parity, 1);
 
     return AT_RESULT_OK;
@@ -88,20 +119,19 @@ static at_result_t at_uart_query(void)
 static at_result_t at_uart_setup(const char* args)
 {
     struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
-    int baudrate, databits, stopbits, parity, flow_control, argc;
-    const char* req_expr = "=%d,%d,%d,%d,%d";
-
-    argc = at_req_parse_args(args, req_expr, &baudrate, &databits, &stopbits, &parity, &flow_control);
-    if (argc != 5)
+    int baudrate, databits, stopbits, parity, flow_control;
+    
+    args = parse ((char*)(++args),"ddddd", &baudrate, &databits, &stopbits, &parity, &flow_control);
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
 
-    at_server_printfln("UART baudrate : %d", baudrate);
-    at_server_printfln("UART databits : %d", databits);
-    at_server_printfln("UART stopbits : %d", stopbits);
-    at_server_printfln("UART parity   : %d", parity);
-    at_server_printfln("UART control  : %d", flow_control);
+    //at_server_printfln("UART baudrate : %d", baudrate);
+    //at_server_printfln("UART databits : %d", databits);
+    //at_server_printfln("UART stopbits : %d", stopbits);
+    //at_server_printfln("UART parity   : %d", parity);
+    //at_server_printfln("UART control  : %d", flow_control);
 
     config.baud_rate = baudrate;
     config.data_bits = databits;
@@ -116,6 +146,12 @@ static at_result_t at_uart_setup(const char* args)
     return AT_RESULT_OK;
 }
 
+AT_CMD_EXPORT("AT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_exec);
+//AT_CMD_EXPORT("ATZ", RT_NULL, RT_NULL, RT_NULL, RT_NULL, atz_exec);
+AT_CMD_EXPORT("AT+RST",RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_rst_exec);
+AT_CMD_EXPORT("ATE", "<value>", RT_NULL, RT_NULL, ate_setup, RT_NULL);
+AT_CMD_EXPORT("AT&L", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_show_cmd_exec);
 AT_CMD_EXPORT("AT+UART", "=<baudrate>,<databits>,<stopbits>,<parity>,<flow_control>", RT_NULL, at_uart_query, at_uart_setup, RT_NULL);
 
 #endif /* AT_USING_SERVER */
+#endif

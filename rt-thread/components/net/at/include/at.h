@@ -81,6 +81,27 @@ enum at_result
 };
 typedef enum at_result at_result_t;
 
+#ifdef SUPPORT_SPI_AT
+typedef enum spi_flag
+{
+    SPI_FLAG_IDLE = 0,
+    SPI_FLAG_BUSY,
+    SPI_FLAG_READY,
+}spi_option_flag;
+
+#define SPI_AT_DATA_MAX   508
+
+typedef struct spi_at
+{
+    char flag;
+    short len;
+    char note;
+    char data[SPI_AT_DATA_MAX];
+}spi_at_buf;
+
+#endif
+
+
 struct at_cmd
 {
     char name[AT_CMD_NAME_LEN];
@@ -94,15 +115,21 @@ typedef struct at_cmd* at_cmd_t;
 
 struct at_server
 {
+#ifdef SUPPORT_SPI_AT
+    spi_at_buf *spi_cmd;
+    spi_at_buf *spi_result;
+#else
     rt_device_t device;
-
+#endif
     at_status_t status;
     rt_err_t (*get_char)(struct at_server* server, char* ch, rt_int32_t timeout);
     rt_bool_t echo_mode;
 
     char recv_buffer[AT_SERVER_RECV_BUFF_LEN];
     rt_size_t cur_recv_len;
+#ifndef SUPPORT_SPI_AT
     rt_sem_t rx_notice;
+#endif
     char end_mark[AT_END_MARK_LEN];
 
     rt_thread_t parser;

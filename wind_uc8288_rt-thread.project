@@ -305,7 +305,7 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="pulpino" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;-D UC8288_FACTORY;-D AT_UART0_DEBUG_;-D _L1_FACTORY_FUNC_;-D _CLK_GATING_;" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;-D UC8288_FACTORY;-D _L1_FACTORY_FUNC_;-D _CLK_GATING_;" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="applications"/>
         <IncludePath Value="board"/>
