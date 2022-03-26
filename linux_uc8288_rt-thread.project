@@ -5,11 +5,20 @@
       <![CDATA[00010001N0005Debug000000000000]]>
     </Plugin>
   </Plugins>
+  <VirtualDirectory Name="boot">
+    <VirtualDirectory Name="inc">
+      <File Name="boot/inc/uc_print.h"/>
+      <File Name="boot/inc/uc_boot_ymodem.h"/>
+      <File Name="boot/inc/uc_boot_uart.h"/>
+      <File Name="boot/inc/uc_boot_download.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
   <VirtualDirectory Name="PS">
     <VirtualDirectory Name="at">
       <File Name="PS/at/ati_prs.h"/>
       <File Name="PS/at/at_wiota.c"/>
       <File Name="PS/at/at_factory.c"/>
+      <File Name="PS/at/at_boot.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="app">
       <VirtualDirectory Name="include">
@@ -293,7 +302,6 @@
     <File Name="cconfig.h"/>
     <File Name="rtconfig.h"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
@@ -305,10 +313,11 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="riscv( riscv32-unknown-elf )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;-D UC8288_FACTORY;-D _L1_FACTORY_FUNC_;-D _CLK_GATING_;" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;-D UC8288_FACTORY;-D _L1_FACTORY_FUNC_;-D _CLK_GATING_;-D _WATCHDOG_APP_" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="applications"/>
         <IncludePath Value="board"/>
+        <IncludePath Value="boot/inc"/>
         <IncludePath Value="$(ProjectPath)/libraries/HAL_Drivers"/>
         <IncludePath Value="$(ProjectPath)/libraries/UC8288_HAL_Driver/inc"/>
         <IncludePath Value="$(ProjectPath)/rt-thread/components/drivers/include"/>
@@ -371,4 +380,5 @@ load</PostConnectCommands>
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
 </CodeLite_Project>

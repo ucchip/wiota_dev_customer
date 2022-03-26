@@ -73,9 +73,10 @@ zero_loop_end:
   /* Run global initialization functions */
   li a0, 1                      /* set app mode */
   call  set_program_type
-  
   call  boot_noop
   call  boot_strap
+  li a0, 1
+  call  boot_download
   call  __libc_init_array
   j main_entry
   
@@ -92,7 +93,7 @@ main_entry:
   * 196/2Mhz   VHD model value 84 for 115200
   */
   //addi   x11, x0, 84 //98Mhz, 1152000 for sim
-  addi   x11, x0, 70  //131.072Mhz, 115200 for sim
+  //addi   x11, x0, 70  //131.072Mhz, 115200 for sim
   //addi   x11, x0, 22 //26M DCXO, just leave it here, not necessary
   //jal  uart_set_cfg 
   

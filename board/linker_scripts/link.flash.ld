@@ -12,7 +12,8 @@ MEMORY
     instrram    : ORIGIN = 0x00003000, LENGTH = 0x1fd00 /*127K actually rom... */
     datarom     : ORIGIN = 0x00200000, LENGTH = 0x4FC00 /*319k data rom*/
     staticdata  : ORIGIN = 0x0024FC00, LENGTH = 0x2000   /*8k static data*/
-    dataram     : ORIGIN = 0x00308000, LENGTH = 0x6c00
+    dataram     : ORIGIN = 0x00308000, LENGTH = 0x6bf0 
+    share       : ORIGIN = 0x0030EBF0, LENGTH = 0x10     /*16 byte*/
     traceram    : ORIGIN = 0x0030EC00, LENGTH = 0x400  /*1 K */
     stack       : ORIGIN = 0x0030F000, LENGTH = 0x100  /* 256 B */
     func_rom    : ORIGIN = 0x00404400, LENGTH = 0x2800 /* 10 K */
@@ -46,6 +47,7 @@ SECTIONS
         . = ALIGN(4);
         *(.reset)
         *(.crt0);
+        *(.download);
         . += 80;
         . = ALIGN(4096);
         _stbl_end = .;
@@ -228,6 +230,11 @@ _endtext = .;
         _end = .;
     } > dataram
 
+    .share :
+    {
+        . = ALIGN(4);
+        *(.share_data)
+    } > share 
       
     .trace_buff :
     {

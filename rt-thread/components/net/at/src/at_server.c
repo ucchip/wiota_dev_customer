@@ -561,6 +561,11 @@ static void server_parser(at_server_t server)
 
         if (!strstr(server->recv_buffer, server->end_mark))
         {
+            if ((server->cur_recv_len+1) == AT_SERVER_RECV_BUFF_LEN)
+            {
+                server->cur_recv_len = 0;
+                memset(server->recv_buffer, 0x00, AT_SERVER_RECV_BUFF_LEN);
+            }
             continue;
         }
 

@@ -23,7 +23,7 @@
  *              the SoC clock divided by 16*2 = 32 is used. A value of 31 would mean
  *              that we use the SoC clock divided by 16*32 = 512.
  */
-__crt0 void uart_set_cfg(int parity, uint16_t clk_counter)
+ void uart_set_cfg(int parity, uint16_t clk_counter)
 {
     CGREG |= (1 << CGUART); // don't clock gate UART
     *(volatile unsigned int*)(UART_REG_LCR) = 0x83; //sets 8N1 and set DLAB to 1

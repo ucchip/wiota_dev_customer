@@ -36,7 +36,7 @@ int watchdog_app_init(void)
     return ret;
 }
 
-int watchdog_app_disalbe(void)
+int watchdog_app_disable(void)
 {
     rt_err_t ret = RT_EOK;
 
@@ -67,7 +67,7 @@ int watchdog_app_enable(void)
 
 void watchdog_app_close(void)
 {
-    watchdog_app_disalbe();
+    watchdog_app_disable();
     rt_thread_idle_delhook(idle_watchdog_hook);
 }
 

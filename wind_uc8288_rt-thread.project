@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="wind_uc8288_rt-thread" Version="11000" InternalType="RISCV" IconIndex="Console">
+  <VirtualDirectory Name="boot">
+    <VirtualDirectory Name="inc">
+      <File Name="boot/inc/uc_print.h"/>
+      <File Name="boot/inc/uc_boot_ymodem.h"/>
+      <File Name="boot/inc/uc_boot_uart.h"/>
+      <File Name="boot/inc/uc_boot_download.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00010001N0005Debug000000000000]]>
@@ -10,6 +18,7 @@
       <File Name="PS/at/ati_prs.h"/>
       <File Name="PS/at/at_wiota.c"/>
       <File Name="PS/at/at_factory.c"/>
+      <File Name="PS/at/at_boot.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="app">
       <VirtualDirectory Name="include">
@@ -305,10 +314,11 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="pulpino" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;-D UC8288_FACTORY;-D _L1_FACTORY_FUNC_;-D _CLK_GATING_;" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections " C_Options="-g -Os -Wall  -march=rv32imfc  -ffunction-sections;-D _UART_DRIVER_;-D _UART_IO_MODIFY_;-D UART_ISR_ENABLE;-D _FPGA_;-D _ALLOW_TRACE_PRITF_TEST_;-D _RT_THREAD_;-D UC8288_MODULE;-D UC8288_FACTORY;-D _L1_FACTORY_FUNC_;-D _CLK_GATING_;-D _WATCHDOG_APP_" Assembler="-c -g  -march=rv32imfc" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="applications"/>
         <IncludePath Value="board"/>
+        <IncludePath Value="boot/inc"/>
         <IncludePath Value="$(ProjectPath)/libraries/HAL_Drivers"/>
         <IncludePath Value="$(ProjectPath)/libraries/UC8288_HAL_Driver/inc"/>
         <IncludePath Value="$(ProjectPath)/rt-thread/components/drivers/include"/>
@@ -331,7 +341,6 @@
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
-      <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -371,4 +380,5 @@ load</PostConnectCommands>
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
 </CodeLite_Project>

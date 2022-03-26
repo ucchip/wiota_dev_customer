@@ -70,8 +70,9 @@ __critical void FlashWrite(uint32_t nAddr, const uint8_t* pData, uint16_t usLen)
 {
     uint16_t usPage, i, usLenTmp;
     uint32_t nTmp;
+    
+    if (usLen == 0) { return; }
 
-    if (nAddr == 0) { return; }
     usPage = (usLen & FLASH_PAGE_MASK) > 0 ? (usLen >> FLASH_PAGE_BIT_SHIFT) + 1 : usLen >> FLASH_PAGE_BIT_SHIFT;
     WAIT_FOR_WR_DONE;
 
@@ -88,7 +89,7 @@ __critical void FlashWrite(uint32_t nAddr, const uint8_t* pData, uint16_t usLen)
 #ifdef FLASH_USE_READ
 __critical void FlashRead(uint32_t nAddr, uint8_t* pData, uint16_t usLen)
 {
-    if (nAddr == 0) { return; }
+    if (usLen == 0) { return; }
     spi_read_fifo(NULL, 0);
     REG_SPI_DUMMY = 0;
     WAIT_XIP_FREE;

@@ -512,6 +512,9 @@ void rtc_set_alarm(RTC_TypeDef* RTCx, rtc_alarm_t* rtc_alarm)
     CHECK_PARAM(PARAM_RTC_Mon_RATE  (rtc_alarm->mon));
     CHECK_PARAM(PARAM_RTC_Day_RATE  (rtc_alarm->day));
 
+//    rt_kprintf("year %d mon %d day %d week %d hour %d min %d sec %d mask 0x%x\n",
+//        rtc_alarm->year,rtc_alarm->mon,rtc_alarm->day,rtc_alarm->week,rtc_alarm->hour,rtc_alarm->min,rtc_alarm->sec,rtc_alarm->mask);
+                                    
     RTCx->AS0 = RTC_MAKE_HMS(rtc_alarm->hour, rtc_alarm->min, rtc_alarm->sec);
     RTCx->AS1 = RTC_MAKE_YMDW(rtc_alarm->year, rtc_alarm->mon, rtc_alarm->day, rtc_alarm->week);
 
@@ -537,6 +540,9 @@ void rtc_get_alarm(RTC_TypeDef* RTCx, rtc_alarm_t* rtc_alarm)
     rtc_alarm->sec = as0 & 0x3f;
 
     rtc_alarm->mask = RTCx->ACTRL & 0x7f;
+    
+//    rt_kprintf("year %d mon %d day %d week %d hour %d min %d sec %d mask 0x%x\n",
+//        rtc_alarm->year,rtc_alarm->mon,rtc_alarm->day,rtc_alarm->week,rtc_alarm->hour,rtc_alarm->min,rtc_alarm->sec,rtc_alarm->mask);
 }
 
 void rtc_enable_alarm_interrupt(RTC_TypeDef* RTCx)

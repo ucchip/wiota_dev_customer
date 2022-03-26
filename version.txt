@@ -33,3 +33,12 @@ v0.07修改如下：
 	ap8288：
 		1. close riscv log except init log
 		2. cce ul ack bug fixed
+v0.07修改如下：（v0.08版本有问题，直接到v0.09）
+	1. 统计信息的api和at，at+wiotastats
+	2. 串口烧写程序功能，ymodem
+	3. 高速传输模式功能，at+wiotarate
+	4. crc32->crc16，默认使用16bit的crc，at+wiotacrc
+	5. 发送数据接口加锁，在上次结果返回前，不能发送下次数据
+	6. 打开宏_WATCHIDOG_APP_
+	7. 基带解决由于CRC导致的特定数据无法解析的bug
+	8. 协议栈内部bug解决

@@ -16,6 +16,8 @@
 
 #include <rtdevice.h>
 #include "ati_prs.h"
+#include "uc_boot_download.h"
+
 #ifdef AT_USING_SERVER
 
 #define AT_ECHO_MODE_CLOSE             0
@@ -142,9 +144,12 @@ static at_result_t at_uart_setup(const char* args)
     {
         return AT_RESULT_FAILE;
     }
+    boot_set_uart0_baud_rate(baudrate);
 
     return AT_RESULT_OK;
 }
+
+
 
 AT_CMD_EXPORT("AT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_exec);
 //AT_CMD_EXPORT("ATZ", RT_NULL, RT_NULL, RT_NULL, RT_NULL, atz_exec);
@@ -152,6 +157,5 @@ AT_CMD_EXPORT("AT+RST",RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_rst_exec);
 AT_CMD_EXPORT("ATE", "<value>", RT_NULL, RT_NULL, ate_setup, RT_NULL);
 AT_CMD_EXPORT("AT&L", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_show_cmd_exec);
 AT_CMD_EXPORT("AT+UART", "=<baudrate>,<databits>,<stopbits>,<parity>,<flow_control>", RT_NULL, at_uart_query, at_uart_setup, RT_NULL);
-
 #endif /* AT_USING_SERVER */
 #endif

@@ -8,10 +8,15 @@
  * 2020-11-26     RT-Thread    first version
  */
 
+#ifdef _RT_THREAD_
 #include <rtthread.h>
 #include <rtdevice.h>
+#endif
+
+#ifdef _FPGA_
 #include <board.h>
 #include "uc_event.h"
+#endif
 
 #ifdef UC8288_MODULE
 #include "at.h"
@@ -62,6 +67,8 @@ int main(void)
 #endif
     
 //    app_task_init();
+
+    rt_kprintf("! main ok ! \n");
     
 //
 //    while(1)

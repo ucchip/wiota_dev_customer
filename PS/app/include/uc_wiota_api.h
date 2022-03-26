@@ -31,7 +31,7 @@ typedef unsigned char boolean;
 //0 - 200
 #define WIOTA_FREQUENCE_INDEX(freq,base_freq)  ((freq - base_freq)/WIOTA_FREQUENCE_STEP)
 
-#define CRC32_LEN 4
+#define CRC16_LEN 2
 
 
 typedef enum {
@@ -67,14 +67,42 @@ typedef enum {
     UC_MCS_LEVEL_5,
     UC_MCS_LEVEL_6,
     UC_MCS_LEVEL_7,
-    UC_MCS_LEVEL_INVALID = 8,
+    UC_MCS_AUTO = 8,
 }UC_MCS_LEVEL;
+
+
+typedef enum {
+    UC_RATE_NORMAL = 0,
+    UC_RATE_MID,
+    UC_RATE_HIGH,
+}UC_DATA_RATE_MODE;
 
 
 typedef enum {
     UC_LOG_UART = 0,
     UC_LOG_SPI,
 }UC_LOG_TYPE;
+
+
+typedef enum {
+    UC_STATS_READ = 0,
+    UC_STATS_WRITE,
+}UC_STATS_MODE;
+
+
+typedef enum {
+    UC_STATS_TYPE_ALL = 0,
+    UC_STATS_RACH_FAIL,
+    UC_STATS_ACTIVE_FAIL,
+    UC_STATS_UL_SUCC,
+    UC_STATS_DL_FAIL,
+    UC_STATS_DL_SUCC,
+    UC_STATS_BC_FAIL,
+    UC_STATS_BC_SUCC,
+    UC_STATS_UL_SM_SUCC,
+    UC_STATS_UL_SM_TOTAL,
+    UC_STATS_TYPE_MAX,
+}UC_STATS_TYPE;
 
 
 typedef struct {
@@ -142,11 +170,32 @@ typedef struct {
     unsigned char   is_synced;
 }uc_freq_scan_result_t,*uc_freq_scan_result_p;
 
+    
+typedef struct {
+    unsigned int   rach_fail;
+    unsigned int   active_fail;
+    unsigned int   ul_succ;
+    unsigned int   dl_fail;
+    unsigned int   dl_succ;
+    unsigned int   bc_fail;
+    unsigned int   bc_succ;
+    unsigned int   ul_sm_succ;
+    unsigned int   ul_sm_total;
+}uc_stats_info_t,*uc_stats_info_p;    
+
+typedef struct {
+    unsigned int   ul_succ_data_len;
+    unsigned int   dl_succ_data_len;
+    unsigned int   bc_succ_data_len;
+}uc_throughput_info_t,*uc_throughput_info_p;   
+
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
 
-void uc_wiota_get_version(u8_t *wiota_version, u8_t *git_info, u8_t *time, u32_t *cce_version);
+extern unsigned char factory_msg_handler(signed int subtype, signed int value);
+
+void uc_wiota_get_version(unsigned char *wiota_version, unsigned char *git_info, unsigned char *time, unsigned int *cce_version);
 
 void uc_wiota_init(void);
 
@@ -170,9 +219,9 @@ int uc_wiota_set_userid(unsigned int * id,unsigned char id_len);
 
 void uc_wiota_get_userid(unsigned int * id,unsigned char *id_len);
 
-void uc_wiota_set_activetime(unsigned int active_s);
+void uc_wiota_set_active_time(unsigned int active_s);
 
-unsigned int uc_wiota_get_activetime(void);
+unsigned int uc_wiota_get_active_time(void);
 
 void uc_wiota_set_system_config(sub_system_config_t *config);
 
@@ -184,7 +233,7 @@ UC_OP_RESULT uc_wiota_send_data(unsigned char* data, unsigned short len, unsigne
 
 void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_recv callback);
 
-void uc_wiota_register_recv_data(uc_recv callback);
+void uc_wiota_register_recv_data_callback(uc_recv callback);
 
 void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
 
@@ -194,12 +243,32 @@ void uc_wiota_set_is_gating(unsigned char is_gating);
 
 void uc_wiota_set_gating_event(unsigned char action, unsigned char event_id);
 
-void uc_wiota_set_mcs_limit(unsigned char mcs_limit);
+void uc_wiota_set_data_rate(unsigned char rate_mode,unsigned short rate_value);
 
 void uc_wiota_set_cur_power(signed char power);
 
 void uc_wiota_set_max_power(signed char power);
 
 void uc_wiota_log_switch(unsigned char log_type, unsigned char is_open);
+
+unsigned int uc_wiota_get_stats(unsigned char type);
+
+void uc_wiota_get_all_stats(uc_stats_info_p stats_info_ptr);
+
+void uc_wiota_reset_stats(unsigned char type);
+
+void uc_wiota_add_stats(unsigned char type, unsigned char cnt);
+
+void uc_wiota_set_crc(unsigned short crc_limit);
+
+unsigned short uc_wiota_get_crc(void);
+
+void uc_wiota_add_throughput(unsigned char type, unsigned int len);
+
+void uc_wiota_reset_throughput(unsigned char type);
+
+void uc_wiota_get_throughput(uc_throughput_info_t *throughput_info);
+
+void uc_wiota_test_loop(unsigned char mode);
 
 #endif
