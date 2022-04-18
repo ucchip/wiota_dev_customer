@@ -78,6 +78,7 @@ enum at_result
     AT_RESULT_CHECK_FAILE = -4,        /* AT command expression format is error */
     AT_RESULT_PARSE_FAILE = -5,        /* AT command arguments parse is error */
     AT_RESULT_REPETITIVE_FAILE = -6,     /* AT command repetivitive opteration */
+    AT_RESULT_REFUSED = -7,   /* AT command refused opteration */
 };
 typedef enum at_result at_result_t;
 

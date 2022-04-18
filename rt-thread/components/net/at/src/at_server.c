@@ -186,6 +186,10 @@ void at_server_print_result(at_result_t result)
            at_server_printfln("ERR REPETITIVE OPERATION FAILED!");
            at_server_print_result(AT_RESULT_FAILE);
            break;
+      case AT_RESULT_REFUSED:
+           at_server_printfln("ERR REFUSED OPERATION!");
+           at_server_print_result(AT_RESULT_FAILE);
+           break;
         default:
             //at_server_printfln("");
             //at_server_printfln("ERROR");

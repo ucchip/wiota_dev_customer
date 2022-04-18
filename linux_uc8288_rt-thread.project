@@ -19,6 +19,8 @@
       <File Name="PS/at/at_wiota.c"/>
       <File Name="PS/at/at_factory.c"/>
       <File Name="PS/at/at_boot.c"/>
+      <File Name="PS/at/at_wiota_auto_manager.c"/>
+      <File Name="PS/at/at_wiota.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="app">
       <VirtualDirectory Name="include">
@@ -302,6 +304,7 @@
     <File Name="cconfig.h"/>
     <File Name="rtconfig.h"/>
   </VirtualDirectory>
+  <Dependencies Name="Debug"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
@@ -380,5 +383,4 @@ load</PostConnectCommands>
       </Completion>
     </Configuration>
   </Settings>
-  <Dependencies Name="Debug"/>
 </CodeLite_Project>

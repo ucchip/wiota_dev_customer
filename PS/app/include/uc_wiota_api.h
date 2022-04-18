@@ -46,6 +46,7 @@ typedef enum {
 typedef enum {
     UC_STATUS_NULL = 0,
     UC_STATUS_SYNC,
+    UC_STATUS_SYNC_LOST,
     UC_STATUS_SLEEP,
     UC_STATUS_ERROR,
 }UC_WIOTA_STATUS;
@@ -112,18 +113,19 @@ typedef struct {
     signed char     cur_power;
     signed char     max_power;
     unsigned char   cur_mcs;
+    unsigned char   max_mcs;
 }radio_info_t;
 
 
 typedef struct {
-    unsigned char   ap_max_pow;         // 21, 30,
+    char            ap_max_pow;       // 21, 30,
     unsigned char   id_len;           // 0: 2, 1: 4, 2: 6, 3: 8
     unsigned char   pn_num;           // 0: 1, 1: 2, 2: 4, 3: not use
     unsigned char   symbol_length;    //128,256,512,1024
     unsigned char   dlul_ratio;       // 0 1:1,  1 1:2
     unsigned char   btvalue;          //bt from rf 1: 0.3, 0: 1.2
     unsigned char   group_number;     //frame ul group number: 0,1,2,3: 1,2,4,8
-    unsigned char   spectrum_idx;      //default 3, 470M~510M;
+    unsigned char   spectrum_idx;     //default 3, 470M~510M;
     unsigned int    systemid;
     unsigned int    subsystemid;
     unsigned char   na[48];
@@ -237,7 +239,19 @@ void uc_wiota_register_recv_data_callback(uc_recv callback);
 
 void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
 
-void uc_wiota_flash_backup_init(void);
+void uc_wiota_static_data_init(void);
+
+void uc_wiota_get_dev_name(u8_t *name);
+
+void uc_wiota_get_manufacture_name(u8_t *name);
+
+void uc_wiota_get_dev_serial(u8_t *serial);
+
+void uc_wiota_get_freq_list(u8_t *list);
+
+void uc_wiota_get_hardware_ver(u8_t *hardware_ver);
+
+u8_t uc_wiota_get_auto_connect_flag(void);
 
 void uc_wiota_set_is_gating(unsigned char is_gating);
 
@@ -269,6 +283,13 @@ void uc_wiota_reset_throughput(unsigned char type);
 
 void uc_wiota_get_throughput(uc_throughput_info_t *throughput_info);
 
-void uc_wiota_test_loop(unsigned char mode);
+void uc_wiota_set_is_osc(u8_t is_osc);
+
+u8_t uc_wiota_get_is_osc(void);
+
+void uc_wiota_test_loop(u8_t mode);
+
+void uc_wiota_test_lpm(unsigned char mode, unsigned char value);
+
 
 #endif

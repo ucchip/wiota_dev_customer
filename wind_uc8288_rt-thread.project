@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="wind_uc8288_rt-thread" Version="11000" InternalType="RISCV" IconIndex="Console">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00010001N0005Debug000000000000]]>
+    </Plugin>
+  </Plugins>
   <VirtualDirectory Name="boot">
     <VirtualDirectory Name="inc">
       <File Name="boot/inc/uc_print.h"/>
@@ -8,17 +13,14 @@
       <File Name="boot/inc/uc_boot_download.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
-  <Plugins>
-    <Plugin Name="qmake">
-      <![CDATA[00010001N0005Debug000000000000]]>
-    </Plugin>
-  </Plugins>
   <VirtualDirectory Name="PS">
     <VirtualDirectory Name="at">
       <File Name="PS/at/ati_prs.h"/>
       <File Name="PS/at/at_wiota.c"/>
       <File Name="PS/at/at_factory.c"/>
       <File Name="PS/at/at_boot.c"/>
+      <File Name="PS/at/at_wiota.h"/>
+      <File Name="PS/at/at_wiota_auto_manager.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="app">
       <VirtualDirectory Name="include">
@@ -302,7 +304,6 @@
     <File Name="cconfig.h"/>
     <File Name="rtconfig.h"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">

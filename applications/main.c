@@ -31,9 +31,10 @@
 #include "dll.h"
 #endif
 
-extern void uc_wiota_flash_backup_init(void);
+extern void uc_wiota_static_data_init(void);
 
 
+extern  void at_wiota_manager(void);
 //void task_callback(struct rt_thread* from, struct rt_thread* to)
 //{
 //    rt_kprintf("name = %s, 0x%x\n", from->name, from);
@@ -52,9 +53,8 @@ int main(void)
     dll_open();
 #endif
 
-    uc_wiota_flash_backup_init();    
+    uc_wiota_static_data_init();    
 
-//    l1_check_debug();
 #ifdef _WATCHDOG_APP_
     if(!watchdog_app_init())
         watchdog_app_enable();
@@ -62,13 +62,13 @@ int main(void)
 
 #ifdef UC8288_MODULE
     at_server_init();
+    at_wiota_manager();
+
 #else
     app_task_init();
 #endif
     
 //    app_task_init();
-
-    rt_kprintf("! main ok ! \n");
     
 //
 //    while(1)
