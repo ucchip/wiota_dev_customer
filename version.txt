@@ -33,7 +33,7 @@ v0.07修改如下：
 	ap8288：
 		1. close riscv log except init log
 		2. cce ul ack bug fixed
-v0.07修改如下：（v0.08版本有问题，直接到v0.09）
+v0.09修改如下：（v0.08版本有问题，直接到v0.09）
 	1. 统计信息的api和at，at+wiotastats
 	2. 串口烧写程序功能，ymodem
 	3. 高速传输模式功能，at+wiotarate
@@ -42,3 +42,9 @@ v0.07修改如下：（v0.08版本有问题，直接到v0.09）
 	6. 打开宏_WATCHIDOG_APP_
 	7. 基带解决由于CRC导致的特定数据无法解析的bug
 	8. 协议栈内部bug解决
+v0.11_iote修改如下：
+	1. 指示灯开关控制，GPIO 2/3/7/16/17
+	2. 主动保存静态数据接口
+	3. AT透传模式
+	4. AT+WIOTAVERSION?
+	5. 协议栈内部bug
