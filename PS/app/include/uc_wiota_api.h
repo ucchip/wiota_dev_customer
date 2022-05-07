@@ -35,6 +35,12 @@ typedef unsigned char boolean;
 
 
 typedef enum {
+    UC_CALLBACK_NORAMAL_MSG = 0,    // normal msg from ap
+    UC_CALLBACK_STATE_INFO,         // state info
+}UC_CALLBACK_DATA_TYPE;
+
+
+typedef enum {
     UC_RECV_MSG = 0,    // normal msg from ap
     UC_RECV_BC,         // broadcast msg from ap
     UC_RECV_OTA,        // ota msg from ap
@@ -133,13 +139,14 @@ typedef struct {
 
 
 typedef struct {
-    unsigned short result;
+    unsigned int    result;
+    unsigned char*  oriPtr;
 }uc_send_back_t,*uc_send_back_p;
 
 
 typedef struct {
     void *sem;
-    unsigned short result;
+    unsigned int    result;
 }uc_send_result_t,*uc_send_result_p;
 
 
@@ -235,23 +242,23 @@ UC_OP_RESULT uc_wiota_send_data(unsigned char* data, unsigned short len, unsigne
 
 void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_recv callback);
 
-void uc_wiota_register_recv_data_callback(uc_recv callback);
+void uc_wiota_register_recv_data_callback(uc_recv callback, UC_CALLBACK_DATA_TYPE type);
 
 void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
 
 void uc_wiota_static_data_init(void);
 
-void uc_wiota_get_dev_name(u8_t *name);
+void uc_wiota_get_dev_name(unsigned char *name);
 
-void uc_wiota_get_manufacture_name(u8_t *name);
+void uc_wiota_get_manufacture_name(unsigned char *name);
 
-void uc_wiota_get_dev_serial(u8_t *serial);
+void uc_wiota_get_dev_serial(unsigned char *serial);
 
-void uc_wiota_get_freq_list(u8_t *list);
+void uc_wiota_get_freq_list(unsigned char *list);
 
-void uc_wiota_get_hardware_ver(u8_t *hardware_ver);
+void uc_wiota_get_hardware_ver(unsigned char *hardware_ver);
 
-u8_t uc_wiota_get_auto_connect_flag(void);
+unsigned char uc_wiota_get_auto_connect_flag(void);
 
 void uc_wiota_set_is_gating(unsigned char is_gating);
 
@@ -283,13 +290,19 @@ void uc_wiota_reset_throughput(unsigned char type);
 
 void uc_wiota_get_throughput(uc_throughput_info_t *throughput_info);
 
-void uc_wiota_set_is_osc(u8_t is_osc);
+void uc_wiota_set_is_osc(unsigned char is_osc);
 
-u8_t uc_wiota_get_is_osc(void);
+unsigned char uc_wiota_get_is_osc(void);
 
-void uc_wiota_test_loop(u8_t mode);
+void uc_wiota_light_func_enable(unsigned char func_enable);
+
+
+// below is for inter test !
+
+void uc_wiota_test_loop(unsigned char mode);
 
 void uc_wiota_test_lpm(unsigned char mode, unsigned char value);
 
+void uc_wiota_save_static(void);
 
 #endif

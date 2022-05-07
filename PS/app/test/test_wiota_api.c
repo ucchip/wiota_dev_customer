@@ -22,6 +22,7 @@
 #include <string.h>
 #else
 #include "uc_string_lib.h"
+#include "uc_gpio.h"
 #endif
 
 
@@ -79,7 +80,7 @@ void test_recv_callback(uc_recv_back_p recvData)
         case UC_RECV_BC:
         case UC_RECV_OTA:
         
-            at_server_printfln("SEND type %d result %d",recvData->type,recvData->result);
+            at_server_printfln("recv type %d result %d",recvData->type,recvData->result);
 
             break;
 
@@ -98,6 +99,12 @@ void test_recv_req_callback(uc_recv_back_p recvData)
             recvData->result,recvData->type,recvData->data_len,recvData->data);
 
     if (UC_OP_SUCC == recvData->result) { rt_free(recvData->data); }
+}
+
+
+void test_send_data_callback(uc_send_back_p send_back)
+{
+    rt_kprintf("app send data result %d addr 0x%x\n",send_back->result,send_back->oriPtr);
 }
 
 
@@ -192,8 +199,8 @@ void app_test_main_task(void* pPara)
 //    rt_kprintf("wiota state %d\n",uc_wiota_get_state());
 
     // test! register recv data callback, afer upload, will continue recv ap's data or broadcast
-    uc_wiota_register_recv_data_callback(test_recv_callback);
-
+    uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_NORAMAL_MSG);
+    uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_STATE_INFO);
 
 
 //    for (int i = 0; i < 16; i++) {
@@ -290,7 +297,8 @@ void app_test_main_task(void* pPara)
             uc_wiota_set_dcxo(0x20000);
             uc_wiota_set_freq_info(new_freq_idx);
             uc_wiota_run();
-            uc_wiota_register_recv_data_callback(test_recv_callback);
+            uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_NORAMAL_MSG);
+            uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_STATE_INFO);
             uc_wiota_connect();
             rt_thread_mdelay(1000);
             is_need_reset = FALSE;
@@ -387,10 +395,11 @@ void app_test_main_task(void* pPara)
     unsigned int used;
     unsigned int max_used;
     unsigned char* testData = rt_malloc(TEST_DATA_MAX_SIZE);
+    unsigned char* testData1 = rt_malloc(20);
     unsigned int i;
     unsigned int user_id[2] = {0x6d980e0a,0x0};
     unsigned char user_id_len = 0;
-    unsigned char scan_data[4] = {132,134,136,139};//{172,48,81,134};
+    unsigned char scan_data[4] = {115,115,115,115};  //{172,125,160,134}; // {172,174,176,178};
     unsigned short scan_len = 4;
     u8_t app_count = 48;
 
@@ -398,10 +407,10 @@ void app_test_main_task(void* pPara)
     sub_system_config_t wiota_config = {0};
 
     for (i = 0; i < TEST_DATA_MAX_SIZE; i++) {
-        testData[i] = (i+30) & 0xFF;
+        testData[i] = (i+30) & 0x7F;
     }
     
-    memcpy(testData,"Hello, WIoTa:",13);
+    memcpy(testData," Hello, WIoTa.",14);
     
     // first of all, init wiota
     uc_wiota_init();
@@ -413,11 +422,16 @@ void app_test_main_task(void* pPara)
                 wiota_config.id_len,wiota_config.pn_num,wiota_config.symbol_length,wiota_config.dlul_ratio,
                 wiota_config.btvalue,wiota_config.group_number,wiota_config.systemid,wiota_config.subsystemid);
 //    wiota_config.pn_num = 2;  // change config then set
-    wiota_config.symbol_length = 3; // 256,1024
+    wiota_config.symbol_length = 1; // 256,1024
+    wiota_config.ap_max_pow = 0;
     uc_wiota_set_system_config(&wiota_config);
 
     // test! set dcxo
 //    uc_wiota_set_dcxo(USER_DCXO_LIST[USER_IDX]);
+    
+    
+    //gpio_set_pin_value(UC_GPIO,17,GPIO_VALUE_HIGH);
+    
     
     uc_wiota_set_is_osc(1);
     
@@ -425,7 +439,7 @@ void app_test_main_task(void* pPara)
 
     // test! freq test
 //    uc_wiota_set_freq_info(85);    // 470+0.2*100=490
-    uc_wiota_set_freq_info(132);    // 470+0.2*100=490
+    uc_wiota_set_freq_info(115);    // 470+0.2*100=490
 //    uc_wiota_set_freq_info(150);    // 470+0.2*150=500
 //    rt_kprintf("test get freq point %d\n", uc_wiota_get_freq_info());
 
@@ -442,14 +456,19 @@ void app_test_main_task(void* pPara)
     rt_kprintf("app test main start loop\n");
 #endif
 
-    is_scaning_freq = TRUE;
-    uc_wiota_scan_freq(scan_data, scan_len, 0, test_recv_callback, NULL);
+//    is_scaning_freq = TRUE;
+//    uc_wiota_scan_freq(scan_data, scan_len, 0, test_recv_callback, NULL);
 
+    is_need_reset = TRUE;
+    new_freq_idx = 115;
+    
     rt_thread_mdelay(5000);
 
     uc_wiota_get_userid(user_id, &user_id_len);
     
 //    algo_srand(user_id[0]);
+    
+    rt_kprintf("app test data addr 0x%x 0x%x\n",testData,testData1);
     
     while (1)
     {
@@ -465,8 +484,11 @@ void app_test_main_task(void* pPara)
             uc_wiota_set_freq_info(new_freq_idx);
 //            uc_wiota_set_cur_power(21);
             uc_wiota_run();
-            uc_wiota_register_recv_data_callback(test_recv_callback);
+            uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_NORAMAL_MSG);
+            uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_STATE_INFO);
             uc_wiota_connect();
+            uc_wiota_set_data_rate(0,5);
+//            uc_wiota_set_cur_power(21);
             rt_thread_mdelay(1000);
             is_need_reset = FALSE;
         }
@@ -483,15 +505,18 @@ void app_test_main_task(void* pPara)
             continue;
         }
         
-        
-        memcpy(&(testData[13]),&app_count,1);
+        memcpy(&(testData[0]),&app_count,1);
         app_count++;
         if (app_count>57) { app_count = 48; }
         
-        uc_wiota_send_data(testData, 14, 10000, NULL);
+//        uc_wiota_send_data(testData, 206, 10000, NULL);
+        uc_wiota_send_data(testData, 125, 10000, NULL);
+
+//        uc_wiota_send_data(testData, 2, 10000, test_send_data_callback);
+//        uc_wiota_send_data(testData1, 2, 10000, test_send_data_callback);
         
 //        rt_thread_mdelay(4500 + (algo_rand_u32()%2000));
-        rt_thread_mdelay(5500);
+        rt_thread_mdelay(4000);
     }
 
     rt_free(testData);

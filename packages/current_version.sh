@@ -6,7 +6,7 @@ echo "currnet git version time:"
 echo $git_version
 sed -i "s/$old_git_version/$git_version/g" $1
 #git tag
-git_crrent_tag=$(git tag | tail -1)
+git_crrent_tag=$(git tag -l "*iote" | tail -1)
 echo "current git tag:"$git_crrent_tag
 old_git_tag=$(cat $1  | grep GIT_TAIL_TAG | cut -d"\"" -f2)
 sed -i "s/$old_git_tag/$git_crrent_tag/g" $1
