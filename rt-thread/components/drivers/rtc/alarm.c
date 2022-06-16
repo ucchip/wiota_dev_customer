@@ -826,12 +826,12 @@ rt_err_t rt_alarm_simple(rt_int32_t alarm_sec)
 
     if (alarm_sec == 0) { rtc_alarm_time.mask = 0x7F; }
     else { rtc_alarm_time.mask = 0x7C; }
-    
-    rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_TIME, &time_now);    
-    
+
+    rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_TIME, &time_now);
+
     time_new = time_now + alarm_sec;
     gmtime_r(&time_new, &p_tm);
-    
+
     rtc_alarm_time.sec = p_tm.tm_sec;
     rtc_alarm_time.min = p_tm.tm_min;
     rtc_alarm_time.hour = p_tm.tm_hour;
@@ -843,7 +843,7 @@ rt_err_t rt_alarm_simple(rt_int32_t alarm_sec)
 //    rtc_alarm_time.year = p_tm.tm_year;
 //    rtc_alarm_time.week = p_tm.tm_wday;
 //    rtc_alarm_time.mask = 0x7E;
-    
+
     ret = rt_device_control(device, RT_DEVICE_CTRL_RTC_SET_ALARM, &rtc_alarm_time);
 
     return (ret);
@@ -857,16 +857,16 @@ void rt_alarm_read(void) {
 }
 
 
-time_t rt_time_read(struct tm* p_tm) 
+time_t rt_time_read(struct tm* p_tm)
 {
     time_t time_now = 0;
     rt_device_t device = rt_device_find("rtc");
-    
+
     if (NULL != device) {
-        rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_TIME, &time_now);    
+        rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_TIME, &time_now);
         gmtime_r(&time_now, p_tm);
     }
-    
+
     return time_now;
 }
 

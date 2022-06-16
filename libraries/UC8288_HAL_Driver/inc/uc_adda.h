@@ -87,22 +87,22 @@ extern void adc_int_clear_pending(void);
 extern void adc_wait_data_ready(ADDA_TypeDef* ADDA);
 extern uint16_t adc_read(ADDA_TypeDef* ADDA);
 extern void adc_watermark_set(ADDA_TypeDef* ADDA, uint8_t water_mark);
-extern bool is_adc_fifo_over_watermark(ADDA_TypeDef* ADDA);
-extern bool is_adc_fifo_empty(ADDA_TypeDef* ADDA);
+extern unsigned char is_adc_fifo_over_watermark(ADDA_TypeDef* ADDA);
+extern unsigned char is_adc_fifo_empty(ADDA_TypeDef* ADDA);
 extern void adc_fifo_clear(ADDA_TypeDef* ADDA);
 extern signed int adc_temperature_read(ADDA_TypeDef* ADDA);
 extern int adc_battery_voltage(ADDA_TypeDef* ADDA);
 extern float adc_read_temp_inb(ADDA_TypeDef* ADDA);
 
-extern void adc_vbat_measure_enable(bool enable);
+extern void adc_vbat_measure_enable(unsigned char enable);
 extern void adc_temp_source_sel(ADDA_TypeDef* ADDA, ADC_TEMP_SRC temp_src);
-extern void adc_temp_sensor_enable(ADDA_TypeDef* ADDA, bool enable);
+extern void adc_temp_sensor_enable(ADDA_TypeDef* ADDA, unsigned char enable);
 
 extern void dac_power_set(ADDA_TypeDef* ADDA);
 extern void dac_fifo_clear(ADDA_TypeDef* ADDA);;
 extern void dac_watermark_set(ADDA_TypeDef* ADDA, uint8_t water_mark);
-extern bool is_dac_fifo_over_watermark(ADDA_TypeDef* ADDA);
-extern bool is_dac_fifo_full(ADDA_TypeDef* ADDA);
+extern unsigned char is_dac_fifo_over_watermark(ADDA_TypeDef* ADDA);
+extern unsigned char is_dac_fifo_full(ADDA_TypeDef* ADDA);
 extern void dac_write(ADDA_TypeDef* ADDA, uint16_t wdata);
 extern void dac_clkdiv_set(ADDA_TypeDef* ADDA, uint16_t clk_div);
 extern void dac_int_enable(ADDA_TypeDef* ADDA);

@@ -9,7 +9,7 @@ __DYNAMIC  =  0;
 MEMORY
 {
     uc_rom      : ORIGIN = 0x00000000, LENGTH = 0x3000  /*12K uncompressed code sys data, NO RODATA!!!!*/
-    instrram    : ORIGIN = 0x00003000, LENGTH = 0x1fd00 /*127K actually rom... */
+    instrram    : ORIGIN = 0x00003000, LENGTH = 0x51d00 /*327K actually rom... */
     datarom     : ORIGIN = 0x00200000, LENGTH = 0x4FC00 /*319k data rom*/
     staticdata  : ORIGIN = 0x0024FC00, LENGTH = 0x2000   /*8k static data*/
     dataram     : ORIGIN = 0x00308000, LENGTH = 0x6bf0 

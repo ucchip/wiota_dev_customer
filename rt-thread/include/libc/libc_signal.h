@@ -69,7 +69,7 @@ typedef void (*_sig_func_ptr)(int);
 typedef unsigned long sigset_t;
 #endif
 
-#include <signal.h>
+//#include <signal.h>
 
 #if defined(__CC_ARM) || defined(__CLANG_ARM)
 

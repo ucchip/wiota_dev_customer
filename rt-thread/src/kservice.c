@@ -1263,19 +1263,6 @@ void rt_kputs(const char* str)
 #endif
 }
 
-#ifdef UC8288_MODULE
-
-unsigned char printf_switch = 1;
-
-void set_rt_kprintf_switch(unsigned char sw)
-{
-    printf_switch = sw;
-}
-
-RTM_EXPORT(set_rt_kprintf_switch);
-
-#endif
-
 /**
  * This function will print a formatted string on system console
  *
@@ -1286,11 +1273,6 @@ __crt0 void rt_kprintf(const char* fmt, ...)
     va_list args;
     rt_size_t length;
     static char rt_log_buf[RT_CONSOLEBUF_SIZE];
-    
-#ifdef UC8288_MODULE
-    if (0 == printf_switch)
-        return ;
-#endif    
 
     va_start(args, fmt);
     /* the return value of vsnprintf is the number of bytes that would be

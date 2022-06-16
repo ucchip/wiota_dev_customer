@@ -9,11 +9,9 @@
  * 2020-11-26     RT-Thread    first version
  */
 
-#ifdef _RT_THREAD_
 #include <rtthread.h>
-#endif
-
 #include "uc_wiota_api.h"
+#include "uc_wiota_static.h"
 #include "test_wiota_api.h"
 #include "at.h"
 //#include "ps_sys.h"
@@ -79,8 +77,8 @@ void test_recv_callback(uc_recv_back_p recvData)
         case UC_RECV_MSG:
         case UC_RECV_BC:
         case UC_RECV_OTA:
-        
-            at_server_printfln("recv type %d result %d",recvData->type,recvData->result);
+
+//            at_server_printfln("recv type %d result %d",recvData->type,recvData->result);
 
             break;
 
@@ -150,7 +148,7 @@ void app_test_main_task(void* pPara)
     for (i = 0; i < TEST_DATA_MAX_SIZE; i++) {
         testData[i] = (i+30) & 0xFF;
     }
-    
+
     // first of all, init wiota
     uc_wiota_init();
 
@@ -219,22 +217,22 @@ void app_test_main_task(void* pPara)
 
 
 //    l1_print_data_u32((u32_t*)(0x405000),256);
-    
+
 //    rt_kprintf("dfe test %d \n",l1_read_dfe_counter());
 
 //    rt_thread_mdelay(150);
     rt_thread_mdelay(5000);
-    
-    
-    while (0) 
+
+
+    while (0)
     {
         rt_thread_mdelay(3000);
-        
+
         if (UC_STATUS_SYNC == uc_wiota_get_state()) {
-            uc_wiota_send_data(testData, 20, 10000, NULL);            
+            uc_wiota_send_data(testData, 20, 10000, NULL);
         } else {
             uc_wiota_exit();
-            rt_thread_mdelay(3000); 
+            rt_thread_mdelay(3000);
             uc_wiota_init();
 //            uc_wiota_set_dcxo(0x1E000);
             uc_wiota_set_freq_info(175);
@@ -242,27 +240,27 @@ void app_test_main_task(void* pPara)
             uc_wiota_run();
             cce_check_fetch();
             uc_wiota_connect();
-            rt_thread_mdelay(3000); 
+            rt_thread_mdelay(3000);
         }
     }
-    
-    
+
+
     while (0)
     {
         uc_wiota_exit();
-        rt_thread_mdelay(3000); 
+        rt_thread_mdelay(3000);
         rt_kprintf("reset test\n");
         rt_thread_mdelay(10);
-        
+
 //        dfe_loop++;
 //        if (dfe_loop > 10) {
 //            dfe_test += 1;
 //            dfe_loop = 0;
 //            if (dfe_test > 0xFF) { break; }
 //        }
-//        
+//
 //        rt_kprintf("test begin loop %d dfe %d\n",dfe_loop,dfe_test);
-        
+
         uc_wiota_init();
 //        uc_wiota_set_dcxo(USER_DCXO_LIST[USER_IDX]);
         uc_wiota_set_dcxo(0);
@@ -273,7 +271,7 @@ void app_test_main_task(void* pPara)
         cce_check_fetch();
         uc_wiota_connect();
 //        rt_thread_mdelay(150);
-        rt_thread_mdelay(10000); 
+        rt_thread_mdelay(10000);
         rt_kprintf("test end\n");
     }
 
@@ -315,7 +313,7 @@ void app_test_main_task(void* pPara)
             rt_thread_mdelay(5000);
             continue;
         }
-        
+
         // test! recv data without callback
 //        uc_wiota_recv_data(&recv_result_t, 10000, NULL);
 //        rt_kprintf("data recv result %d type %d len %d data 0x%x\n",recv_result_t.result,recv_result_t.type,
@@ -357,7 +355,7 @@ void app_test_main_task(void* pPara)
 //        rt_thread_mdelay(1000);
 
         uc_wiota_send_data(testData, 20, 10000, NULL);
-        
+
         rt_thread_mdelay(5000);
     }
 
@@ -374,7 +372,7 @@ void app_test_main_task(void* pPara)
 //
 //    uc_wiota_init();
 //    uc_wiota_run();
-//    
+//
 //    while (1)
 //    {
 ////        if (UC_STATUS_SYNC == uc_wiota_get_state()) {
@@ -388,6 +386,9 @@ void app_test_main_task(void* pPara)
 //}
 
 
+#define TEST_FREQ_SINGLE 125
+extern u32_t g_tracking_succ_test_cnt;
+
 // small demo for all auto
 void app_test_main_task(void* pPara)
 {
@@ -399,7 +400,7 @@ void app_test_main_task(void* pPara)
     unsigned int i;
     unsigned int user_id[2] = {0x6d980e0a,0x0};
     unsigned char user_id_len = 0;
-    unsigned char scan_data[4] = {115,115,115,115};  //{172,125,160,134}; // {172,174,176,178};
+    unsigned char scan_data[4] = {172,125,160,134};//{TEST_FREQ_SINGLE,TEST_FREQ_SINGLE,TEST_FREQ_SINGLE,TEST_FREQ_SINGLE};  //{172,125,160,134}; // {172,174,176,178};
     unsigned short scan_len = 4;
     u8_t app_count = 48;
 
@@ -409,9 +410,9 @@ void app_test_main_task(void* pPara)
     for (i = 0; i < TEST_DATA_MAX_SIZE; i++) {
         testData[i] = (i+30) & 0x7F;
     }
-    
+
     memcpy(testData," Hello, WIoTa.",14);
-    
+
     // first of all, init wiota
     uc_wiota_init();
 //    uc_wiota_set_active_time(5);
@@ -422,30 +423,33 @@ void app_test_main_task(void* pPara)
                 wiota_config.id_len,wiota_config.pn_num,wiota_config.symbol_length,wiota_config.dlul_ratio,
                 wiota_config.btvalue,wiota_config.group_number,wiota_config.systemid,wiota_config.subsystemid);
 //    wiota_config.pn_num = 2;  // change config then set
-    wiota_config.symbol_length = 1; // 256,1024
-    wiota_config.ap_max_pow = 0;
+    wiota_config.symbol_length = 3; // 256,1024
+    wiota_config.ap_max_pow = 29;
     uc_wiota_set_system_config(&wiota_config);
 
     // test! set dcxo
 //    uc_wiota_set_dcxo(USER_DCXO_LIST[USER_IDX]);
-    
-    
+
+
     //gpio_set_pin_value(UC_GPIO,17,GPIO_VALUE_HIGH);
-    
-    
+
+
     uc_wiota_set_is_osc(1);
-    
-    if (!uc_wiota_get_is_osc()) { uc_wiota_set_dcxo(0x20000); }
+
+    if (!uc_wiota_get_is_osc()) { uc_wiota_set_dcxo(0x36000); }
 
     // test! freq test
 //    uc_wiota_set_freq_info(85);    // 470+0.2*100=490
-    uc_wiota_set_freq_info(115);    // 470+0.2*100=490
+    uc_wiota_set_freq_info(TEST_FREQ_SINGLE);    // 470+0.2*100=490
 //    uc_wiota_set_freq_info(150);    // 470+0.2*150=500
 //    rt_kprintf("test get freq point %d\n", uc_wiota_get_freq_info());
 
 //    uc_wiota_set_userid(user_id,4);
 
 //    uc_wiota_set_cur_power(21);
+//    uc_wiota_set_max_power(17);
+
+//    uc_wiota_set_is_gating(TRUE);
 
     // after config set, run wiota !
     uc_wiota_run();
@@ -460,16 +464,21 @@ void app_test_main_task(void* pPara)
 //    uc_wiota_scan_freq(scan_data, scan_len, 0, test_recv_callback, NULL);
 
     is_need_reset = TRUE;
-    new_freq_idx = 115;
-    
+    new_freq_idx = TEST_FREQ_SINGLE;
+
+//    uc_wiota_set_cur_power(19);
+//    uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_NORAMAL_MSG);
+//    uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_STATE_INFO);
+//    uc_wiota_connect();
+
     rt_thread_mdelay(5000);
 
     uc_wiota_get_userid(user_id, &user_id_len);
-    
+
 //    algo_srand(user_id[0]);
-    
+
     rt_kprintf("app test data addr 0x%x 0x%x\n",testData,testData1);
-    
+
     while (1)
     {
         rt_memory_info(&total,&used,&max_used);
@@ -478,17 +487,21 @@ void app_test_main_task(void* pPara)
 
         if (is_need_reset) {
             uc_wiota_exit();
+            rt_kprintf("total %d used %d maxused %d \n",total,used,max_used);
+            rt_thread_mdelay(1000);
             uc_wiota_init();
 //            uc_wiota_set_active_time(5);
-            if (!uc_wiota_get_is_osc()) { uc_wiota_set_dcxo(0x20000); }
+            if (!uc_wiota_get_is_osc()) { uc_wiota_set_dcxo(0x36000); }
             uc_wiota_set_freq_info(new_freq_idx);
 //            uc_wiota_set_cur_power(21);
+//            uc_wiota_set_max_power(17);
             uc_wiota_run();
             uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_NORAMAL_MSG);
             uc_wiota_register_recv_data_callback(test_recv_callback,UC_CALLBACK_STATE_INFO);
             uc_wiota_connect();
-            uc_wiota_set_data_rate(0,5);
+//            uc_wiota_set_data_rate(UC_RATE_NORMAL,UC_MCS_LEVEL_5);
 //            uc_wiota_set_cur_power(21);
+//            uc_wiota_set_max_power(17);
             rt_thread_mdelay(1000);
             is_need_reset = FALSE;
         }
@@ -504,17 +517,20 @@ void app_test_main_task(void* pPara)
             rt_thread_mdelay(5000);
             continue;
         }
-        
+
         memcpy(&(testData[0]),&app_count,1);
         app_count++;
         if (app_count>57) { app_count = 48; }
-        
-//        uc_wiota_send_data(testData, 206, 10000, NULL);
-        uc_wiota_send_data(testData, 125, 10000, NULL);
 
+//        uc_wiota_send_data(testData, 206, 10000, NULL);
+//        if (g_tracking_succ_test_cnt > 11) {
+//            uc_wiota_send_data(testData, 20, 10000, NULL);
+//        }
+
+        uc_wiota_send_data(testData, 2, 10000, NULL);
 //        uc_wiota_send_data(testData, 2, 10000, test_send_data_callback);
 //        uc_wiota_send_data(testData1, 2, 10000, test_send_data_callback);
-        
+
 //        rt_thread_mdelay(4500 + (algo_rand_u32()%2000));
         rt_thread_mdelay(4000);
     }

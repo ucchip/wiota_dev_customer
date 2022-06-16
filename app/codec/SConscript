@@ -1,0 +1,42 @@
+from building import *
+
+cwd = GetCurrentDir()
+
+src = []
+
+src_cbor = Split('''
+cbor/uc_cbor_create.c
+cbor/uc_cbor_demo.c
+cbor/uc_cbor_encoder.c
+cbor/uc_cbor_error.c
+cbor/uc_cbor_get.c
+cbor/uc_cbor.c
+''')
+
+src_coding = Split('''
+coding/uc_coding.c
+''')
+
+src_fastlz = Split('''
+fastlz/fastlz.c
+''')
+
+src_json = Split('''
+cJSON/cJSON.c
+''')
+
+path = []
+
+if GetDepend(['WIOTA_APP_DEMO']):
+    path += [cwd + '/coding']
+    # path += [cwd + '/cbor']
+    path += [cwd + '/fastlz']
+    path += [cwd + '/cJSON']
+    # src += src_cbor
+    src += src_coding
+    src += src_fastlz
+    src += src_json
+
+group = DefineGroup('codec', src, depend = [''], CPPPATH = path)
+
+Return('group')

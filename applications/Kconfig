@@ -1,0 +1,13 @@
+menu "wiota APP"
+
+config UC8288_MODULE
+    bool "use at cmd, default open(UC8288_MODULE)"
+    default y
+
+if RT_USING_WDT
+    config _WATCHDOG_APP_
+        bool "open wdt, default close(_WATCHDOG_APP_)"
+        default n
+endif
+
+endmenu

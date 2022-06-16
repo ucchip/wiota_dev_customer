@@ -57,7 +57,7 @@
 #define DR 1        //DR bit in LSR reg
 
 
-#define UART_FIFO_DEPTH 64
+#define UART_FIFO_DEPTH 16
 
 
 void uart_set_cfg(int parity, uint16_t clk_counter);

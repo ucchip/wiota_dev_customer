@@ -1,19 +1,26 @@
 mainmenu "RT-Thread Configuration"
 
-config BSP_DIR
+config WIOTA_DEMO
     string
-    option env="BSP_ROOT"
-    default "."
+    option env="WIOTA_DEMO_ROOT"
+    default "app"
+
+config WIOTA_APP
+    string
+    option env="WIOTA_APP_ROOT"
+    default "applications"
+
+config WIOTA_PS
+    string
+    option env="WIOTA_PS_ROOT"
+    default "PS"
 
 config RTT_DIR
     string
     option env="RTT_ROOT"
     default "rt-thread"
 
-config PKGS_DIR
-    string
-    option env="PKGS_ROOT"
-    default "packages"
- 
 source "$RTT_DIR/Kconfig"
-source "$PKGS_DIR/Kconfig"
+source "$WIOTA_DEMO/Kconfig"
+source "$WIOTA_APP/Kconfig"
+source "$WIOTA_PS/Kconfig"

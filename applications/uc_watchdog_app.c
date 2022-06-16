@@ -1,11 +1,11 @@
-#ifdef _WATCHDOG_APP_
 #include <rtthread.h>
+#ifdef _WATCHDOG_APP_
 #include <rtdevice.h>
 #include "uc_watchdog_app.h"
 
-#define WDT_DEVICE_NAME    "wdt"    
+#define WDT_DEVICE_NAME    "wdt"
 
-static rt_device_t wdg_dev = NULL;       
+static rt_device_t wdg_dev = NULL;
 
 static void idle_watchdog_hook(void)
 {
@@ -15,7 +15,7 @@ static void idle_watchdog_hook(void)
 int watchdog_app_init(void)
 {
     rt_err_t ret = RT_EOK;
-    rt_uint32_t timeout = WACHDOG_KEEP_TIMEOUT;     
+    rt_uint32_t timeout = WACHDOG_KEEP_TIMEOUT;
 
     wdg_dev = rt_device_find(WDT_DEVICE_NAME);
     if (!wdg_dev)
@@ -46,7 +46,7 @@ int watchdog_app_disable(void)
         rt_kprintf("start %s failed!\n", WDT_DEVICE_NAME);
         return -RT_ERROR;
     }
-    
+
     return ret;
 }
 
@@ -61,7 +61,7 @@ int watchdog_app_enable(void)
         rt_kprintf("start %s failed!\n", WDT_DEVICE_NAME);
         return -RT_ERROR;
     }
-    
+
     return ret;
 }
 
@@ -72,4 +72,3 @@ void watchdog_app_close(void)
 }
 
 #endif
-

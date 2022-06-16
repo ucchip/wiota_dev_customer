@@ -16,6 +16,8 @@
 
 #include <rthw.h>
 #include <rtdevice.h>
+#include "uc_wiota_api.h"
+#include "uc_wiota_static.h"
 
 #define LOG_TAG              "at.svr"
 #include <at_log.h>
@@ -38,6 +40,7 @@
 static at_server_t at_server_local = RT_NULL;
 static at_cmd_t cmd_table = RT_NULL;
 static rt_size_t cmd_num;
+dtu_send_t g_dtu_send = RT_NULL;
 
 #ifdef SUPPORT_SPI_AT
 __attribute__((section(".spicmd"))) volatile spi_at_buf spi_at_cmd;
@@ -48,6 +51,7 @@ extern void at_vprintfln(spi_at_buf *buf, const char* format, va_list args);
 extern void at_vprintf(rt_device_t device, const char* format, va_list args);
 extern void at_vprintfln(rt_device_t device, const char* format, va_list args);
 #endif
+extern void dtu_send_process(void);
 /**
  * AT server send data to AT device
  *
@@ -523,9 +527,18 @@ static void server_parser(at_server_t server)
 
     RT_ASSERT(server);
     RT_ASSERT(server->status != AT_STATUS_UNINITIALIZED);
+    
+    if (g_dtu_send->flag)
+    {
+        at_server_printfln("DTU SEND MODE");
+    }
 
     while (1)
     {
+        if (g_dtu_send->flag)
+        {
+            dtu_send_process();
+        }
         if (RT_EOK != server->get_char(server, &ch, RT_WAITING_FOREVER))
             continue;
         
@@ -646,13 +659,18 @@ int at_server_init(void)
 #endif /* defined(__CC_ARM) */
 
     at_server_local = (at_server_t) rt_calloc(1, sizeof(struct at_server));
-    if (!at_server_local)
+    g_dtu_send = (dtu_send_t) rt_calloc(1, sizeof(struct dtu_send));
+    if ((!at_server_local) || (!g_dtu_send))
     {
         result = -RT_ENOMEM;
         LOG_E("AT server session initialize failed! No memory for at_server structure !");
         goto __exit;
     }
-
+    // uc_wiota_get_dtu_config((u8_t *)g_dtu_send);
+	uc_wiota_get_dtu_config((dtu_info_t*)g_dtu_send);
+    rt_kprintf("dtu flag %d at_show %d timeout %d wait %d", g_dtu_send->flag,
+                g_dtu_send->at_show,g_dtu_send->timeout,g_dtu_send->wait);
+    
     at_server_local->echo_mode = 0;
     at_server_local->status = AT_STATUS_UNINITIALIZED;
 
@@ -741,7 +759,7 @@ __exit:
 
     return result;
 }
-INIT_COMPONENT_EXPORT(at_server_init);
+// INIT_COMPONENT_EXPORT(at_server_init); // will before main() exec 22.5.12 -- jrhe
 
 RT_WEAK void at_port_reset(void)
 {

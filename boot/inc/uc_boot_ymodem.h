@@ -50,16 +50,16 @@ enum uc_boot_rym_code
 #define RYM_ERR_FILE 0x77
 
 /* how many ticks wait for chars between packet. */
-#define RT_TICK_PER_SECOND 8750000  
-#define RYM_WAIT_CHR_TICK (RT_TICK_PER_SECOND * 3)
+#define RT_TICK_PER_SECOND_ 8750000
+#define RYM_WAIT_CHR_TICK (RT_TICK_PER_SECOND_ * 3)
 
 /* how many ticks wait for between packet. */
 #ifndef RYM_WAIT_PKG_TICK
-#define RYM_WAIT_PKG_TICK (RT_TICK_PER_SECOND * 3)
+#define RYM_WAIT_PKG_TICK (RT_TICK_PER_SECOND_ * 3)
 #endif
 /* how many ticks between two handshake code. */
 #ifndef RYM_CHD_INTV_TICK
-#define RYM_CHD_INTV_TICK (RT_TICK_PER_SECOND) /*(RT_TICK_PER_SECOND * 3)*/
+#define RYM_CHD_INTV_TICK (RT_TICK_PER_SECOND_) /*(RT_TICK_PER_SECOND_ * 3)*/
 #endif
 
 /* how many CAN be sent when user active end the session. */

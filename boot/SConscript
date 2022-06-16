@@ -1,0 +1,13 @@
+# for module compiling
+import os
+Import('RTT_ROOT')
+from building import *
+
+cwd  = GetCurrentDir()
+
+path = [cwd + '/inc']
+src = Glob(cwd + '/src/*.c')
+
+group = DefineGroup('boot', src, depend = [''], CPPPATH = path)
+
+Return('group')

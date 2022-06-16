@@ -1,0 +1,15 @@
+menu "wiota APP DEMO"
+
+config WIOTA_APP_DEMO
+    bool "app demo mcro(WIOTA_APP_DEMO)"
+    default y
+
+config APP_DEMO_LIGHT
+    bool "app demo light mcro(APP_DEMO_LIGHT)"
+    default y
+
+config APP_DEMO_SWITCH
+    bool "app demo switch mcro(APP_DEMO_SWITCH)"
+    default y
+
+endmenu

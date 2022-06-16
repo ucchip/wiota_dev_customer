@@ -1,0 +1,27 @@
+menu "wiota PS"
+
+config _FPGA_
+    bool "default open(_FPGA_)"
+    default y
+
+config _RT_THREAD_
+    bool "RT_Thread default open(_RT_THREAD_)"
+    default y
+
+config _ALLOW_TRACE_PRITF_TEST_
+    bool "default open(_ALLOW_TRACE_PRITF_TEST_)"
+    default y
+
+config UC8288_FACTORY
+    bool "factory mode,recv and send test, default open(UC8288_FACTORY)"
+    default y
+
+config _L1_FACTORY_FUNC_
+    bool "factory mode, default open(_L1_FACTORY_FUNC_)"
+    default y
+
+config _CLK_GATING_
+    bool "clk gating, default open(_CLK_GATING_)"
+    default y
+
+endmenu

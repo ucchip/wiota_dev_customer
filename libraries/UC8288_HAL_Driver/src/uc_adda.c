@@ -60,9 +60,9 @@ void adc_power_set(ADDA_TypeDef* ADDA)
     CHECK_PARAM(PARAM_ADDC(ADDA));
 
     ADDA->ADC_CTRL0 &= ~(0x0F << 28); //disable channel a, channel b, channel c and inside temp channel
-    ADDA->ADC_CTRL0 |= BIT(21) | BIT(20) | BIT(19) | BIT(18) | BIT(17) | BIT(16) | BIT(15) | BIT(11) | BIT(6) | BIT(3); //|BIT(19);
+    ADDA->ADC_CTRL0 = BIT(21) | BIT(20) | BIT(19) | BIT(18) | BIT(17) | BIT(16) | BIT(15) | BIT(11) | BIT(6) | BIT(3); //|BIT(19);
 
-    ADDA->ADC_CTRL1 |= 0x03 << 9; //signal attenuation 00: 1/4; 01: 1/2; 10: 1/3; 11: 1/1;
+    ADDA->ADC_CTRL1 = 0x03 << 9; //signal attenuation 00: 1/4; 01: 1/2; 10: 1/3; 11: 1/1;
 
     REG(0x1A10A02C) = (REG(0x1A10A02C) & (~(0x0f << 12))) | (0xC << 12); //calibrate voltage
 }
@@ -256,7 +256,7 @@ float adc_read_temp_inb(ADDA_TypeDef* ADDA)
     return delta_adc;
 }
 
-bool is_adc_fifo_over_watermark(ADDA_TypeDef* ADDA)
+unsigned char is_adc_fifo_over_watermark(ADDA_TypeDef* ADDA)
 {
     CHECK_PARAM(PARAM_ADDC(ADDA));
     int over_watermark = (ADDA->ADC_FIFO_CTRL >> 17) & 0x1;
@@ -266,7 +266,7 @@ bool is_adc_fifo_over_watermark(ADDA_TypeDef* ADDA)
     { return false; }
 }
 
-bool is_adc_fifo_empty(ADDA_TypeDef* ADDA)
+unsigned char is_adc_fifo_empty(ADDA_TypeDef* ADDA)
 {
     CHECK_PARAM(PARAM_ADDC(ADDA));
     if (((ADDA->ADC_FIFO_CTRL >> 19) & 0x1) == 1)
@@ -281,7 +281,7 @@ bool is_adc_fifo_empty(ADDA_TypeDef* ADDA)
 
 
 
-void adc_vbat_measure_enable(bool enable)
+void adc_vbat_measure_enable(unsigned char enable)
 {
     REG(0x1A10A02C) = (REG(0x1A10A02C) & (~BIT(28))) | (enable << 28);
 }
@@ -293,7 +293,7 @@ void adc_temp_source_sel(ADDA_TypeDef* ADDA, ADC_TEMP_SRC temp_src)
     ADDA->ADC_CTRL0 |= temp_src;
 }
 
-void adc_temp_sensor_enable(ADDA_TypeDef* ADDA, bool enable)
+void adc_temp_sensor_enable(ADDA_TypeDef* ADDA, unsigned char enable)
 {
     CHECK_PARAM(PARAM_ADDC(ADDA));
     ADDA->ADC_CTRL0 &= ~BIT(5);//disable imax mode
@@ -358,7 +358,7 @@ void dac_watermark_set(ADDA_TypeDef* ADDA, uint8_t water_mark)
     ADDA->DAC_FIFO_CTRL = water_mark << 8;
 }
 
-bool is_dac_fifo_over_watermark(ADDA_TypeDef* ADDA)
+unsigned char is_dac_fifo_over_watermark(ADDA_TypeDef* ADDA)
 {
     CHECK_PARAM(PARAM_ADDC(ADDA));
 
@@ -369,7 +369,7 @@ bool is_dac_fifo_over_watermark(ADDA_TypeDef* ADDA)
     { return false; }
 }
 
-bool is_dac_fifo_full(ADDA_TypeDef* ADDA)
+unsigned char is_dac_fifo_full(ADDA_TypeDef* ADDA)
 {
     int full = (ADDA->DAC_FIFO_CTRL >> 18) & 0x1;
     if (full)

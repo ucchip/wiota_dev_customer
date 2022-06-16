@@ -16,11 +16,11 @@ static at_result_t at_ymodem_exec(void)
     watchdog_app_disable();
 #endif
 
-	at_server_printfln("OK");
+    at_server_printfln("OK");
 
     boot_uart_wait_tx_done();
     rt_hw_interrupt_disable();
-	
+    
     boot_riscv_reboot();
     return AT_RESULT_NULL;
 }

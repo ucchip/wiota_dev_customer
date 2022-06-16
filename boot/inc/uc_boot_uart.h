@@ -7,7 +7,7 @@
 #include "uc_pulpino.h"
 
 #define UC_BOOT_TIMEOUT_S 8750000
-#define UART_FIFO_DEPTH 64
+#define UART_FIFO_DEPTH 16
 #define UART_REG_RBR ( UART_BASE_ADDR + 0x00) // Receiver Buffer Register (Read Only)
 #define UART_REG_DLL ( UART_BASE_ADDR + 0x00) // Divisor Latch (LS)
 #define UART_REG_THR ( UART_BASE_ADDR + 0x00) // Transmitter Holding Register (Write Only)

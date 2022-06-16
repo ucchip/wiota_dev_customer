@@ -70,9 +70,9 @@
 #define RT_USING_ADC
 #define RT_USING_DAC
 #define RT_USING_PWM
-#define RT_USING_WDT
 #define RT_USING_RTC
 #define RT_USING_ALARM
+#define RT_USING_WDT
 
 /* Using USB */
 
@@ -109,5 +109,22 @@
 
 /* electricity_device */
 
+
+/* wiota APP DEMO */
+
+
+/* wiota APP */
+
+#define UC8288_MODULE
+#define _WATCHDOG_APP_
+
+/* wiota PS */
+
+#define _FPGA_
+#define _RT_THREAD_
+#define _ALLOW_TRACE_PRITF_TEST_
+#define UC8288_FACTORY
+#define _L1_FACTORY_FUNC_
+#define _CLK_GATING_
 
 #endif

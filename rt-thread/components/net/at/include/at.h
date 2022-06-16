@@ -215,6 +215,19 @@ struct at_client
 typedef struct at_client* at_client_t;
 #endif /* AT_USING_CLIENT */
 
+struct dtu_send
+{
+    unsigned char reserve1[2];
+    unsigned char flag;
+    unsigned char at_show;
+    unsigned short timeout;
+    unsigned short wait;
+    char exit_flag[8];
+    unsigned short flag_len;
+    unsigned char reserve2[2];
+};
+typedef struct dtu_send* dtu_send_t;
+
 #ifdef AT_USING_SERVER
 /* AT server initialize and start */
 int at_server_init(void);

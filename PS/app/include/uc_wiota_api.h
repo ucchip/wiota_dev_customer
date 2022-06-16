@@ -224,9 +224,11 @@ void uc_wiota_set_freq_info(unsigned char freq_idx);
 
 unsigned char uc_wiota_get_freq_info(void);
 
-int uc_wiota_set_userid(unsigned int * id,unsigned char id_len);
+// The following fuction definition has been moved to uc_wiota_static.h
 
-void uc_wiota_get_userid(unsigned int * id,unsigned char *id_len);
+// int uc_wiota_set_userid(unsigned int * id,unsigned char id_len);
+
+// void uc_wiota_get_userid(unsigned int * id,unsigned char *id_len);
 
 void uc_wiota_set_active_time(unsigned int active_s);
 
@@ -246,19 +248,23 @@ void uc_wiota_register_recv_data_callback(uc_recv callback, UC_CALLBACK_DATA_TYP
 
 void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
 
-void uc_wiota_static_data_init(void);
+// The following fuction definition has been moved to uc_wiota_static.h
 
-void uc_wiota_get_dev_name(unsigned char *name);
+// void uc_wiota_static_data_init(void);
 
-void uc_wiota_get_manufacture_name(unsigned char *name);
+// void uc_wiota_get_dev_name(unsigned char *name);
 
-void uc_wiota_get_dev_serial(unsigned char *serial);
+// void uc_wiota_get_manufacture_name(unsigned char *name);
 
-void uc_wiota_get_freq_list(unsigned char *list);
+// void uc_wiota_get_dev_serial(unsigned char *serial);
 
-void uc_wiota_get_hardware_ver(unsigned char *hardware_ver);
+// void uc_wiota_get_freq_list(unsigned char *list);
 
-unsigned char uc_wiota_get_auto_connect_flag(void);
+// void uc_wiota_get_hardware_ver(unsigned char *hardware_ver);
+
+// unsigned char uc_wiota_get_auto_connect_flag(void);
+
+// void uc_wiota_get_dtu_config(unsigned char *cfg);
 
 void uc_wiota_set_is_gating(unsigned char is_gating);
 
@@ -290,11 +296,22 @@ void uc_wiota_reset_throughput(unsigned char type);
 
 void uc_wiota_get_throughput(uc_throughput_info_t *throughput_info);
 
-void uc_wiota_set_is_osc(unsigned char is_osc);
+// The following fuction definition has been moved to uc_wiota_static.h
 
-unsigned char uc_wiota_get_is_osc(void);
+//void uc_wiota_set_is_osc(unsigned char is_osc);
+
+//unsigned char uc_wiota_get_is_osc(void);
 
 void uc_wiota_light_func_enable(unsigned char func_enable);
+
+// The following fuction definition has been moved to uc_wiota_static.h
+
+//unsigned char* uc_wiota_get_user_info(void);
+
+//void uc_wiota_save_static_info(unsigned char is_direct);
+
+//void uc_wiota_save_dynamic_info(unsigned char is_direct); //not support
+
 
 
 // below is for inter test !
@@ -303,6 +320,8 @@ void uc_wiota_test_loop(unsigned char mode);
 
 void uc_wiota_test_lpm(unsigned char mode, unsigned char value);
 
-void uc_wiota_save_static(void);
+void uc_wiota_set_bc_mode(unsigned char mode);
+
+unsigned char uc_wiota_get_bc_mode(void);
 
 #endif

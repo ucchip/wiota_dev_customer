@@ -1,6 +1,6 @@
 #ifndef __SECTION_DEFINES_H__
 #define __SECTION_DEFINES_H__
-
+#include <rtthread.h>
 /*subsections can be put into large sections in link scripts */
 #ifndef _FPGA_
 

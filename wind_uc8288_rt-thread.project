@@ -5,6 +5,69 @@
       <![CDATA[00010001N0005Debug000000000000]]>
     </Plugin>
   </Plugins>
+  <VirtualDirectory Name="app">
+    <VirtualDirectory Name="codec">
+      <VirtualDirectory Name="cbor">
+        <File Name="app/codec/cbor/uc_cbor_create.c"/>
+        <File Name="app/codec/cbor/uc_cbor.c"/>
+        <File Name="app/codec/cbor/uc_cbor_test.c"/>
+        <File Name="app/codec/cbor/uc_cbor_demo.c"/>
+        <File Name="app/codec/cbor/uc_cbor_encoder.c"/>
+        <File Name="app/codec/cbor/uc_cbor_get.c"/>
+        <File Name="app/codec/cbor/uc_cbor.h"/>
+        <File Name="app/codec/cbor/uc_cbor_error.c"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="coding">
+        <File Name="app/codec/coding/uc_coding_demo.c"/>
+        <File Name="app/codec/coding/uc_coding.h"/>
+        <File Name="app/codec/coding/uc_coding.c"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="fastlz">
+        <File Name="app/codec/fastlz/fastlz.h"/>
+        <File Name="app/codec/fastlz/fastlz.c"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="cJSON">
+        <File Name="app/codec/cJSON/cJSON.c"/>
+        <File Name="app/codec/cJSON/cJSON_demo.c"/>
+        <File Name="app/codec/cJSON/cJSON.h"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="manager">
+      <File Name="app/manager/app_manager.c"/>
+      <File Name="app/manager/app_manager_freq.c"/>
+      <File Name="app/manager/app_manager.h"/>
+      <File Name="app/manager/app_manager_protocol.h"/>
+      <File Name="app/manager/app_manager_cfg.h"/>
+      <File Name="app/manager/app_manager_cfg.c"/>
+      <File Name="app/manager/app_manager_freq.h"/>
+      <File Name="app/manager/app_manager_protocol.c"/>
+      <File Name="app/manager/app_manager_logic.c"/>
+      <File Name="app/manager/app_manager_logic.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="platfrom">
+      <File Name="app/platfrom/manager_module.h"/>
+      <File Name="app/platfrom/manager_queue.c"/>
+      <File Name="app/platfrom/manager_queue.h"/>
+      <File Name="app/platfrom/manager_list.c"/>
+      <File Name="app/platfrom/manager_list.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="customer">
+      <File Name="app/customer/custom_protocol.c"/>
+      <File Name="app/customer/custom_pair.h"/>
+      <File Name="app/customer/light_ctrl.h"/>
+      <File Name="app/customer/switch_ctrl.h"/>
+      <File Name="app/customer/switch_ctrl.c"/>
+      <File Name="app/customer/custom_protocol.h"/>
+      <File Name="app/customer/custom_manager.c"/>
+      <File Name="app/customer/custom_pair.c"/>
+      <File Name="app/customer/light_ctrl.c"/>
+      <File Name="app/customer/custom_manager.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="custom_data">
+      <File Name="app/custom_data/custom_data.c"/>
+      <File Name="app/custom_data/custom_data.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
   <VirtualDirectory Name="boot">
     <VirtualDirectory Name="inc">
       <File Name="boot/inc/uc_print.h"/>
@@ -26,6 +89,7 @@
       <VirtualDirectory Name="include">
         <File Name="PS/app/include/uc_wiota_api.h"/>
         <File Name="PS/app/include/uc_wiota_version.h"/>
+        <File Name="PS/app/include/uc_wiota_static.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="test">
         <File Name="PS/app/test/test_wiota_api.c"/>
@@ -304,7 +368,6 @@
     <File Name="cconfig.h"/>
     <File Name="rtconfig.h"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
@@ -343,7 +406,6 @@
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
-      <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -382,4 +444,5 @@ load</PostConnectCommands>
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
 </CodeLite_Project>

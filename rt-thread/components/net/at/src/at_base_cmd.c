@@ -8,6 +8,7 @@
  * 2018-04-01     armink       first version
  * 2018-04-04     chenyong     add base commands
  */
+#include <rtthread.h>
 #ifdef UC8288_MODULE
 
 #include <at.h>
@@ -39,12 +40,12 @@ static at_result_t atz_exec(void)
     return AT_RESULT_NULL;
 }
 */
-#define AT_WDT_DEVICE_NAME    "wdt" 
+#define AT_WDT_DEVICE_NAME    "wdt"
 
 static int watchdog_reset(void)
 {
     rt_err_t ret = RT_EOK;
-    rt_uint32_t timeout = 1;     
+    rt_uint32_t timeout = 1;
     rt_device_t at_wdg_dev = rt_device_find(AT_WDT_DEVICE_NAME);
     if (!at_wdg_dev)
     {
@@ -64,9 +65,9 @@ static int watchdog_reset(void)
         rt_kprintf("start %s failed!\n", AT_WDT_DEVICE_NAME);
         return 3;
     }
-    
+
     rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_KEEPALIVE, NULL);
-    
+
     return 0;
 }
 
@@ -84,9 +85,9 @@ static at_result_t at_rst_exec(void)
 static at_result_t ate_setup(const char* args)
 {
     int echo_mode = 0;
-    
+
     args = parse ((char*)(args),"d", &echo_mode);
-    
+
     if (echo_mode == AT_ECHO_MODE_CLOSE || echo_mode == AT_ECHO_MODE_OPEN)
     {
         at_get_server()->echo_mode = echo_mode;
@@ -122,7 +123,7 @@ static at_result_t at_uart_setup(const char* args)
 {
     struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
     int baudrate, databits, stopbits, parity, flow_control;
-    
+
     args = parse ((char*)(++args),"ddddd", &baudrate, &databits, &stopbits, &parity, &flow_control);
     if (!args)
     {
