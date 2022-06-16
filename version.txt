@@ -48,3 +48,17 @@ v0.11_iote修改如下：
 	3. AT透传模式
 	4. AT+WIOTAVERSION?
 	5. 协议栈内部bug
+	
+v0.11_iote修改如下：
+	1. 应用demo
+	2. dtu透传模式
+	3. 协议栈串口log单独关闭接口更新
+	4. 协议栈内部bug修复
+	5. 协议栈读写FLASH的bug修复
+	6. 静态数据接口更新，增加用户数据部分
+	7. 协议mac ctrl包增加crc校验，需与AP保持一致
+	8. 失步时的数据发送异常bug修复
+	9. 吞吐率测试at更新
+	10. 默认AP功率22dbm
+	11. adc enable bug修复
+	12. 量产测试流程更新
