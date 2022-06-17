@@ -3,7 +3,6 @@ Debug/
 *.mk
 *.txt
 *.uzf
-*.a
 .build-debug/
 rtthread.map
 Makefile
