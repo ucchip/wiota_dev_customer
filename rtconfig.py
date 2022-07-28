@@ -56,15 +56,15 @@ if PLATFORM == 'gcc':
     CPATH = ''
     LPATH = ''
 
-    #if BUILD == 'debug':
+    # if BUILD == 'debug':
     #    CFLAGS += ' -O0 -g3'
     #    AFLAGS += ' -g3'
     #else:
     #    CFLAGS += ' -O2'
 
     POST_ACTION = SIZE + ' $TARGET\n'
-    POST_ACTION += 'packages/current_version.exe PS/app/include/uc_wiota_version.h' + '\n'
+    POST_ACTION += './tools/current_version.exe PS/app/include/uc_wiota_version.h' + '\n'
     #POST_ACTION += 'riscv32-unknown-elf-objdump -d rtthread.elf > rtthread.asm' + '\n'
-    POST_ACTION += 'bintools.exe -u $TARGET ' + TARGET_NAME + '\n'
+    POST_ACTION += './tools/bintools.exe -f tools/uboot.bin  -u $TARGET ' + TARGET_NAME + '\n'
     POST_ACTION += 'cp -f flat.bin ' + TARGET_NAME + '\n'
-    POST_ACTION += 'rm -f flat.bin \n'
+    POST_ACTION += 'rm -f flat.bin' + '\n'

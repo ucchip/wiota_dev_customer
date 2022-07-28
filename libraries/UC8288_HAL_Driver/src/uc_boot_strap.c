@@ -154,7 +154,7 @@ __critical_128 void fill_mtr()
     //warmup read fifo, otherwise might deadlock with code fetch
     spi_read_fifo((int*) stbls, 0);
     WAIT_XIP_FREE;
-    stbl_flash_addr = (uint32_t)(&_stbl_end) - (uint32_t ) &_rom_start - (SEG_TBL_SIZE << 2);
+    stbl_flash_addr = (uint32_t)(&_stbl_end) - (SEG_TBL_SIZE << 2);
     *reg_spi_cmd = FLASH_RD;  //set cmd
     *reg_spi_addr = (stbl_flash_addr << 8);
     *reg_spi_len = 0x1808 | ((SEG_TBL_SIZE << 5) << 16); //set cmd,addr and data len
@@ -231,13 +231,14 @@ __critical_64 void init_parameters()
     
   // over-clock config
   
-//  *(volatile int*) (0x1a107060) |= 0x1 << 9;
-//  
-//  *(volatile int*) (0x1a10a020) |= 0x1 << 23;
-//  *(volatile int*) (0x1a10a020) |= 0x1 << 22;
-//  *(volatile int*) (0x1a10a00c) |= 0x1;
-//  *(volatile int*) (0x1a10a024) |= 0x1f << 19;
-//  *(volatile int*) (0x1a10a000) |= 0x7<<8;
+    // *(volatile int*) (0x1a107060) |= 0x1 << 9;
+
+    // *(volatile int*) (0x1a10a020) |= 0x1 << 23;
+    // *(volatile int*) (0x1a10a020) |= 0x1 << 22;
+    // *(volatile int*) (0x1a10a00c) |= 0x1;
+    // *(volatile int*) (0x1a10a024) |= 0x1f << 19;
+    // *(volatile int*) (0x1a10a000) |= 0x7<<8;
+
 
     *(volatile int*) (SPI_REG_CLKDIV) = 0x1;
 }

@@ -91,7 +91,7 @@ void at_send_data(const void* buffer, unsigned int len)
                 memcpy(at_server_local->spi_result->data, data, len);
                 at_server_local->spi_result->len = len;
                 len = 0;
-            }            
+            }
             at_server_local->spi_result->flag = SPI_FLAG_READY;
             continue;
         }
@@ -482,7 +482,7 @@ static rt_err_t at_server_getchar(at_server_t server, char* ch, rt_int32_t timeo
         if (SPI_FLAG_READY == server->spi_cmd->flag /*&& ((server->spi_cmd->len -- ) > 0)*/)
         {
             * ch = *tmp;
-            tmp ++;            
+            tmp ++;
             return RT_EOK;
         }
         else
@@ -527,7 +527,7 @@ static void server_parser(at_server_t server)
 
     RT_ASSERT(server);
     RT_ASSERT(server->status != AT_STATUS_UNINITIALIZED);
-    
+
     if (g_dtu_send->flag)
     {
         at_server_printfln("DTU SEND MODE");
@@ -541,7 +541,7 @@ static void server_parser(at_server_t server)
         }
         if (RT_EOK != server->get_char(server, &ch, RT_WAITING_FOREVER))
             continue;
-        
+
         if (ESC_KEY == ch)
         {
             break;
@@ -576,7 +576,7 @@ static void server_parser(at_server_t server)
         server->recv_buffer[server->cur_recv_len++] = ch;
         last_ch = ch;
 
-        if (!strstr(server->recv_buffer, server->end_mark))
+        if (!rt_strstr(server->recv_buffer, server->end_mark))
         {
             if ((server->cur_recv_len+1) == AT_SERVER_RECV_BUFF_LEN)
             {
@@ -608,7 +608,7 @@ static void server_parser(at_server_t server)
 __retry:
         memset(server->recv_buffer, 0x00, AT_SERVER_RECV_BUFF_LEN);
         server->cur_recv_len = 0;
-        
+
 #ifdef SUPPORT_SPI_AT
     memset(server->spi_cmd->data, 0x00, SPI_AT_DATA_MAX);
     server->spi_cmd->flag = SPI_FLAG_IDLE;
@@ -670,7 +670,7 @@ int at_server_init(void)
 	uc_wiota_get_dtu_config((dtu_info_t*)g_dtu_send);
     rt_kprintf("dtu flag %d at_show %d timeout %d wait %d", g_dtu_send->flag,
                 g_dtu_send->at_show,g_dtu_send->timeout,g_dtu_send->wait);
-    
+
     at_server_local->echo_mode = 0;
     at_server_local->status = AT_STATUS_UNINITIALIZED;
 
@@ -695,7 +695,7 @@ int at_server_init(void)
 
     /* Find and open command device */
     at_server_local->device = rt_device_find(AT_SERVER_DEVICE);
-        
+
     if (at_server_local->device)
     {
         struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT; /*init default parment*/

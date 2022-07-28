@@ -1,10 +1,10 @@
 /******************************************************************************
 * Chongqing UCchip InfoTech Co.,Ltd
 * Copyright (c) 2022 UCchip
-* 
+*
 * @file    custom_data.h
 * @brief   Custom data application program interface.
-* 
+*
 * @author  lujun
 * @email   lujun@ucchip.cn
 * @data    2022-06-06

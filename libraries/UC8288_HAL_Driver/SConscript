@@ -1,17 +1,46 @@
-# RT-Thread building script for component
-
-Import('rtconfig')
 Import('RTT_ROOT')
+Import('rtconfig')
 from building import *
 
 cwd = GetCurrentDir()
 
-src = Glob('src/*.c')
+# add the general drivers.
+src = Split('''
+src/uc_boot_strap.c
+src/uc_spi_flash.c
+src/uc_puf.c
+src/uc_exceptions.c
+src/uc_spi.c
+src/uc_timer.c
+src/uc_int.c
+''')
 
-CPPPATH = [ cwd + '/inc']
+if GetDepend(['RT_USING_PIN']):
+    src += ['src/uc_gpio.c']
 
-CPPDEFINES = []
+if GetDepend(['RT_USING_SERIAL']):
+    src += ['src/uc_uart.c']
 
-group = DefineGroup('Libraries', src, depend = [''], CPPPATH = CPPPATH, CPPDEFINES=CPPDEFINES)
+if GetDepend(['RT_USING_PWM']):
+    src += ['src/uc_pwm.c']
+
+if GetDepend(['RT_USING_ADC', 'RT_USING_DAC']):
+    src += ['src/uc_adda.c']
+
+if GetDepend(['RT_USING_WDT']):
+    src += ['src/uc_watchdog.c']
+
+if GetDepend(['RT_USING_CAN']):
+    src += ['src/uc_can.c']
+
+if GetDepend(['RT_USING_I2C']):
+    src += ['src/uc_i2c.c']
+
+if GetDepend('RT_USING_RTC'):
+    src += ['src/uc_rtc.c']
+
+path = [cwd + '/inc']
+
+group = DefineGroup('UC8288_HAL_Driver', src, depend = [''], CPPPATH = path)
 
 Return('group')

@@ -32,12 +32,16 @@ typedef struct
 } t_wiota_net_config;
 
 int manager_config_init(void);
-unsigned int manager_get_userid(void);
-void manager_set_userid(unsigned int userid);
+unsigned int manager_get_deviceid(void);
+void manager_set_deviceid(unsigned int userid);
+unsigned int manager_get_wiotaid(void);
+void manager_set_wiotaid(unsigned int wiotaid);
 unsigned int manager_get_multicast_addr(void);
 void manager_set_multicast_addr(unsigned int multicast_addr);
 void manager_set_device_type_name(const char *device_type_name);
 char *manager_get_device_type_name(void);
+void manager_get_hardware_ver(char *hard_version);
+void manager_get_software_ver(char *soft_version);
 int manager_get_wiota_config(t_wiota_net_config *wiota_config);
 int manager_set_wiota_config(unsigned int config_valid_mask, t_wiota_net_config *wiota_config);
 

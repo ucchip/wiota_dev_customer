@@ -1,5 +1,6 @@
 #include <rtthread.h>
 #ifdef WIOTA_APP_DEMO
+#ifdef APP_DEMO_SWITCH
 #include <rtdevice.h>
 #include <board.h>
 
@@ -7,23 +8,23 @@
 #include "custom_data.h"
 //#include "uc_gpio.h"
 
-#define SWITCH_0_IUTPUT_PIN    17//15
-#define SWITCH_1_IUTPUT_PIN    16
-#define SWITCH_2_IUTPUT_PIN    15//17
+#define SWITCH_0_IUTPUT_PIN 17 //15
+#define SWITCH_1_IUTPUT_PIN 16
+#define SWITCH_2_IUTPUT_PIN 15 //17
 
-#define SWITCH_0_DOWN_LEVEL     PIN_HIGH
-#define SWITCH_1_DOWN_LEVEL     PIN_HIGH
-#define SWITCH_2_DOWN_LEVEL     PIN_HIGH
+#define SWITCH_0_DOWN_LEVEL PIN_HIGH
+#define SWITCH_1_DOWN_LEVEL PIN_HIGH
+#define SWITCH_2_DOWN_LEVEL PIN_HIGH
 
 static e_sw_state g_switch_state[SWITCH_COUNT_MAX];
 static struct rt_semaphore g_switch_sem[SWITCH_COUNT_MAX];
 
-static void switch_irq_handle(void* args)
+static void switch_irq_handle(void *args)
 {
-   if (args != NULL)
-   {
-       rt_sem_release((rt_sem_t)args);
-   }
+    if (args != NULL)
+    {
+        rt_sem_release((rt_sem_t)args);
+    }
 }
 
 static void switch_update_state(void)
@@ -152,7 +153,7 @@ static unsigned int switch_get_interval_tick(unsigned int last_tick)
     return interval_tick;
 }
 
-#define SWITCH_DOWN_STATE_HOLD_TIME     10
+#define SWITCH_DOWN_STATE_HOLD_TIME 10
 
 unsigned char switch_get_down_event_mask(void)
 {
@@ -186,4 +187,5 @@ unsigned char switch_get_down_event_mask(void)
     return sw_event_mask;
 }
 
+#endif
 #endif

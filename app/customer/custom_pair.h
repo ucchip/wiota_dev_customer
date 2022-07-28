@@ -3,7 +3,6 @@
 
 #include "custom_data.h"
 
-
 void custom_light_pair_info_init(void);
 void custom_clear_light_pair_info(void);
 int custom_set_light_pair_info(pair_info_t *pair_info, unsigned int pair_info_count);

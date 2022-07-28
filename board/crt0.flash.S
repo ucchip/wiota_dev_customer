@@ -75,8 +75,8 @@ zero_loop_end:
   call  set_program_type
   call  boot_noop
   call  boot_strap
-  li a0, 1
-  call  boot_download
+  //li a0, 1
+  //call  boot_download
   call  __libc_init_array
   j main_entry
   

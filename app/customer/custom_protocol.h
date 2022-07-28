@@ -6,8 +6,51 @@
 #include "custom_protocol.h"
 #include "custom_pair.h"
 
-
 int custom_parse_pair_info_cmd(unsigned char *data, unsigned int data_len, pair_info_t *get_pair_info, unsigned int pair_info_max_count, unsigned char *get_pair_info_count);
+unsigned char *custom_create_check_version_data(char *soft_version, char *hard_version, char *dev_type);
+void custom_delete_check_version_data(unsigned char *data);
+int custom_parse_check_version_cmd(unsigned char *data, unsigned int data_len, 
+                unsigned char *state, 
+                char *new_version, 
+                char *old_version, 
+                char *dev_type, 
+                unsigned char *update_type, 
+                char *file, 
+                unsigned int *size, 
+                char *md5, 
+                unsigned char *access, 
+                char *username, 
+                char *password, 
+                char *path, 
+                char *address, 
+                char *port);
+unsigned char *custom_create_ota_request_specified_data(char *dev_type, 
+                char *old_version, 
+                char *new_version, 
+                unsigned char update_type, 
+                unsigned int data_info_count,
+                unsigned int *offset,
+                unsigned int *len);
+void custom_delete_ota_request_specified_data(unsigned char *data);
+int custom_parse_ota_respond_specified_data_cmd(unsigned char *data, unsigned int data_len, 
+                unsigned char *state, 
+                unsigned char *range, 
+                unsigned int *size, 
+                char *md5, 
+                unsigned int *dev_list, 
+                unsigned int *dev_list_count, 
+                char *new_version, 
+                char *old_version, 
+                char *dev_type, 
+                unsigned int *offset, 
+                unsigned int *len, 
+                unsigned char *ota_data);
+int custom_parse_ota_upgrade_state_cmd(unsigned char *data, unsigned int data_len, 
+                unsigned char *state, 
+                char *new_version, 
+                char *old_version, 
+                char *dev_type, 
+                unsigned char *ota_state);
 
 unsigned char *custom_create_light_property_data(void);
 void custom_delete_light_property_data(unsigned char *data);

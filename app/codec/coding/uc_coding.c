@@ -3,11 +3,17 @@
 #include <uc_coding.h>
 #include "fastlz.h"
 
+unsigned char app_packet_num(void)
+{
+    static unsigned char packet_num = 0;
+    return packet_num ++;
+}
+
 void app_set_header_property(header_property_e bit, unsigned char value, app_ps_property_t *ps_property)
 {
     unsigned char *property = (unsigned char *)ps_property;
 
-    if (bit > PRO_RESERVED)
+    if (bit > PRO_SRC_ADDR)
     {
         rt_kprintf("%s, %d bit error\n", __FUNCTION__, __LINE__);
         return;
@@ -164,12 +170,14 @@ int app_data_decoding(unsigned char *input_data,
 
     // parse property
     rt_memcpy(&ps_header->property, input_data + offset, sizeof(app_ps_property_t));
+
     unsigned char is_src_addr = ps_header->property.is_src_addr;
     unsigned char is_dest_addr = ps_header->property.is_dest_addr;
     unsigned char is_packet_num = ps_header->property.is_packet_num;
     unsigned char segment_flag = ps_header->property.segment_flag;
     unsigned char compress_flag = ps_header->property.compress_flag;
 
+    rt_kprintf("is_src_addr=%d,is_dest_addr=%d, is_packet_num=%d,segment_flag=%d,compress_flag=%d\n", is_src_addr, is_dest_addr, is_packet_num, segment_flag, compress_flag);
     offset += sizeof(app_ps_property_t);
 
     // parse src_addr
@@ -206,15 +214,17 @@ int app_data_decoding(unsigned char *input_data,
 
     // malloc space to save data
     buf_len = input_data_len - offset;
+    rt_kprintf("buf_len=%d,offset=%d\n", buf_len, offset);
+
     if (buf_len > 0)
     {
-        buf = (unsigned char *)rt_malloc(buf_len);
+        buf = (unsigned char *)rt_malloc(buf_len+1);
         if (RT_NULL == buf)
         {
             rt_kprintf("%s, %d malloc fail\n", __FUNCTION__, __LINE__);
             return -2;
         }
-        rt_memset(buf, 0, buf_len);
+        rt_memset(buf, 0, buf_len+1);
 
         // parse data
         rt_memcpy(buf, input_data + offset, buf_len);

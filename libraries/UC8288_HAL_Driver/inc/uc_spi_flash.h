@@ -48,8 +48,9 @@ typedef enum
     FLASH_CMD_STATUS = 0x05,
     FLASH_CMD_ENABLE_WR = 0x06,
     FLASH_CMD_QREAD = 0x11101011,
-    FLASH_CMD_READ = 0x3,
-    FLASH_CMD_PAGE_PROGRAM = 0x02
+    FLASH_CMD_READ = 0x03,
+    FLASH_CMD_PAGE_PROGRAM = 0x02,
+    FLASH_CMD_WRITE_STATUS = 0x01,
 } ENUM_FLASH_CMD;
 
 // function
@@ -71,6 +72,9 @@ void FlashWaitForWr(void);
 uint8_t FlashStatus(void);
 void FlashPageProgram(uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
 void FlashPageRead(uint32_t nAddr, uint8_t* pData, uint16_t usLen);
+
+uint32_t Flash_Read_SR();
+void Flash_Write_SR(uint8_t status);
 
 //#endif
 

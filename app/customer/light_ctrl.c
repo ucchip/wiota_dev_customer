@@ -1,5 +1,6 @@
 #include <rtthread.h>
 #ifdef WIOTA_APP_DEMO
+#ifdef APP_DEMO_LIGHT
 #include <rtdevice.h>
 #include <board.h>
 #include "light_ctrl.h"
@@ -7,12 +8,12 @@
 
 static e_light_state g_light_state = LIGHT_OFF;
 
-#define LIGHT_OUTPUT_PIN    2
-#define LIGHT_ON_LEVEL      PIN_HIGH
-#define LIGHT_OFF_LEVEL     PIN_LOW
+#define LIGHT_OUTPUT_PIN 15
+#define LIGHT_ON_LEVEL PIN_HIGH
+#define LIGHT_OFF_LEVEL PIN_LOW
 
-#define LIGHT_OUTPUT_ON()   rt_pin_write(LIGHT_OUTPUT_PIN, LIGHT_ON_LEVEL)
-#define LIGHT_OUTPUT_OFF()  rt_pin_write(LIGHT_OUTPUT_PIN, LIGHT_OFF_LEVEL)
+#define LIGHT_OUTPUT_ON() rt_pin_write(LIGHT_OUTPUT_PIN, LIGHT_ON_LEVEL)
+#define LIGHT_OUTPUT_OFF() rt_pin_write(LIGHT_OUTPUT_PIN, LIGHT_OFF_LEVEL)
 
 void light_ctrl_init(void)
 {
@@ -56,4 +57,5 @@ e_light_state light_ctrl_get_state(void)
     return g_light_state;
 }
 
+#endif
 #endif

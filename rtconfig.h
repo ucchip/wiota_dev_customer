@@ -46,7 +46,7 @@
 
 #define RT_USING_COMPONENTS_INIT
 #define RT_USING_USER_MAIN
-#define RT_MAIN_THREAD_STACK_SIZE 1024
+#define RT_MAIN_THREAD_STACK_SIZE 1224
 #define RT_MAIN_THREAD_PRIORITY 6
 
 /* C++ features */
@@ -64,12 +64,9 @@
 #define RT_PIPE_BUFSZ 512
 #define RT_USING_SERIAL
 #define RT_SERIAL_RB_BUFSZ 256
-#define RT_USING_CAN
-#define RT_USING_I2C
 #define RT_USING_PIN
 #define RT_USING_ADC
 #define RT_USING_DAC
-#define RT_USING_PWM
 #define RT_USING_RTC
 #define RT_USING_ALARM
 #define RT_USING_WDT
@@ -79,6 +76,7 @@
 
 /* POSIX layer and C standard library */
 
+#define RT_USING_LIBC
 
 /* Network */
 

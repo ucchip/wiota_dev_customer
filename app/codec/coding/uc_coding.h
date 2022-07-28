@@ -3,14 +3,14 @@
 
 typedef enum
 {
-    PRO_SRC_ADDR = 0,
-    PRO_DEST_ADDR = 1,
-    PRO_PACKET_NUM = 2,
-    PRO_NEED_RES = 3,
-    PRO_RESPONSE_FLAG = 4,
-    PRO_SEGMENT_FLAG = 5,
-    PRO_COMPRESS_FLAG = 6,
-    PRO_RESERVED = 7
+    PRO_RESERVED = 0,
+    PRO_COMPRESS_FLAG = 1,
+    PRO_SEGMENT_FLAG = 2,
+    PRO_RESPONSE_FLAG = 3,
+    PRO_NEED_RES = 4,
+    PRO_PACKET_NUM = 5,
+    PRO_DEST_ADDR = 6,
+    PRO_SRC_ADDR = 7,
 } header_property_e;
 
 typedef struct
@@ -43,11 +43,13 @@ typedef struct
     app_ps_addr_t addr;
     unsigned char packet_num; /* 0 ~ 255 */
     app_ps_segment_info_t segment_info;
-    unsigned char cmd_type;   /* 0 ~ 255 */
+    unsigned char cmd_type; /* 0 ~ 255 */
 } app_ps_header_t;
 
-#define APP_MAX_CODING_DATA_LEN 310
-#define APP_MAX_DECODING_DATA_LEN 340
+#define APP_MAX_CODING_DATA_LEN (1024 - sizeof(app_ps_header_t))
+#define APP_MAX_DECODING_DATA_LEN (1024 - sizeof(app_ps_header_t))
+
+unsigned char app_packet_num(void);
 
 /*********************************************************************************
  This function is to set property of app ps header
@@ -78,10 +80,10 @@ void app_set_header_property(header_property_e bit, unsigned char value, app_ps_
         other value: coding failed
 **********************************************************************************/
 int app_data_coding(app_ps_header_t *ps_header,
-                     unsigned char *input_data,
-                     unsigned int input_data_len,
-                     unsigned char **output_data,
-                     unsigned int *output_data_len);
+                    unsigned char *input_data,
+                    unsigned int input_data_len,
+                    unsigned char **output_data,
+                    unsigned int *output_data_len);
 
 /*********************************************************************************
  This function is to decoding app data
@@ -99,8 +101,8 @@ int app_data_coding(app_ps_header_t *ps_header,
         other value: decoding failed
 **********************************************************************************/
 int app_data_decoding(unsigned char *input_data,
-                       unsigned int input_data_len,
-                       unsigned char **output_data,
-                       unsigned int *output_data_len,
-                       app_ps_header_t *ps_header);
+                      unsigned int input_data_len,
+                      unsigned char **output_data,
+                      unsigned int *output_data_len,
+                      app_ps_header_t *ps_header);
 #endif

@@ -158,3 +158,30 @@ __critical void FlashEnableWr(void)
     while (REG_SPI_STATUS != 1);
 }
 
+__critical void flash_delay(uint32_t delay_time)
+{
+   int i,j; 
+   if (0 == delay_time) return;
+   for (i=0;i<delay_time;i++ )
+   {
+     for(j=0;j<40;j++) 
+       {
+         asm("nop");    
+       }
+   }
+}
+
+__critical void Flash_Write_SR(uint8_t status)
+{
+    WAIT_FOR_WR_DONE;
+    WAIT_XIP_FREE;
+    FlashEnableWr();
+    flash_delay(0);
+    REG_SPI_CMD = FLASH_CMD_WRITE_STATUS << 24 | status << 16;    // set cmd
+    REG_SPI_LEN = 0x0010;      // set cmd and data len
+    WAIT_XIP_FREE;
+    SPI_START(SPI_CMD_WR);
+    WAIT_SPI_IDLE;
+    flash_delay(100);
+    WAIT_FOR_WR_DONE;
+}

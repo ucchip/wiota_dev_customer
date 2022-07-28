@@ -49,7 +49,7 @@ v0.11_iote修改如下：
 	4. AT+WIOTAVERSION?
 	5. 协议栈内部bug
 	
-v0.11_iote修改如下：
+v0.12_iote修改如下：
 	1. 应用demo
 	2. dtu透传模式
 	3. 协议栈串口log单独关闭接口更新
@@ -62,3 +62,10 @@ v0.11_iote修改如下：
 	10. 默认AP功率22dbm
 	11. adc enable bug修复
 	12. 量产测试流程更新
+
+v0.13_iote修改如下：
+	1. 增加读写flash通用接口
+	2. 静态数据更新
+	3. 协议栈event trace起始地址更新，0x30EC00改为0x30FB00
+	4. 协议栈内部bug修复和优化
+	4.增加uboot启动

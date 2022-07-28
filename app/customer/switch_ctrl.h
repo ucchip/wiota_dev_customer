@@ -1,7 +1,7 @@
 #ifndef _SWITCH_CTRL_H_
 #define _SWITCH_CTRL_H_
 
-#define SWITCH_COUNT_MAX    5
+#define SWITCH_COUNT_MAX 5
 
 typedef enum sw_state
 {

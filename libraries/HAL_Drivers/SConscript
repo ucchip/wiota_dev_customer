@@ -5,9 +5,7 @@ from building import *
 cwd = GetCurrentDir()
 
 # add the general drivers.
-src = Split('''
-drv_onchip_flash.c
-''')
+src = []
 
 if GetDepend(['RT_USING_PIN']):
     src += ['drv_gpio.c']
@@ -36,12 +34,16 @@ if GetDepend('RT_USING_RTC'):
 if GetDepend(['RT_USING_WDT']):
     src += ['drv_wdt.c']
 
-if GetDepend(['RT_USING_I2C', 'RT_USING_I2C_BITOPS']):
-    src += ['drv_soft_i2c.c']
-        
-#path =  [cwd]
-path = [cwd, ]
+if GetDepend(['RT_USING_CAN']):
+    src += ['drv_can.c']
 
-group = DefineGroup('Drivers', src, depend = [''], CPPPATH = path)
+if GetDepend(['RT_USING_I2C']):
+    src += ['drv_hw_i2c.c']
+    if GetDepend(['RT_USING_I2C_BITOPS']):
+        src += ['drv_soft_i2c.c']
+
+path = [cwd]
+
+group = DefineGroup('HAL_Drivers', src, depend = [''], CPPPATH = path)
 
 Return('group')

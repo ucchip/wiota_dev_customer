@@ -19,6 +19,7 @@ static void *manager_queue_handle;
 t_app_process_manager process_manager;
 static app_ps_header_t g_last_recv_head_info;
 static f_custom_data_callback g_custom_data_callback = NULL;
+static f_custom_data_callback g_custom_ota_callback = NULL;
 static unsigned int g_send_wiota_data_id = 0;
 static unsigned char g_send_wiota_auto_packet_num = 0;
 static rt_list_t g_recv_package_list_head;
@@ -111,6 +112,38 @@ void manager_set_custom_data_callback(f_custom_data_callback callback)
     g_custom_data_callback = callback;
 }
 
+void manager_set_custom_ota_callback(f_custom_data_callback callback)
+{
+    g_custom_ota_callback = callback;
+}
+
+void manager_respond_data_info_init(t_send_data_info *respond_data_info, t_recv_data_info *recv_data_info)
+{
+    if ((respond_data_info == NULL) || (recv_data_info == NULL))
+    {
+        return;
+    }
+
+    respond_data_info->auto_src_addr = 1;
+    respond_data_info->dest_addr_type = recv_data_info->src_addr_type;
+    respond_data_info->need_response = 0;
+    respond_data_info->is_response = 1;
+    respond_data_info->compress_flag = recv_data_info->compress_flag;
+    if (recv_data_info->is_packet_num)
+    {
+        respond_data_info->packet_num_type = 2;
+        respond_data_info->user_packet_num = recv_data_info->packet_num;
+    }
+    else
+    {
+        respond_data_info->packet_num_type = 0;
+        respond_data_info->user_packet_num = 0;
+    }
+    respond_data_info->src_addr = 0;
+    respond_data_info->dest_addr = recv_data_info->src_addr;
+    respond_data_info->cmd_type = recv_data_info->cmd_type;
+}
+
 int manager_send_wiota_data(t_send_data_info *send_data_info, unsigned char *data, unsigned int data_len, f_send_result_cb send_result_cb, unsigned int *get_data_id)
 {
     unsigned char *output_data = NULL;
@@ -120,7 +153,7 @@ int manager_send_wiota_data(t_send_data_info *send_data_info, unsigned char *dat
     ps_head.property.is_src_addr = 1;
     if (send_data_info->auto_src_addr)
     {
-        ps_head.addr.src_addr = manager_get_userid();
+        ps_head.addr.src_addr = manager_get_deviceid();
     }
     else
     {
@@ -207,6 +240,20 @@ int manager_send_wiota_data(t_send_data_info *send_data_info, unsigned char *dat
             rt_free(send_package_data);
             return -2;
         }
+        //force use packet_num
+        if (ps_head.property.is_packet_num == 0)
+        {
+            ps_head.property.is_packet_num = 1;
+            ps_head.packet_num = g_send_wiota_auto_packet_num;
+            if (g_send_wiota_auto_packet_num < 255)
+            {
+                g_send_wiota_auto_packet_num++;
+            }
+            else
+            {
+                g_send_wiota_auto_packet_num = 0;
+            }
+        }
         while (data_offset < data_len)
         {
             unsigned int coding_data_len = SEND_PACKAGE_FRAME_DATA_MAX_LEN;
@@ -292,6 +339,24 @@ int manager_send_wiota_data(t_send_data_info *send_data_info, unsigned char *dat
     return 0;
 }
 
+void manager_wiota_connected(void)
+{
+    int result = manager_sendqueue_logic(MANAGER_WIOTA_INDENTIFICATION, MANAGER_LOGIC_WIOTA_CONNECTED, NULL);
+    if (result != 0)
+    {
+        rt_kprintf("manager_wiota_connected result = %d\r\n", result);
+    }
+}
+
+void manager_reset_wiota(void)
+{
+    int result = manager_sendqueue_logic(MANAGER_WIOTA_INDENTIFICATION, MANAGER_LOGIC_RESET_WIOTA, NULL);
+    if (result != 0)
+    {
+        rt_kprintf("manager_reset_wiota result = %d\r\n", result);
+    }
+}
+
 static void manager_recv_wiota_data(uc_recv_back_p data)
 {
     rt_kprintf("@@@ manager_recv_wiota_data len = %d\r\n", data->data_len);
@@ -357,11 +422,11 @@ static void manager_check_and_delete_timeout_recv_package(void)
         if (manager_get_interval_tick(package_info->last_recv_tick) > package_info->recv_timeout)
         {
             rt_list_remove(&(package_info->list));
-            
+
             for (unsigned char index = 0; index < package_info->frame_count; index++)
             {
                 rt_free(package_info->frame_data_buf[index]);
-            } 
+            }
             rt_free(package_info->frame_data_len);
             rt_free(package_info->frame_data_buf);
             rt_free(package_info->frame_recv_mask);
@@ -380,9 +445,7 @@ static unsigned char *manager_check_and_get_recv_package_data(t_recv_data_info *
     rt_list_for_each(node, &g_recv_package_list_head)
     {
         package_info = rt_list_entry(node, t_recv_package, list);
-        if ((memcmp(&(package_info->recv_info), recv_data_info, sizeof(t_recv_data_info)) == 0)
-            && (package_info->packet_num == ps_head->packet_num)
-            && (package_info->frame_count == ps_head->segment_info.total_num))
+        if ((memcmp(&(package_info->recv_info), recv_data_info, sizeof(t_recv_data_info)) == 0) && (package_info->packet_num == ps_head->packet_num) && (package_info->frame_count == ps_head->segment_info.total_num))
         {
             is_match = 1;
             break;
@@ -394,8 +457,7 @@ static unsigned char *manager_check_and_get_recv_package_data(t_recv_data_info *
         unsigned char offset = ps_head->segment_info.current_num >> 3;
         unsigned char left = ps_head->segment_info.current_num & 0x07;
 
-        if ((ps_head->segment_info.current_num < package_info->frame_count)
-            && ((package_info->frame_recv_mask[offset] & (1 << left)) == 0))
+        if ((ps_head->segment_info.current_num < package_info->frame_count) && ((package_info->frame_recv_mask[offset] & (1 << left)) == 0))
         {
             package_info->frame_data_buf[ps_head->segment_info.current_num] = rt_malloc(data_len);
             if (package_info->frame_data_buf[ps_head->segment_info.current_num] != NULL)
@@ -442,24 +504,21 @@ static unsigned char *manager_check_and_get_recv_package_data(t_recv_data_info *
         }
         package_info->last_recv_tick = rt_tick_get();
     }
-    else if ((ps_head->segment_info.current_num == 0)
-        && (ps_head->segment_info.total_num > 1))
+    else if ((ps_head->segment_info.current_num == 0) && (ps_head->segment_info.total_num > 1))
     {
         new_package_info = rt_malloc(sizeof(t_recv_package));
         if (new_package_info != NULL)
         {
             unsigned char num = ps_head->segment_info.total_num >> 3;
 
-            if (ps_head->segment_info.current_num & 0x07)
+            if (ps_head->segment_info.total_num & 0x07)
             {
                 num += 1;
             }
             new_package_info->frame_recv_mask = rt_malloc(num * sizeof(unsigned char *));
             new_package_info->frame_data_buf = rt_malloc(ps_head->segment_info.total_num * sizeof(unsigned char *));
             new_package_info->frame_data_len = rt_malloc(ps_head->segment_info.total_num * sizeof(unsigned int));
-            if ((new_package_info->frame_recv_mask == NULL)
-                || (new_package_info->frame_data_buf == NULL)
-                || (new_package_info->frame_data_len == NULL))
+            if ((new_package_info->frame_recv_mask == NULL) || (new_package_info->frame_data_buf == NULL) || (new_package_info->frame_data_len == NULL))
             {
                 goto __end;
             }
@@ -471,7 +530,7 @@ static unsigned char *manager_check_and_get_recv_package_data(t_recv_data_info *
             memcpy(&new_package_info->recv_info, recv_data_info, sizeof(t_recv_data_info));
             new_package_info->package_data_len = 0;
             new_package_info->recv_timeout = RECV_PACKAGE_TIMEOUT;
-            
+
             new_package_info->frame_data_buf[0] = rt_malloc(data_len);
             if (new_package_info->frame_data_buf[0] != NULL)
             {
@@ -486,7 +545,8 @@ static unsigned char *manager_check_and_get_recv_package_data(t_recv_data_info *
             }
             new_package_info->last_recv_tick = rt_tick_get();
 
-            rt_list_insert_after(node, &(new_package_info->list));
+            rt_list_insert_after(g_recv_package_list_head.prev, &(new_package_info->list));
+            return NULL;
         }
     }
 
@@ -546,8 +606,7 @@ static void manager_handle_app_msg(unsigned char wiota_msg_type, app_ps_header_t
     {
         recv_data_info.trans_type = TRANS_TYPE_BROADCAST;
     }
-    else if ((ps_head->addr.dest_addr >= MANAGE_LOGIC_MULTICAST_ADDR_START)
-            && (ps_head->addr.dest_addr <= MANAGE_LOGIC_MULTICAST_ADDR_END))
+    else if ((ps_head->addr.dest_addr >= MANAGE_LOGIC_MULTICAST_ADDR_START) && (ps_head->addr.dest_addr <= MANAGE_LOGIC_MULTICAST_ADDR_END))
     {
         if (ps_head->addr.dest_addr != manager_get_multicast_addr())
         {
@@ -558,7 +617,7 @@ static void manager_handle_app_msg(unsigned char wiota_msg_type, app_ps_header_t
     }
     else
     {
-        if (ps_head->addr.dest_addr != manager_get_userid())
+        if (ps_head->addr.dest_addr != manager_get_deviceid())
         {
             //unicast device addr unmatch
             return;
@@ -599,6 +658,8 @@ static void manager_handle_app_msg(unsigned char wiota_msg_type, app_ps_header_t
         {
             data = package_data;
             data_len = package_len;
+            rt_kprintf("####@@@@ recv package_data:\r\n");
+            print_hex_data(package_data, package_len);
         }
         else
         {
@@ -606,11 +667,21 @@ static void manager_handle_app_msg(unsigned char wiota_msg_type, app_ps_header_t
         }
     }
 
-    if ((ps_head->cmd_type >= MANAGE_LOGIC_SYSTEM_CMD_TYPE_START)
-        && (ps_head->cmd_type <= MANAGE_LOGIC_SYSTEM_CMD_TYPE_END))
+    if ((ps_head->cmd_type >= MANAGE_LOGIC_SYSTEM_CMD_TYPE_START) && (ps_head->cmd_type <= MANAGE_LOGIC_SYSTEM_CMD_TYPE_END))
     {
         //process system manage data
         manager_system_recv_data_process(&recv_data_info, data, data_len);
+    }
+    else if ((ps_head->cmd_type == APP_CMD_OTA_CHECK_VERSION)
+        && (ps_head->cmd_type == APP_CMD_OTA_GET_DATA)
+        && (ps_head->cmd_type == APP_CMD_OTA_STOP)
+        && (ps_head->cmd_type == APP_CMD_OTA_STATE))
+    {
+        //custom ota
+        if (g_custom_ota_callback != NULL)
+        {
+            g_custom_ota_callback(&recv_data_info, data, data_len);
+        }
     }
     else
     {
@@ -672,6 +743,43 @@ static void app_manager_handle_recv_data(uc_recv_back_p recv_data)
         default:
             break;
         }
+    }
+}
+
+void manager_request_wiota_addr(void)
+{
+    t_send_data_info send_data_info;
+    unsigned int get_data_id = 0;
+    unsigned char *app_data = NULL;
+    int result = 0;
+
+    app_data = manager_create_wiota_addr_request_data(manager_get_deviceid());
+    if (app_data == NULL)
+    {
+        goto __end;
+    }
+    send_data_info.auto_src_addr = 1;
+    send_data_info.dest_addr_type = ADDR_TYPE_GW;
+    send_data_info.need_response = 0;
+    send_data_info.is_response = 0;
+    send_data_info.compress_flag = 1;
+    send_data_info.packet_num_type = 0;
+    send_data_info.src_addr = 0;
+    send_data_info.dest_addr = 0;
+    send_data_info.cmd_type = APP_CMD_CHANGE_ADDR_REQUEST;
+    //manager_send_lock_take();
+    //result = manager_send_wiota_data(&send_data_info, app_data, strlen((const char *)app_data), manager_send_data_result_callback, &get_data_id);
+    result = manager_send_wiota_data(&send_data_info, app_data, strlen((const char *)app_data), RT_NULL, &get_data_id);
+    if (result != 0)
+    {
+        //manager_send_lock_release();
+    }
+    rt_kprintf("manager_request_wiota_addr result = %d, get_data_id = %d\r\n", result, get_data_id);
+
+__end:
+    if (app_data != NULL)
+    {
+        manager_delete_wiota_addr_request_data(app_data);
     }
 }
 
@@ -766,6 +874,8 @@ unsigned char manager_get_logic_work_state(void)
 void app_manager_logic(void)
 {
     static unsigned char first_conn = 1;
+    unsigned int last_request_wiota_addr_tick = 0;
+    unsigned char order_reset_wiota = 0;
     /*
     relationship between page and message:
         typedef struct app_manager_message
@@ -787,15 +897,10 @@ void app_manager_logic(void)
 
     process_manager.current_process = MANAGER_LOGIC_DEFAULT;
 
-    g_manager_logic_work_state = 1;
-    if (first_conn == 0)
-    {
-        manager_sendqueue_custom(MANAGER_LOGIC_INDENTIFICATION, CUSTOM_LOGIC_REPORT_DEVSTATE, NULL);
-    }
-    else
-    {
-        first_conn = 0;
-    }
+    g_manager_logic_work_state = 0;
+    manager_request_wiota_addr();
+    last_request_wiota_addr_tick = rt_tick_get();
+
     while (1)
     {
         t_app_manager_message *page;
@@ -804,11 +909,36 @@ void app_manager_logic(void)
 
         manager_check_and_delete_timeout_recv_package();
 
+        if (g_manager_logic_work_state == 0)
+        {
+            unsigned int interval_tick = 0;
+            unsigned int cur_tick = rt_tick_get();
+            if (cur_tick >= last_request_wiota_addr_tick)
+            {
+                interval_tick = cur_tick - last_request_wiota_addr_tick;
+            }
+            else
+            {
+                interval_tick = 0xffffffff - last_request_wiota_addr_tick + cur_tick + 1;
+            }
+
+            if (interval_tick > MANAGER_LOGIC_REQUEST_WIOTA_ADDR_CYCLE_TIME)
+            {
+                manager_request_wiota_addr();
+                last_request_wiota_addr_tick = cur_tick;
+            }
+        }
+
         // check wiota connect state
-        wiota_status = uc_wiota_get_state() ;
+        wiota_status = uc_wiota_get_state();
         if ((wiota_status == UC_STATUS_SYNC_LOST) || (wiota_status == UC_STATUS_ERROR))
         {
             rt_kprintf("uc_wiota_get_state Err!! wiota_status = %d\r\n", wiota_status);
+            break;
+        }
+        if (order_reset_wiota)
+        {
+            order_reset_wiota = 0;
             break;
         }
 
@@ -820,6 +950,27 @@ void app_manager_logic(void)
 
             switch (message->cmd)
             {
+            case MANAGER_LOGIC_WIOTA_CONNECTED:
+            {
+                rt_kprintf("msg MANAGER_LOGIC_WIOTA_CONNECTED \r\n");
+                g_manager_logic_work_state = 1;
+                if (first_conn == 0)
+                {
+                    manager_sendqueue_custom(MANAGER_LOGIC_INDENTIFICATION, CUSTOM_LOGIC_REPORT_DEVSTATE, NULL);
+                }
+                else
+                {
+                    first_conn = 0;
+                }
+                break;
+            }
+            case MANAGER_LOGIC_RESET_WIOTA:
+            {
+                rt_kprintf("msg MANAGER_LOGIC_RESET_WIOTA \r\n");
+                // reset wiota
+                order_reset_wiota = 1;
+                break;
+            }
             case MANAGER_LOGIC_RECV_WIOTA_DATA:
             {
                 // handle recv data
@@ -919,7 +1070,7 @@ void app_manager_logic(void)
                 rt_free(message->data);
             if (RT_NULL != message)
                 rt_free(message);
-            rt_free(page);  
+            rt_free(page);
         }
     }
     g_manager_logic_work_state = 0;

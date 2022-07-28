@@ -98,8 +98,8 @@ void uc_uart_init(UART_TYPE* uartx, uint32_t baud_rate, uint8_t data_bits, uint8
     CGREG |= (1 << CGUART); // don't clock gate UART
     //integerdivider = (SYSTEM_CLK/15)/baud_rate - 1;
     integerdivider = (SYSTEM_CLK / 16) / baud_rate -1;
-//    integerdivider = (140000000 / 16) / baud_rate -1;
-//    integerdivider = 5;
+    // integerdivider = (140000000 / 16) / baud_rate -1;
+    // integerdivider = 5;
 
     if ((data_bits >= 5) && (data_bits <= 8))
     {

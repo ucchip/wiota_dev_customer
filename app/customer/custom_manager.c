@@ -17,14 +17,19 @@
 #include "custom_pair.h"
 #include "custom_protocol.h"
 #include "custom_data.h"
+#include "custom_ota.h"
 #include "uc_wiota_static.h"
 
+#if !defined APP_DEMO_LIGHT && !defined APP_DEMO_SWITCH 
+#error not define APP_DEMO_LIGHT and not define APP_DEMO_SWITCH
+#endif
 // user peripheral control
 
 static void *custom_queue_handle;
 t_costom_manager costom_manger;
 //static rt_mutex_t p_custom_send_lock = NULL;
 
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
 static unsigned char custom_get_device_type(void)
 {
     unsigned char dev_type = 0;
@@ -34,13 +39,14 @@ static unsigned char custom_get_device_type(void)
 
     return dev_type;
 }
+#endif
 
 static void custom_send_lock_init(void)
 {
     //p_custom_send_lock = rt_mutex_create("cu_sl", RT_IPC_FLAG_FIFO);
 }
 
-static void custom_send_lock_take(void)
+void custom_send_lock_take(void)
 {
     //if (p_custom_send_lock != NULL)
     //{
@@ -49,7 +55,7 @@ static void custom_send_lock_take(void)
     manager_send_lock_take();
 }
 
-static void custom_send_lock_release(void)
+void custom_send_lock_release(void)
 {
     //if (p_custom_send_lock != NULL)
     //{
@@ -88,13 +94,14 @@ int manager_sendqueue_custom(int src_task, int cmd, void *data)
     return manager_send_page(custom_queue_handle, src_task, message);
 }
 
-static void custom_send_data_result_callback(unsigned int data_id, UC_OP_RESULT send_result)
+void custom_send_data_result_callback(unsigned int data_id, UC_OP_RESULT send_result)
 {
     rt_kprintf("custom_send_data_result_callback, data_id = %d, send_result = %d\r\n", data_id, send_result);
 
     custom_send_lock_release();
 }
 
+#ifdef APP_DEMO_LIGHT
 void custom_report_light_property(void)
 {
     t_send_data_info send_data_info;
@@ -247,7 +254,9 @@ __end:
         custom_delete_light_pair_data(app_data);
     }
 }
+#endif
 
+#ifdef APP_DEMO_SWITCH
 void custom_report_switch_property(void)
 {
     t_send_data_info send_data_info;
@@ -437,7 +446,9 @@ __end:
         custom_delete_switch_ctrl_light_data(app_data);
     }
 }
+#endif
 
+#if defined APP_DEMO_LIGHT || defined APP_DEMO_SWITCH 
 static void custom_cycle_report_state_process(void)
 {
     static unsigned int last_tick = 0;
@@ -456,35 +467,48 @@ static void custom_cycle_report_state_process(void)
     {
         if (manager_get_logic_work_state() == 1)
         {
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
             if (custom_get_device_type() == DEV_TYPE_LIGHT)
+#endif
+#ifdef APP_DEMO_LIGHT
             {
                 custom_report_light_state();
             }
-            else
+#endif
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
+            else if (custom_get_device_type() == DEV_TYPE_SWITCH)
+#endif
+#ifdef APP_DEMO_SWITCH
             {
                 custom_report_switch_state();
             }
+#endif
         }
         last_tick = cur_tick;
     }
 }
+#endif
 
 void custom_manager_task(void *pPara)
 {
     rt_kprintf("custom_manager_task enter\n");
 
     custom_send_lock_init();
-#ifdef APP_DEMO_LIGHT
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
+    //nothing
+#elif defined APP_DEMO_LIGHT
     custom_set_devinfo(DEV_TYPE_LIGHT, 1);
-    uc_wiota_save_static_info(0);
-#endif
-#ifdef APP_DEMO_SWITCH
+    uc_wiota_save_static_info();
+#elif defined APP_DEMO_SWITCH
     custom_set_devinfo(DEV_TYPE_SWITCH, 3);
-    uc_wiota_save_static_info(0);
+    uc_wiota_save_static_info();
 #endif
 
     uc_wiota_light_func_enable(0); // close ps light for app test
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
     if (custom_get_device_type() == DEV_TYPE_LIGHT)
+#endif
+#ifdef APP_DEMO_LIGHT
     {
         light_ctrl_init();
         custom_light_pair_info_init();
@@ -492,7 +516,11 @@ void custom_manager_task(void *pPara)
         // setting custom data recv callback function.
         manager_set_custom_data_callback(custom_light_recv_data_process);
     }
-    else
+#endif
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
+    else if (custom_get_device_type() == DEV_TYPE_SWITCH)
+#endif
+#ifdef APP_DEMO_SWITCH
     {
         switch_ctrl_init();
         custom_switch_pair_info_init();
@@ -500,6 +528,10 @@ void custom_manager_task(void *pPara)
         // setting custom data recv callback function.
         manager_set_custom_data_callback(custom_switch_recv_data_process);
     }
+#endif
+#if defined APP_DEMO_LIGHT || defined APP_DEMO_SWITCH 
+    manager_set_custom_ota_callback(custom_ota_recv_data_process);
+#endif
 
     while (manager_get_logic_work_state() == 0)
     {
@@ -507,7 +539,10 @@ void custom_manager_task(void *pPara)
     }
 
     // report current dev state request. must wait for execution results.
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
     if (custom_get_device_type() == DEV_TYPE_LIGHT)
+#endif
+#ifdef APP_DEMO_LIGHT
     {
         custom_report_light_property();
         custom_report_light_state();
@@ -515,7 +550,11 @@ void custom_manager_task(void *pPara)
         //manager_request_config();
         custom_request_light_pair();
     }
-    else
+#endif
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
+    else if (custom_get_device_type() == DEV_TYPE_SWITCH)
+#endif
+#ifdef APP_DEMO_SWITCH
     {
         custom_report_switch_property();
         custom_report_switch_state();
@@ -526,6 +565,7 @@ void custom_manager_task(void *pPara)
             custom_request_switch_pair(index);
         }
     }
+#endif
 
     while (1)
     {
@@ -544,14 +584,22 @@ void custom_manager_task(void *pPara)
             {
             case CUSTOM_LOGIC_REPORT_DEVSTATE:
             {
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
                 if (custom_get_device_type() == DEV_TYPE_LIGHT)
+#endif
+#ifdef APP_DEMO_LIGHT
                 {
                     custom_report_light_state();
                 }
-                else
+#endif
+#if defined APP_DEMO_LIGHT && defined APP_DEMO_SWITCH 
+                else if (custom_get_device_type() == DEV_TYPE_SWITCH)
+#endif
+#ifdef APP_DEMO_SWITCH
                 {
                     custom_report_switch_state();
                 }
+#endif
                 break;
             }
             default:
@@ -566,7 +614,11 @@ void custom_manager_task(void *pPara)
             rt_free(page);
         }
 
+#if defined APP_DEMO_LIGHT || defined APP_DEMO_SWITCH 
         custom_cycle_report_state_process();
+        custom_ota_check_version_process();
+        custom_ota_msg_process();
+#endif
 
         if (1)
         {
@@ -593,7 +645,8 @@ void custom_manager_task(void *pPara)
             }
         }
 
-        if (custom_get_device_type() == DEV_TYPE_SWITCH)
+#ifdef APP_DEMO_SWITCH
+        //if (custom_get_device_type() == DEV_TYPE_SWITCH)
         {
             unsigned char sw_mask = 0;
             unsigned int *get_light_addr = NULL;
@@ -624,6 +677,7 @@ void custom_manager_task(void *pPara)
                 }
             }
         }
+#endif
     }
 }
 

@@ -38,28 +38,54 @@ int manager_config_init(void)
     return 0;
 }
 
-unsigned int manager_get_userid(void)
+unsigned int manager_get_deviceid(void)
+{
+    unsigned int device_id = 0x0;
+
+    unsigned char dev_type = 0;
+    unsigned char count = 0;
+    custom_get_devinfo(&dev_type, &count);
+    if (dev_type == DEV_TYPE_LIGHT)
+    {
+        device_id = 0x123456;
+    }
+    else
+    {
+        device_id = 0x123459;
+    }
+    rt_kprintf("manager_get_deviceid = 0x%08X\r\n", device_id);
+
+    return device_id;
+}
+
+void manager_set_deviceid(unsigned int userid)
+{
+    rt_kprintf("manager_set_deviceid = 0x%08X\r\n", userid);
+    userid = userid;
+}
+
+unsigned int manager_get_wiotaid(void)
 {
     unsigned int user_id[2] = {0x0, 0x0};
     unsigned char user_id_len;
 
     uc_wiota_get_userid(user_id, &user_id_len);
-    rt_kprintf("manager_get_userid = 0x%08X\r\n", user_id[0]);
+    rt_kprintf("manager_get_wiotaid = 0x%08X\r\n", user_id[0]);
 
     return user_id[0];
 }
 
-void manager_set_userid(unsigned int userid)
+void manager_set_wiotaid(unsigned int wiotaid)
 {
-    rt_kprintf("manager_set_userid start\r\n");
+    rt_kprintf("manager_set_wiotaid start\r\n");
     unsigned int user_id[2] = {0x0, 0x0};
 
-    user_id[0] = userid;
+    user_id[0] = wiotaid;
     uc_wiota_set_userid(user_id, 4);
-    rt_kprintf("manager_set_userid = 0x%08X\r\n", userid);
-    
-    uc_wiota_save_static_info(0);
-    rt_kprintf("manager_set_userid over\r\n");
+    rt_kprintf("manager_set_wiotaid = 0x%08X\r\n", wiotaid);
+
+    //uc_wiota_save_static_info();
+    rt_kprintf("manager_set_wiotaid over\r\n");
 }
 
 unsigned int manager_get_multicast_addr(void)
@@ -74,8 +100,8 @@ void manager_set_multicast_addr(unsigned int multicast_addr)
     g_multicast_addr = multicast_addr;
     rt_kprintf("manager_set_multicast_addr = 0x%08X\r\n", multicast_addr);
     custom_set_multicast_addr(&multicast_addr, 1);
-    
-    uc_wiota_save_static_info(0);
+
+    uc_wiota_save_static_info();
     rt_kprintf("manager_set_multicast_addr over\r\n");
 }
 
@@ -92,6 +118,16 @@ void manager_set_device_type_name(const char *device_type_name)
 char *manager_get_device_type_name(void)
 {
     return g_device_type_name;
+}
+
+void manager_get_hardware_ver(char *hard_version)
+{
+    uc_wiota_get_hardware_ver((unsigned char *)hard_version);
+}
+
+void manager_get_software_ver(char *soft_version)
+{
+    strcpy(soft_version, "NULL");
 }
 
 int manager_get_wiota_config(t_wiota_net_config *wiota_config)
@@ -183,7 +219,7 @@ int manager_set_wiota_config(unsigned int config_valid_mask, t_wiota_net_config 
         uc_wiota_set_system_config(&g_wiota_config);
     }
 
-    uc_wiota_save_static_info(0);
+    uc_wiota_save_static_info();
     rt_kprintf("manager_set_wiota_config over\r\n");
 
     return 0;

@@ -1,10 +1,10 @@
 /******************************************************************************
 * Chongqing UCchip InfoTech Co.,Ltd
 * Copyright (c) 2022 UCchip
-* 
+*
 * @file    uc_wiota_static.h
 * @brief   Static data application program interface.
-* 
+*
 * @author  lujun
 * @email   lujun@ucchip.cn
 * @data    2022-06-06
@@ -12,11 +12,16 @@
 ******************************************************************************/
 #ifndef _UC_WIOTA_STATIC_H_
 #define _UC_WIOTA_STATIC_H_
+#include "uc_wiota_api.h"
 
 #ifdef __cplushplus
 extern "C"
 {
 #endif
+
+#define FLASH_OPEN_START_ADDRESS     0x0        	// 0
+#define FLASH_OPEN_END_ADDRESS       0x7E000        // (512-8)*1024, last 8KB is static info space
+
 
 /*
 * @brief Data transfer unit.
@@ -140,9 +145,24 @@ unsigned char* uc_wiota_get_user_info(void);
 
 /*
 * @brief   Save static data to flash.
-* @param   is_direct: Whether to save data directly.
+* @param
 */
-void uc_wiota_save_static_info(unsigned char is_direct);
+void uc_wiota_save_static_info();
+
+/*
+* @brief   erase 4KB flash, set all bits 1
+* @return  result
+* @note    flash_addr in 4k, erase this 4K, flash_addr is (no need) the start addr of 4K
+*          serious consequences will result.
+*/
+unsigned int uc_wiota_flash_erase_4K(unsigned int flash_addr);
+
+// write source_addr to dest_addr, without erase
+unsigned int uc_wiota_flash_write(unsigned char* data_addr, unsigned int flash_addr, unsigned short length);
+
+// read flash_addr to data_addr
+unsigned int uc_wiota_flash_read(unsigned char* data_addr, unsigned int flash_addr, unsigned short length);
+
 
 #ifdef __cplushplus
 }

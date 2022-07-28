@@ -368,7 +368,6 @@
     <File Name="cconfig.h"/>
     <File Name="rtconfig.h"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
@@ -407,7 +406,6 @@
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
-      <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -422,17 +420,17 @@ load</PostConnectCommands>
         <Command Enabled="yes"/>
       </PreBuild>
       <PostBuild>
-        <Command Enabled="yes"/>
+        <Command Enabled="yes">riscv32-unknown-elf-objdump -d $(IntermediateDirectory)/$(ProjectName)&gt;$(IntermediateDirectory)/$(ProjectName).asm</Command>
       </PostBuild>
-      <CustomBuild Enabled="yes">
-        <RebuildCommand>scons -c -j4;scons -j4</RebuildCommand>
-        <CleanCommand>scons -c -j4</CleanCommand>
-        <BuildCommand>scons -j4</BuildCommand>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
         <ThirdPartyToolName/>
-        <WorkingDirectory>./</WorkingDirectory>
+        <WorkingDirectory/>
       </CustomBuild>
       <AdditionalRules>
         <CustomPostBuild/>
@@ -446,4 +444,5 @@ load</PostConnectCommands>
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
 </CodeLite_Project>

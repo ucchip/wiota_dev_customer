@@ -19,7 +19,9 @@
 
 #ifndef WIOTA_APP_DEMO
 #ifdef UC8288_MODULE
+#ifdef RT_USING_AT
 #include "at.h"
+#endif
 #else
 #include "test_wiota_api.h"
 #endif
@@ -67,8 +69,10 @@ int main(void)
 
 #ifndef WIOTA_APP_DEMO
 #ifdef UC8288_MODULE
+#ifdef RT_USING_AT
     at_server_init();
     at_wiota_manager();
+#endif
 #else
     app_task_init();
 #endif

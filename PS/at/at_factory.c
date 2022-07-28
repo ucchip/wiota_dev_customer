@@ -1,4 +1,5 @@
 #include <rtthread.h>
+#ifdef RT_USING_AT
 #ifdef UC8288_MODULE
 #ifdef UC8288_FACTORY
 #ifdef _RT_THREAD_
@@ -9,7 +10,6 @@
 #include "string.h"
 #include "ati_prs.h"
 #include "at.h"
-
 
 #ifdef _L1_FACTORY_FUNC_
 #include "uc_wiota_api.h"
@@ -23,22 +23,25 @@ enum factory_can_write_read_type
 enum factory_command_type
 {
     FACTORY_WIOTA = 0,
-    FACTORY_GPIO, // 1
-    FACTORY_I2C,// 2
-    FACTORY_AD,// 3
-    FACTORY_DA,// 4
-    FACTORY_UART1,//5
-    FACTORY_PWM, // 6
+    FACTORY_GPIO,  // 1
+#ifdef UC8288_DRV_TEST
+    FACTORY_I2C,   // 2
+    FACTORY_AD,    // 3
+    FACTORY_DA,    // 4
+    FACTORY_UART1, //5
+    FACTORY_PWM,   // 6
     FACTORY_CAN,
+#endif
 };
 
-#define DAC_DEV_NAME                      "dac"
-#define ADC_DEV_NAME                      "adc"
-#define AHT10_I2C_BUS_NAME          "hw_i2c"
-#define UART1_DEV_NMAE                  "uart1"
-#define PWM_DEV_NAME                     "pwm0"
-#define CAN_DEV_NAME                       "can1"
-#define AT24C02_ADDR                         0xA0
+#ifdef UC8288_DRV_TEST
+#define DAC_DEV_NAME "dac"
+#define ADC_DEV_NAME "adc"
+#define AHT10_I2C_BUS_NAME "hw_i2c"
+#define UART1_DEV_NMAE "uart1"
+#define PWM_DEV_NAME "pwm0"
+#define CAN_DEV_NAME "can1"
+#define AT24C02_ADDR 0xA0
 
 static rt_err_t write_reg(struct rt_i2c_bus_device *bus, rt_uint8_t reg, rt_uint8_t *data)
 {
@@ -93,30 +96,30 @@ static rt_err_t read_regs(struct rt_i2c_bus_device *bus, rt_uint8_t len, rt_uint
 static int at_test_i2c(void)
 {
     rt_device_t dev;
-    unsigned char set_data[4] = {1,2,3,4};
+    unsigned char set_data[4] = {1, 2, 3, 4};
     unsigned char get_data[4] = {0};
     int num = 0;
 
     dev = rt_device_find(AHT10_I2C_BUS_NAME);
-    if(RT_NULL == dev)
+    if (RT_NULL == dev)
     {
         rt_kprintf("rt_device_find i2c fail\n");
         return 1;
     }
 
-    if(RT_EOK != write_reg((struct rt_i2c_bus_device*)dev, 0, set_data))
+    if (RT_EOK != write_reg((struct rt_i2c_bus_device *)dev, 0, set_data))
     {
         rt_kprintf("write_reg i2c fail\n");
         return 2;
     }
 
-    if(RT_EOK != read_regs((struct rt_i2c_bus_device*)dev, 4, get_data))
+    if (RT_EOK != read_regs((struct rt_i2c_bus_device *)dev, 4, get_data))
     {
         rt_kprintf("read_regs i2c fail\n");
         return 3;
     }
 
-    for(num = 0; num < 4; num++)
+    for (num = 0; num < 4; num++)
     {
         if (set_data[num] != get_data[num])
         {
@@ -127,7 +130,6 @@ static int at_test_i2c(void)
 
     return 0;
 }
-
 
 static int at_test_ad(unsigned int channel)
 {
@@ -186,9 +188,9 @@ static int at_factory_test_uart1(void)
         return 2;
     }
 
-    rt_device_write(serial, 0, send_data, sizeof(send_data)/sizeof(unsigned char));
+    rt_device_write(serial, 0, send_data, sizeof(send_data) / sizeof(unsigned char));
 
-    if(rt_device_read(serial, 0, recv_data, sizeof(recv_data)/sizeof(unsigned char)) < 1)
+    if (rt_device_read(serial, 0, recv_data, sizeof(recv_data) / sizeof(unsigned char)) < 1)
     {
         rt_kprintf("uart read fail\n");
         return 3;
@@ -198,7 +200,6 @@ static int at_factory_test_uart1(void)
 
     return strcmp((const char *)send_data, (const char *)recv_data);
 }
-
 
 static int at_factory_test_pwm(int channel, unsigned int period)
 {
@@ -212,7 +213,7 @@ static int at_factory_test_pwm(int channel, unsigned int period)
 
     rt_pwm_set(pwm_dev, channel, period, 0);
     rt_pwm_enable(pwm_dev, channel);
-    rt_pwm_disable(pwm_dev,channel);
+    rt_pwm_disable(pwm_dev, channel);
 
     return 0;
 }
@@ -222,7 +223,7 @@ static int at_factory_test_can(int type, void *data)
     struct rt_can_msg msg = {0};
     //struct rt_can_msg rxmsg = {0};
     rt_err_t res;
-    rt_size_t  size;
+    rt_size_t size;
 
     can_dev = rt_device_find(CAN_DEV_NAME);
     if (RT_NULL == can_dev)
@@ -231,9 +232,9 @@ static int at_factory_test_can(int type, void *data)
         return 1;
     }
     res = rt_device_open(can_dev, RT_DEVICE_FLAG_INT_TX | RT_DEVICE_FLAG_INT_RX);
-    if(res != RT_EOK)
+    if (res != RT_EOK)
     {
-         rt_kprintf("open %s failed!\n", CAN_DEV_NAME);
+        rt_kprintf("open %s failed!\n", CAN_DEV_NAME);
         return 2;
     }
 
@@ -258,53 +259,57 @@ static int at_factory_test_can(int type, void *data)
         {
             return 2;
         }
-     }
+    }
     else if (type == FACTORY_CAN_READ)
     {
         int len = 0;
         //rxmsg.hdr = -1;
         rt_device_read(can_dev, 0, data, 8);
         rt_kprintf("recv data:");
-        for(len = 0; len < 8; len++)
+        for (len = 0; len < 8; len++)
         {
-            rt_kprintf("%x", *((int*)(data+len)));
+            rt_kprintf("%x", *((int *)(data + len)));
         }
         rt_kprintf("\n");
     }
 
     return 0;
 }
+#endif
 
-static at_result_t at_factory_setup(const char* args)
+static at_result_t at_factory_setup(const char *args)
 {
     int type = 0, data = 0, data1 = 0;
 
-    args = parse ((char*)(++args),"ddd", &type, &data, &data1);
-     if (!args)
-     {
-         return AT_RESULT_PARSE_FAILE;
-     }
-
-    rt_kprintf("type = %d,data=%d,data1 = %d\n",  type, data, data1);
-    switch(type)
+    args = parse((char *)(++args), "ddd", &type, &data, &data1);
+    if (!args)
     {
-        case FACTORY_WIOTA:
-        {
-#ifdef _L1_FACTORY_FUNC_
-            if(!factory_msg_handler(data,data1)) {
-                return AT_RESULT_FAILE;
-            }
-#endif
-            break;
-        }
-        case FACTORY_GPIO:
-        {
-            rt_base_t pin = data;
-            rt_base_t value = data1 & 0x1;
+        return AT_RESULT_PARSE_FAILE;
+    }
 
-            rt_pin_write( pin, value);
-            break;
+    rt_kprintf("type = %d,data=%d,data1 = %d\n", type, data, data1);
+    switch (type)
+    {
+    case FACTORY_WIOTA:
+    {
+#ifdef _L1_FACTORY_FUNC_
+        if (!factory_msg_handler(data, data1))
+        {
+            return AT_RESULT_FAILE;
         }
+#endif
+        break;
+    }
+    case FACTORY_GPIO:
+    {
+        rt_base_t pin = data;
+        rt_base_t value = data1 & 0x1;
+
+        rt_pin_mode(pin, PIN_MODE_OUTPUT);
+        rt_pin_write(pin, value);
+        break;
+    }
+#ifdef UC8288_DRV_TEST
         case FACTORY_I2C:
         {
             if (at_test_i2c())
@@ -373,8 +378,9 @@ static at_result_t at_factory_setup(const char* args)
 
             break;
         }
-        default:
-            return AT_RESULT_REPETITIVE_FAILE;
+#endif
+    default:
+        return AT_RESULT_REPETITIVE_FAILE;
     }
 
     return AT_RESULT_OK;
@@ -382,6 +388,6 @@ static at_result_t at_factory_setup(const char* args)
 
 AT_CMD_EXPORT("AT+FACTORY", "=<type>,<data>,<data1>", RT_NULL, RT_NULL, at_factory_setup, RT_NULL);
 
-
+#endif
 #endif
 #endif

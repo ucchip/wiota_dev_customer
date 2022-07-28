@@ -3,24 +3,17 @@
 
 #include "uc_wiota_api.h"
 
-#define MANAGE_LOGIC_RECV_QUEUE_TIMEOUT       50//10000
-
-#define MANAGE_LOGIC_SERVER_ADDR              0xFFFFFFF1
-
-#define MANAGE_LOGIC_MULTICAST_ADDR_START     0xE0000000
-#define MANAGE_LOGIC_MULTICAST_ADDR_END       0xEFFFFFFF
-
-#define MANAGE_LOGIC_BROADCAST_ADDR           0xFFFFFFFF
-
-#define MANAGE_LOGIC_SYSTEM_CMD_TYPE_START     100
-#define MANAGE_LOGIC_SYSTEM_CMD_TYPE_END       159
-
-
-#define SEND_PACKAGE_FRAME_DATA_MAX_LEN    280
-
-#define RECV_PACKAGE_TIMEOUT    3000
-
-#define MANAGER_WIOTA_SEND_TRY_COUNT       3
+#define MANAGE_LOGIC_RECV_QUEUE_TIMEOUT 50 //10000
+#define MANAGE_LOGIC_SERVER_ADDR 0xFFFFFFF1
+#define MANAGE_LOGIC_MULTICAST_ADDR_START 0xE0000000
+#define MANAGE_LOGIC_MULTICAST_ADDR_END 0xEFFFFFFE
+#define MANAGE_LOGIC_BROADCAST_ADDR 0xEFFFFFFF
+#define MANAGE_LOGIC_SYSTEM_CMD_TYPE_START 100
+#define MANAGE_LOGIC_SYSTEM_CMD_TYPE_END 159
+#define SEND_PACKAGE_FRAME_DATA_MAX_LEN 280
+#define RECV_PACKAGE_TIMEOUT 3000
+#define MANAGER_WIOTA_SEND_TRY_COUNT 3
+#define MANAGER_LOGIC_REQUEST_WIOTA_ADDR_CYCLE_TIME 5000
 
 enum app_ps_cmd_type
 {
@@ -39,6 +32,12 @@ enum app_ps_cmd_type
 
     //ctrl
     APP_CMD_NET_CTRL_IOTE = 40,
+
+    //ota
+    APP_CMD_OTA_CHECK_VERSION = 50,
+    APP_CMD_OTA_GET_DATA = 52,
+    APP_CMD_OTA_STOP = 54,
+    APP_CMD_OTA_STATE = 56,
 
     //muticast
     APP_CMD_IOTE_MUTICAST_REQUEST = 100,
@@ -60,10 +59,12 @@ enum app_ps_cmd_type
 enum manager_logic_cmd
 {
     MANAGER_LOGIC_DEFAULT = 0,
-    MANAGER_LOGIC_RECV_WIOTA_DATA,  // wiota data send to manager queue.
-    MANAGER_LOGIC_RECV_WIOTA_STATE, // wiota state send to manager queue.
-    MANAGER_LOGIC_SEND_WIOTA_DATA,  // send wiota data to gateway.
-    MANAGER_LOGIC_SEND_WIOTA_PACKAGE_DATA,  // send wiota package data to gateway.
+    MANAGER_LOGIC_RECV_WIOTA_DATA,         // wiota data send to manager queue.
+    MANAGER_LOGIC_RECV_WIOTA_STATE,        // wiota state send to manager queue.
+    MANAGER_LOGIC_SEND_WIOTA_DATA,         // send wiota data to gateway.
+    MANAGER_LOGIC_SEND_WIOTA_PACKAGE_DATA, // send wiota package data to gateway.
+    MANAGER_LOGIC_WIOTA_CONNECTED,         // wiota connected.
+    MANAGER_LOGIC_RESET_WIOTA,             // reset wiota.
 };
 
 enum e_addr_type
@@ -88,36 +89,36 @@ typedef struct app_logic_message
 
 typedef struct
 {
-    unsigned char auto_src_addr : 1;        //0: user-defined addr(use src_addr), 1: use self-existent device id
-    unsigned char dest_addr_type : 2;       //0: server, 1: gw, 2: user-defined addr(use dest_addr)
+    unsigned char auto_src_addr : 1;  //0: user-defined addr(use src_addr), 1: use self-existent device id
+    unsigned char dest_addr_type : 2; //0: server, 1: gw, 2: user-defined addr(use dest_addr)
     unsigned char need_response : 1;
     unsigned char is_response : 1;
     unsigned char compress_flag : 1;
-    unsigned char packet_num_type : 2;       //0: no packet num, 1: auto packet num, 2: user-defined packet num
+    unsigned char packet_num_type : 2; //0: no packet num, 1: auto packet num, 2: user-defined packet num
 
-    unsigned char user_packet_num;           /* 0 ~ 255 */
+    unsigned char user_packet_num; /* 0 ~ 255 */
 
     unsigned int src_addr;
     unsigned int dest_addr;
 
-    unsigned char cmd_type; 
+    unsigned char cmd_type;
 } t_send_data_info;
 
 typedef struct
 {
-    unsigned char src_addr_type : 2;       //0: server, 1: gw, 2: user-defined addr(use src_addr)
-    unsigned char trans_type : 2;          //0: unicast, 1: multicast, 2: broadcast
+    unsigned char src_addr_type : 2; //0: server, 1: gw, 2: user-defined addr(use src_addr)
+    unsigned char trans_type : 2;    //0: unicast, 1: multicast, 2: broadcast
     unsigned char need_response : 1;
     unsigned char is_response : 1;
     unsigned char compress_flag : 1;
     unsigned char is_packet_num : 1;
 
-    unsigned char packet_num;              /* 0 ~ 255 */
+    unsigned char packet_num; /* 0 ~ 255 */
 
     unsigned int src_addr;
     unsigned int dest_addr;
 
-    unsigned char cmd_type; 
+    unsigned char cmd_type;
 } t_recv_data_info;
 
 typedef void (*f_custom_data_callback)(t_recv_data_info *recv_data_info, unsigned char *data, unsigned int data_len);
@@ -168,6 +169,10 @@ void app_manager_logic(void);
 unsigned char manager_get_logic_work_state(void);
 
 void manager_set_custom_data_callback(f_custom_data_callback callback);
+void manager_set_custom_ota_callback(f_custom_data_callback callback);
+void manager_wiota_connected(void);
+void manager_reset_wiota(void);
+void manager_respond_data_info_init(t_send_data_info *respond_data_info, t_recv_data_info *recv_data_info);
 int manager_send_wiota_data(t_send_data_info *send_data_info, unsigned char *data, unsigned int data_len, f_send_result_cb send_result_cb, unsigned int *get_data_id);
 void manager_request_multicast_addr(void);
 void manager_request_config(void);

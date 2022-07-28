@@ -8,12 +8,17 @@
 #include "switch_ctrl.h"
 #include "uc_wiota_static.h"
 
+#ifdef APP_DEMO_LIGHT
 static pair_info_t *p_light_pair_info = NULL;
 static unsigned char g_light_pair_info_count = 0;
+#endif
 
+#ifdef APP_DEMO_SWITCH
 static pair_info_t *p_switch_pair_info[SWITCH_COUNT_MAX];
 static unsigned char g_switch_pair_info_count[SWITCH_COUNT_MAX];
+#endif
 
+#ifdef APP_DEMO_LIGHT
 void custom_light_pair_info_init(void)
 {
     p_light_pair_info = NULL;
@@ -46,8 +51,8 @@ void custom_clear_light_pair_info(void)
     g_light_pair_info_count = 0;
 
     custom_set_pair_list(0, NULL, 0);
-    
-    uc_wiota_save_static_info(0);
+
+    uc_wiota_save_static_info();
     rt_kprintf("custom_clear_light_pair_info over\r\n");
 }
 
@@ -68,8 +73,8 @@ int custom_set_light_pair_info(pair_info_t *pair_info, unsigned int pair_info_co
     g_light_pair_info_count = pair_info_count;
 
     custom_set_pair_list(0, p_light_pair_info, g_light_pair_info_count);
-    
-    uc_wiota_save_static_info(0);
+
+    uc_wiota_save_static_info();
     rt_kprintf("custom_set_light_pair_info over\r\n");
 
     return 0;
@@ -86,9 +91,7 @@ int custom_check_light_pair_info(pair_info_t *pair_info)
 
     for (index = 0; index < g_light_pair_info_count; index++)
     {
-        if ((pair_info->address == p_light_pair_info[index].address)
-            && (pair_info->dev_type == p_light_pair_info[index].dev_type)
-            && (pair_info->index == p_light_pair_info[index].index))
+        if ((pair_info->address == p_light_pair_info[index].address) && (pair_info->dev_type == p_light_pair_info[index].dev_type) && (pair_info->index == p_light_pair_info[index].index))
         {
             return 0;
         }
@@ -133,7 +136,9 @@ int custom_get_light_pair_info(unsigned int pair_info_index, pair_info_t *pair_i
 
     return 0;
 }
+#endif
 
+#ifdef APP_DEMO_SWITCH
 void custom_switch_pair_info_init(void)
 {
     for (unsigned char index = 0; index < switch_get_count(); index++)
@@ -173,8 +178,8 @@ void custom_clear_switch_pair_info(unsigned char sw_index)
     g_switch_pair_info_count[sw_index] = 0;
 
     custom_set_pair_list(sw_index, NULL, 0);
-    
-    uc_wiota_save_static_info(0);
+
+    uc_wiota_save_static_info();
     rt_kprintf("custom_clear_switch_pair_info over\r\n");
 }
 
@@ -199,8 +204,8 @@ int custom_set_switch_pair_info(unsigned char sw_index, pair_info_t *pair_info, 
     g_switch_pair_info_count[sw_index] = pair_info_count;
 
     custom_set_pair_list(sw_index, p_switch_pair_info[sw_index], g_switch_pair_info_count[sw_index]);
-    
-    uc_wiota_save_static_info(0);
+
+    uc_wiota_save_static_info();
     rt_kprintf("custom_set_switch_pair_info over\r\n");
 
     return 0;
@@ -221,9 +226,7 @@ int custom_check_switch_pair_info(unsigned char sw_index, pair_info_t *pair_info
     }
     for (index = 0; index < g_switch_pair_info_count[sw_index]; index++)
     {
-        if ((pair_info->address == p_switch_pair_info[sw_index][index].address)
-            && (pair_info->dev_type == p_switch_pair_info[sw_index][index].dev_type)
-            && (pair_info->index == p_switch_pair_info[sw_index][index].index))
+        if ((pair_info->address == p_switch_pair_info[sw_index][index].address) && (pair_info->dev_type == p_switch_pair_info[sw_index][index].dev_type) && (pair_info->index == p_switch_pair_info[sw_index][index].index))
         {
             return 0;
         }
@@ -308,5 +311,6 @@ unsigned int custom_get_switch_pair_light_address(unsigned char sw_index, unsign
 
     return get_count;
 }
+#endif
 
 #endif

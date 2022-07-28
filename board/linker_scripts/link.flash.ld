@@ -5,18 +5,18 @@ GROUP( -lc -lgloss -lgcc -lsupc++ )
 
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
-    
+
 MEMORY
 {
-    uc_rom      : ORIGIN = 0x00000000, LENGTH = 0x3000  /*12K uncompressed code sys data, NO RODATA!!!!*/
-    instrram    : ORIGIN = 0x00003000, LENGTH = 0x51d00 /*327K actually rom... */
-    datarom     : ORIGIN = 0x00200000, LENGTH = 0x4FC00 /*319k data rom*/
-    staticdata  : ORIGIN = 0x0024FC00, LENGTH = 0x2000   /*8k static data*/
-    dataram     : ORIGIN = 0x00308000, LENGTH = 0x6bf0 
-    share       : ORIGIN = 0x0030EBF0, LENGTH = 0x10     /*16 byte*/
-    traceram    : ORIGIN = 0x0030EC00, LENGTH = 0x400  /*1 K */
-    stack       : ORIGIN = 0x0030F000, LENGTH = 0x100  /* 256 B */
-    func_rom    : ORIGIN = 0x00404400, LENGTH = 0x2800 /* 10 K */
+	uboot       : ORIGIN = 0x00000000, LENGTH = 0X7000  /* 28K uboot length*/
+	uc_rom      : ORIGIN = 0x00007000, LENGTH = 0x3000  /* 12K uncompressed code sys data, NO RODATA!!!!*/
+	instrram    : ORIGIN = 0x0000A000, LENGTH = 0x1F000 /* 124K actually rom... */
+	datarom     : ORIGIN = 0x00200000, LENGTH = 0x15000 /* 84K data rom*/
+	dataram     : ORIGIN = 0x00308000, LENGTH = 0x7Af0  /* 30K byte board.h also need change!!! */
+	share       : ORIGIN = 0x0030FAF0, LENGTH = 0x10    /* 16 byte */
+	traceram    : ORIGIN = 0x0030FB00, LENGTH = 0x400   /* 1 KB */
+	stack       : ORIGIN = 0x0030FF00, LENGTH = 0x100   /* 256 byte */
+	ota_flag    : ORIGIN = 0x00400000, LENGTH = 1K
 }
 
 /* Stack information variables */
@@ -32,16 +32,22 @@ _rom_start     = ORIGIN(uc_rom);
 SECTIONS
 {
 
+	.uboot :
+	{
+		. += LENGTH(uboot) -4;
+		LONG(0x00000000);
+	} > uboot = 0x00000000
+
     .vectors :
     {
-         KEEP(*(.vectors));  
+         KEEP(*(.vectors));
     } > uc_rom
-    
+
     .boot : ALIGN(512)
     {
         *(.critical)
-    } > uc_rom 
-    
+    } > uc_rom
+
     .fastfunc :
     {
         . = ALIGN(4);
@@ -52,20 +58,20 @@ SECTIONS
         . = ALIGN(4096);
         _stbl_end = .;
     } > uc_rom
-    
+
 /*functions called only once during startup */
-    .init : 
+    .init :
     {
         . = ALIGN(4);
         *(.init)
     } > instrram
 
-    .text : 
+    .text :
     {
         . = ALIGN(4);
         _stext = .;
         *(.pvt)
-        *(.text)
+        *(.text*)
         _etext  =  .;
         __CTOR_LIST__ = .;
         LONG((__CTOR_END__ - __CTOR_LIST__) / 4 - 2)
@@ -79,7 +85,9 @@ SECTIONS
         __DTOR_END__ = .;
         *(.lit)
         *(.shdata)
-_endtext = .;
+       _endtext = .;
+      . = LENGTH(instrram) - 4;
+      LONG(0x00000000);
     }  > instrram
 
     /*--------------------------------------------------------------------*/
@@ -92,22 +100,14 @@ _endtext = .;
       KEEP (*(.preinit_array))
       PROVIDE_HIDDEN (__preinit_array_end = .);
     } > datarom
-    
-    .init_array     :
-    {
-      PROVIDE_HIDDEN (__init_array_start = .);
-      KEEP (*(SORT(.init_array.*)))
-      KEEP (*(.init_array ))
-      PROVIDE_HIDDEN (__init_array_end = .);
-    } > datarom
 
     .fini_array     :
     {
       PROVIDE_HIDDEN (__fini_array_start = .);
-      KEEP (*(SORT(.fini_array.*)))
-      KEEP (*(.fini_array ))
+   /*   KEEP (*(SORT(.fini_array.*)))*/
+   /*   KEEP (*(.fini_array ))*/
       PROVIDE_HIDDEN (__fini_array_end = .);
-    } > datarom      
+    } > datarom
 
     .rodata : {
         . = ALIGN(4);
@@ -118,7 +118,7 @@ _endtext = .;
 	*(.srodata*);
 
 	*(FalPartTable);
-	
+
 	/* section information for finsh shell */
 	. = ALIGN(4);
 	__fsymtab_start = .;
@@ -144,7 +144,7 @@ _endtext = .;
 
 
     } > datarom
-  
+
     .at_array     :
     {
         /* section information for at server */
@@ -152,17 +152,10 @@ _endtext = .;
         __rtatcmdtab_start = .;
         KEEP(*(RtAtCmdTab))
         __rtatcmdtab_end = .;
-        . = ALIGN(4);        
+        . = ALIGN(4);
     } > datarom
 
-   .staticinfo : {
-        . = ALIGN(4);
-        *(.devinfo);
-        *(.devcontrolinfo);
-        *(.efeinfo);
-        *(.rfinfo);
-    } > staticdata
-    
+
     .shbss :
     {
         . = ALIGN(4);
@@ -192,17 +185,17 @@ _endtext = .;
         *(COMMON)
         _bss_end = .;
     } > dataram
-   
+
     .heap : {
        . = ALIGN(4);
-    } > dataram 
-    
+    } > dataram
+
     .guard : {
        . = ALIGN(4);
     . = . + 16;
-    } > dataram 
-    
-    
+    } > dataram
+
+
 
     /* ensure there is enough room for stack */
     .stack (NOLOAD): {
@@ -234,19 +227,21 @@ _endtext = .;
     {
         . = ALIGN(4);
         *(.share_data)
-    } > share 
-      
+    } > share
+
     .trace_buff :
     {
         . = ALIGN(4);
         *(.trace_buff)
-    } > traceram 
-    
-    .fix_rom :
-    {
-        . = ALIGN(4);
-        *(.fixfunc)
-    } > func_rom
-    
-}
+    } > traceram
 
+	.ota_flag :
+	{
+		LONG(0x46044355);
+		LONG(LENGTH(uboot));
+		LONG(LENGTH(uc_rom));
+		LONG(LENGTH(instrram));
+		LONG(LENGTH(datarom));
+	} > ota_flag
+
+}

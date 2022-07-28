@@ -50,8 +50,8 @@
 #define ROM_SIZE               (512 * 1024)
 #define ROM_END                ((uint32_t)(ROM_START + ROM_SIZE))
 
-#define RAM_START               (0x00308000)
-#define RAM_SIZE               (0x6900)
+#define RAM_START              (0x00308000)
+#define RAM_SIZE               (0x7AF0)
 #define RAM_END                (RAM_START + RAM_SIZE)
 
 /*-------------------------- CLOCK CONFIG BEGIN --------------------------*/

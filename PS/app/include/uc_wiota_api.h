@@ -112,11 +112,20 @@ typedef enum {
 }UC_STATS_TYPE;
 
 
+typedef enum {
+    MODULE_STATE_NULL = 0,
+    MODULE_STATE_INIT,
+    MODULE_STATE_RUN,
+    MODULE_STATE_INVALID
+}UC_TASK_STATE;
+
+
 typedef struct {
     unsigned char   rssi;        // absolute value, 0~150, always negative
     unsigned char   ber;
     signed char     snr;
     signed char     cur_power;
+    signed char     min_power;
     signed char     max_power;
     unsigned char   cur_mcs;
     unsigned char   max_mcs;
@@ -179,7 +188,7 @@ typedef struct {
     unsigned char   is_synced;
 }uc_freq_scan_result_t,*uc_freq_scan_result_p;
 
-    
+
 typedef struct {
     unsigned int   rach_fail;
     unsigned int   active_fail;
@@ -190,13 +199,13 @@ typedef struct {
     unsigned int   bc_succ;
     unsigned int   ul_sm_succ;
     unsigned int   ul_sm_total;
-}uc_stats_info_t,*uc_stats_info_p;    
+}uc_stats_info_t,*uc_stats_info_p;
 
 typedef struct {
     unsigned int   ul_succ_data_len;
     unsigned int   dl_succ_data_len;
     unsigned int   bc_succ_data_len;
-}uc_throughput_info_t,*uc_throughput_info_p;   
+}uc_throughput_info_t,*uc_throughput_info_p;
 
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
@@ -216,6 +225,10 @@ void uc_wiota_connect(void);
 
 void uc_wiota_disconnect(void);
 
+void uc_wiota_suspend_connect(void);
+
+void uc_wiota_recover_connect(void);
+
 UC_WIOTA_STATUS uc_wiota_get_state(void);
 
 void uc_wiota_set_dcxo(unsigned int dcxo);
@@ -223,12 +236,6 @@ void uc_wiota_set_dcxo(unsigned int dcxo);
 void uc_wiota_set_freq_info(unsigned char freq_idx);
 
 unsigned char uc_wiota_get_freq_info(void);
-
-// The following fuction definition has been moved to uc_wiota_static.h
-
-// int uc_wiota_set_userid(unsigned int * id,unsigned char id_len);
-
-// void uc_wiota_get_userid(unsigned int * id,unsigned char *id_len);
 
 void uc_wiota_set_active_time(unsigned int active_s);
 
@@ -247,24 +254,6 @@ void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_r
 void uc_wiota_register_recv_data_callback(uc_recv callback, UC_CALLBACK_DATA_TYPE type);
 
 void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
-
-// The following fuction definition has been moved to uc_wiota_static.h
-
-// void uc_wiota_static_data_init(void);
-
-// void uc_wiota_get_dev_name(unsigned char *name);
-
-// void uc_wiota_get_manufacture_name(unsigned char *name);
-
-// void uc_wiota_get_dev_serial(unsigned char *serial);
-
-// void uc_wiota_get_freq_list(unsigned char *list);
-
-// void uc_wiota_get_hardware_ver(unsigned char *hardware_ver);
-
-// unsigned char uc_wiota_get_auto_connect_flag(void);
-
-// void uc_wiota_get_dtu_config(unsigned char *cfg);
 
 void uc_wiota_set_is_gating(unsigned char is_gating);
 
@@ -296,23 +285,9 @@ void uc_wiota_reset_throughput(unsigned char type);
 
 void uc_wiota_get_throughput(uc_throughput_info_t *throughput_info);
 
-// The following fuction definition has been moved to uc_wiota_static.h
-
-//void uc_wiota_set_is_osc(unsigned char is_osc);
-
-//unsigned char uc_wiota_get_is_osc(void);
-
 void uc_wiota_light_func_enable(unsigned char func_enable);
 
-// The following fuction definition has been moved to uc_wiota_static.h
-
-//unsigned char* uc_wiota_get_user_info(void);
-
-//void uc_wiota_save_static_info(unsigned char is_direct);
-
-//void uc_wiota_save_dynamic_info(unsigned char is_direct); //not support
-
-
+unsigned int uc_wiota_get_frame_len(void);
 
 // below is for inter test !
 
@@ -323,5 +298,19 @@ void uc_wiota_test_lpm(unsigned char mode, unsigned char value);
 void uc_wiota_set_bc_mode(unsigned char mode);
 
 unsigned char uc_wiota_get_bc_mode(void);
+
+void get_uboot_version(unsigned char * version);
+
+void get_uboot_baud_rate(int * baudrate);
+
+void set_uboot_baud_rate(int baud_rate);
+
+void get_uboot_mode(unsigned char * mode);
+
+void set_uboot_mode(unsigned char mode);
+
+void set_partition_size(int bin_size , int reserverd_size , int ota_size);
+
+void get_partition_size(int * bin_size , int * reserved_size , int * ota_size);
 
 #endif
