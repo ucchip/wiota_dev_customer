@@ -9,6 +9,8 @@
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
 
+#define WIOTA_DEMO_SOFTWARE_VERSION "v1.0"
+
 static sub_system_config_t g_wiota_config;
 static unsigned char g_wiota_freq_list[16];
 static unsigned int g_multicast_addr = 0;
@@ -41,7 +43,7 @@ int manager_config_init(void)
 unsigned int manager_get_deviceid(void)
 {
     unsigned int device_id = 0x0;
-
+#if 0
     unsigned char dev_type = 0;
     unsigned char count = 0;
     custom_get_devinfo(&dev_type, &count);
@@ -53,6 +55,9 @@ unsigned int manager_get_deviceid(void)
     {
         device_id = 0x123459;
     }
+#else
+    device_id = custom_get_device_id();
+#endif
     rt_kprintf("manager_get_deviceid = 0x%08X\r\n", device_id);
 
     return device_id;
@@ -127,7 +132,7 @@ void manager_get_hardware_ver(char *hard_version)
 
 void manager_get_software_ver(char *soft_version)
 {
-    strcpy(soft_version, "NULL");
+    strcpy(soft_version, WIOTA_DEMO_SOFTWARE_VERSION);
 }
 
 int manager_get_wiota_config(t_wiota_net_config *wiota_config)

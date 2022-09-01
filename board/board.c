@@ -134,7 +134,10 @@ void rt_hw_board_init(void)
 void rt_hw_cpu_reset(void)
 {
     volatile uint32_t* pmu_ctrl = (uint32_t*)(PMU_BASE_ADDR + 0x000);
+    volatile uint32_t* reg_xip_ctrl = (volatile uint32_t*)0x1a10c02c;
 
+    //WAIT_XIP_FREE
+    while ((*reg_xip_ctrl) & 0x1);
     *pmu_ctrl |= 1 << 14;
 }
 

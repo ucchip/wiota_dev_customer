@@ -84,23 +84,39 @@ int main(void)
 //    at_handle_log_uart(0);
 #endif
 
-    //    app_task_init();
+    // app_task_init();
 
     //    uc_wiota_light_func_enable(0);
 
-    //
-    //    while(1)
-    //    {
-    //        unsigned int total;
-    //        unsigned int used;
-    //        unsigned int max_used;
-    //
-    //        uc_thread_delay(2000);
-    //
-    //        rt_memory_info(&total,&used,&max_used);
-    //        rt_kprintf("total %d used %d maxused %d\n",total,used,max_used);
-    //
-    //    }
+    // unsigned int i;
+    // unsigned int value;
+    // unsigned int addr = 0x306000;
+
+    // read write 8K
+    // for (i=0; i<2048; i++) {
+    //     *((unsigned int*)(addr) + i) = 0;
+    // }
+
+    // while(1)
+    // {
+    //     unsigned int total;
+    //     unsigned int used;
+    //     unsigned int max_used;
+
+
+    //     rt_thread_delay(10000);
+
+    //     // read write 8K
+    //     // for (i=0; i<2048; i++) {
+    //     //     value = *((unsigned int*)(addr) + i);
+    //     //     value++;
+    //     //     *((unsigned int*)(addr) + i) = value;
+    //     // }
+
+    //     rt_memory_info(&total,&used,&max_used);
+    //     rt_kprintf("total %d used %d maxused %d\n",total,used,max_used);
+
+    // }
 
     //    init_statistical_task_info();
 

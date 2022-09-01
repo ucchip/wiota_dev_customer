@@ -43,7 +43,7 @@
 
 #define RT_USING_COMPONENTS_INIT
 #define RT_USING_USER_MAIN
-#define RT_MAIN_THREAD_STACK_SIZE 1024
+#define RT_MAIN_THREAD_STACK_SIZE 1224
 #define RT_MAIN_THREAD_PRIORITY 6
 
 /* C++ features */
@@ -100,6 +100,8 @@
 /* wiota APP DEMO */
 
 #define WIOTA_APP_DEMO
+#define APP_DEMO_LIGHT
+#define APP_DEMO_SWITCH
 
 /* wiota APP */
 

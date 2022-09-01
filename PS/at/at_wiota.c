@@ -128,6 +128,7 @@ enum at_test_communication_command
     AT_TEST_COMMAND_LOOP_TEST,
     AT_TEST_COMMAND_DATA_MODE,
     AT_TEST_COMMAND_DATA_DOWN,
+    AT_TEST_COMMAND_STOP,
 };
 
 #define AT_TEST_COMMUNICATION_HEAD_LEN 9
@@ -391,7 +392,8 @@ static at_result_t at_scan_freq_setup(const char *args)
     }
     else
     {
-        uc_wiota_scan_freq(RT_NULL, 0, WIOTA_SCAN_FREQ_TIMEOUT, RT_NULL, &result);
+        // uc_wiota_scan_freq(RT_NULL, 0, WIOTA_SCAN_FREQ_TIMEOUT, RT_NULL, &result);
+        uc_wiota_scan_freq(RT_NULL, 0, 0, RT_NULL, &result);    // scan all wait for ever
     }
 
     if (UC_OP_SUCC == result.result)
@@ -490,9 +492,9 @@ static at_result_t at_radio_query(void)
 
     uc_wiota_get_radio_info(&radio);
     //temp,rssi,ber,snr,cur_power,max_pow,cur_mcs,max_mcs
-    at_server_printfln("+WIOTARADIO=%d,-%d,%d,%d,%d,%d,%d,%d,%d",
+    at_server_printfln("+WIOTARADIO=%d,-%d,%d,%d,%d,%d,%d,%d,%d,%d",
                        temp, radio.rssi, radio.ber, radio.snr, radio.cur_power,
-                       radio.min_power, radio.max_power, radio.cur_mcs, radio.max_mcs);
+                       radio.min_power, radio.max_power, radio.cur_mcs, radio.max_mcs, radio.frac_offset);
 
     return AT_RESULT_OK;
 }
@@ -572,6 +574,12 @@ static u8_t at_test_mode_wiota_recv_fun(uc_recv_back_p recv_data)
     rt_err_t re;
 
     t_at_test_communication *test_mode_data = (t_at_test_communication *)(recv_data->data);
+    if (g_test_data.type!= AT_TEST_COMMAND_DEFAULT && g_test_data.type != AT_TEST_COMMAND_LOOP_TEST)
+    {
+        if (0 == recv_data->result)
+            rt_free(recv_data->data);
+        return 1;
+    }
 
     if (!(recv_data->data_len >= sizeof(t_at_test_communication) &&
           0 == strcmp(test_mode_data->head, AT_TEST_COMMUNICATION_HEAD)))
@@ -1462,7 +1470,6 @@ static void at_test_report_to_uart(void)
     uc_wiota_reset_stats(UC_STATS_TYPE_ALL);
 
     //    rt_memory_info(&total,&used,&max_used);
-
     switch (g_test_data.type)
     {
     case AT_TEST_COMMAND_UP_TEST:
@@ -1524,9 +1531,9 @@ static void at_test_mode_task_fun(void *parameter)
     communication->command = AT_TEST_COMMAND_DEFAULT;
     communication->timeout = 0;
     communication->all_len = sizeof(t_at_test_communication);
-    test_data->test_mode_timer = RT_NULL;
+    //test_data->test_mode_timer = RT_NULL;
     test_data->type = AT_TEST_COMMAND_DEFAULT;
-
+    int time_start_flag = 1;
     while (1)
     {
         // recv queue data. wait start test
@@ -1563,14 +1570,15 @@ static void at_test_mode_task_fun(void *parameter)
                     }
                 }
 
-                if (RT_NULL == test_data->test_mode_timer && AT_TEST_COMMAND_DATA_MODE != test_data->type)
+                if (RT_NULL != test_data->test_mode_timer && AT_TEST_COMMAND_DATA_MODE != test_data->type && time_start_flag)
                 {
-                    if (test_data->test_mode_timer)
-                    {
-                        int timeout = test_data->time * 1000;
-                        rt_timer_control(test_data->test_mode_timer, RT_TIMER_CTRL_SET_TIME, &timeout);
-                        rt_timer_start(test_data->test_mode_timer);
-                    }
+                    //if (test_data->test_mode_timer)
+                   // {
+                    int timeout = test_data->time * 1000;
+                    rt_timer_control(test_data->test_mode_timer, RT_TIMER_CTRL_SET_TIME, &timeout);
+                    rt_timer_start(test_data->test_mode_timer);
+                    time_start_flag = 0;
+                   // }
                 }
 
                 // loop data to ap
@@ -1601,7 +1609,7 @@ static void at_test_mode_task_fun(void *parameter)
                 }
                 else
                 {
-                    communication->command = AT_TEST_COMMAND_DATA_MODE; // also stop cmd
+                    communication->command = AT_TEST_COMMAND_STOP; // also stop cmd
                     uc_wiota_send_data((unsigned char *)communication, communication->all_len, 20000, RT_NULL);
                 }
 
@@ -1688,7 +1696,10 @@ static at_result_t at_test_mode_start_setup(const char *args)
     if (mode == 0)
     {
         g_test_data.type = AT_TEST_COMMAND_DATA_DOWN;
-        g_test_data.time = time;
+
+        /* fix bug237: watchdog timeout when throughput test */
+        g_test_data.time = (time == 0) ? 3 : time;
+
         int timeout = g_test_data.time * 1000;
         rt_timer_control(g_test_data.test_mode_timer, RT_TIMER_CTRL_SET_TIME, &timeout);
         rt_timer_start(g_test_data.test_mode_timer);
@@ -1855,7 +1866,7 @@ AT_CMD_EXPORT("AT+WIOTASCANFREQ", "=<timeout>,<dataLen>,<freqnum>", RT_NULL, RT_
 AT_CMD_EXPORT("AT+WIOTAFREQ", "=<freqpint>", RT_NULL, at_freq_query, at_freq_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTADCXO", "=<dcxo>", RT_NULL, RT_NULL, at_dcxo_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAUSERID", "=<id0>", RT_NULL, at_userid_query, at_userid_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTARADIO", "=<temp>,<rssi>,<ber>,<snr>,<cur_pow>,<max_pow>,<cur_mcs>", RT_NULL, at_radio_query, RT_NULL, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTARADIO", "=<temp>,<rssi>,<ber>,<snr>,<cur_pow>,<max_pow>,<cur_mcs>,<frac>", RT_NULL, at_radio_query, RT_NULL, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTACONFIG", "=<id_len>,<symbol>,<dlul>,<bt>,<group_num>,<ap_max_pow>,<spec_idx>,<systemid>,<subsystemid>",
               RT_NULL, at_system_config_query, at_system_config_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTARUN", "=<state>", RT_NULL, RT_NULL, at_wiota_cfun_setup, RT_NULL);

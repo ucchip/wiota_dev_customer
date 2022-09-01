@@ -129,6 +129,7 @@ typedef struct {
     signed char     max_power;
     unsigned char   cur_mcs;
     unsigned char   max_mcs;
+    signed int      frac_offset;
 }radio_info_t;
 
 
@@ -312,5 +313,11 @@ void set_uboot_mode(unsigned char mode);
 void set_partition_size(int bin_size , int reserverd_size , int ota_size);
 
 void get_partition_size(int * bin_size , int * reserved_size , int * ota_size);
+
+void boot_riscv_reboot(void);
+
+void set_uboot_log(unsigned char uart_flag,unsigned char log_flag,unsigned char select_flag);
+
+void get_uboot_log_set(unsigned char * uart_flag , unsigned char * log_flag , unsigned char * select_flag);
 
 #endif

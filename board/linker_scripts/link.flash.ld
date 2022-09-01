@@ -10,14 +10,16 @@ MEMORY
 {
 	uboot       : ORIGIN = 0x00000000, LENGTH = 0X7000  /* 28K uboot length*/
 	uc_rom      : ORIGIN = 0x00007000, LENGTH = 0x3000  /* 12K uncompressed code sys data, NO RODATA!!!!*/
-	instrram    : ORIGIN = 0x0000A000, LENGTH = 0x1F000 /* 124K actually rom... */
-	datarom     : ORIGIN = 0x00200000, LENGTH = 0x15000 /* 84K data rom*/
-	dataram     : ORIGIN = 0x00308000, LENGTH = 0x7Af0  /* 30K byte board.h also need change!!! */
-	share       : ORIGIN = 0x0030FAF0, LENGTH = 0x10    /* 16 byte */
+	protocal_stack   : ORIGIN = 0x0000A000, LENGTH = 0x11000
+	instrram    : ORIGIN = 0x0001B000, LENGTH = 0xE000 /* 176K actually rom... */
+	datarom     : ORIGIN = 0x00200000, LENGTH = 0x4FC00 /* 84K data rom*/
+	dataram     : ORIGIN = 0x00308000, LENGTH = 0x7B00  /* 30K byte board.h also need change!!! */
 	traceram    : ORIGIN = 0x0030FB00, LENGTH = 0x400   /* 1 KB */
 	stack       : ORIGIN = 0x0030FF00, LENGTH = 0x100   /* 256 byte */
 	ota_flag    : ORIGIN = 0x00400000, LENGTH = 1K
 }
+
+
 
 /* Stack information variables */
 _min_stack     = 0x100;   /* 256 - minimum stack space to reserve */
@@ -31,7 +33,7 @@ _rom_start     = ORIGIN(uc_rom);
 
 SECTIONS
 {
-
+	
 	.uboot :
 	{
 		. += LENGTH(uboot) -4;
@@ -66,12 +68,51 @@ SECTIONS
         *(.init)
     } > instrram
 
+	.protocal_stack :
+	{
+		*uc_wiota_api*(.text*);
+		*uc_wiota_static*(.text*);
+		*test_wiota_api*(.text*);
+		*l1_algo*(.text*);
+		*l1_config*(.text*);
+		*l1_interface*(.text*);
+		*l1_main*(.text*);
+		*l1_rf*(.text*);
+		*l1_task_manage*(.text*);
+		*l1_cce_log*(.text*);
+		*l1_factory*(.text*);
+		*l1_lpm*(.text*);
+		*l1_module*(.text*);
+		*l1_state*(.text*);
+		*l1_test*(.text*);
+		*c_cce_firmware*(.text*);
+		*cce*(.text*);
+		*mac_crc*(.text*);
+		*mac_test*(.text*);
+		*adp_mem*(.text*);
+		*adp_queue*(.text*);
+		*adp_sem*(.text*);
+		*adp_task*(.text*);
+		*adp_time*(.text*);
+		*ctrl_cmd*(.text*);
+		*trcKernelPort*(.text*);
+		*trcStreamingPort*(.text*);
+		*trcStreamingRecorder*(.text*);
+		*vsi_trc*(.text*);
+		*dll*(.text*);
+		*uart_tool*(.text*);
+		*global_task*(.text*);
+		*mac_main*(.text*);
+		. = LENGTH(protocal_stack ) -4;
+		LONG(0);
+	} > protocal_stack
+
     .text :
     {
         . = ALIGN(4);
         _stext = .;
+		*(.text*)
         *(.pvt)
-        *(.text*)
         _etext  =  .;
         __CTOR_LIST__ = .;
         LONG((__CTOR_END__ - __CTOR_LIST__) / 4 - 2)
@@ -86,8 +127,9 @@ SECTIONS
         *(.lit)
         *(.shdata)
        _endtext = .;
-      . = LENGTH(instrram) - 4;
-      LONG(0x00000000);
+	   . = LENGTH(instrram) -4;
+	   LONG(0);
+	   
     }  > instrram
 
     /*--------------------------------------------------------------------*/
@@ -155,7 +197,7 @@ SECTIONS
         . = ALIGN(4);
     } > datarom
 
-
+    
     .shbss :
     {
         . = ALIGN(4);
@@ -223,25 +265,21 @@ SECTIONS
         _end = .;
     } > dataram
 
-    .share :
-    {
-        . = ALIGN(4);
-        *(.share_data)
-    } > share
 
     .trace_buff :
     {
         . = ALIGN(4);
         *(.trace_buff)
-    } > traceram
-
+    } > traceram 
+	
 	.ota_flag :
 	{
-		LONG(0x46044355);
+		LONG(0x46054355);
 		LONG(LENGTH(uboot));
 		LONG(LENGTH(uc_rom));
+		LONG(LENGTH(protocal_stack));
 		LONG(LENGTH(instrram));
 		LONG(LENGTH(datarom));
 	} > ota_flag
-
+    
 }

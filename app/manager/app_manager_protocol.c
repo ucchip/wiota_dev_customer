@@ -78,6 +78,7 @@ int manager_parse_config_cmd(unsigned char *data, unsigned int data_len, unsigne
         }
     }
 
+#if 0
     item = cJSON_GetObjectItem(root, "ap_max_power");
     if (cJSON_IsNumber(item))
     {
@@ -147,6 +148,7 @@ int manager_parse_config_cmd(unsigned char *data, unsigned int data_len, unsigne
         wiota_config->subsystemid = item->valuedouble;
         *config_valid_mask |= 1 << I_WIOTA_CFG_SUBSYSTEM_ID;
     }
+#endif
 
 __end:
     if (root != NULL)
@@ -267,6 +269,7 @@ unsigned char *manager_create_config_data(t_wiota_net_config *wiota_config)
         }
     }
     cJSON_AddItemToObject(root, "freq_list", cJSON_CreateIntArray((const int *)wiota_config->freq_list, freq_list_count));
+#if 0
     cJSON_AddItemToObject(root, "ap_max_power", cJSON_CreateNumber(wiota_config->ap_max_pow));
     cJSON_AddItemToObject(root, "id_len", cJSON_CreateNumber(wiota_config->id_len));
     cJSON_AddItemToObject(root, "pn_num", cJSON_CreateNumber(wiota_config->pn_num));
@@ -277,6 +280,7 @@ unsigned char *manager_create_config_data(t_wiota_net_config *wiota_config)
     cJSON_AddItemToObject(root, "spectrum_idx", cJSON_CreateNumber(wiota_config->spectrum_idx));
     cJSON_AddItemToObject(root, "system_id", cJSON_CreateNumber(wiota_config->systemid));
     cJSON_AddItemToObject(root, "subsystem_id", cJSON_CreateNumber(wiota_config->subsystemid));
+#endif
 
     json_data = (unsigned char *)cJSON_Print((const cJSON *)root);
 
@@ -392,7 +396,7 @@ void manager_system_recv_data_process(t_recv_data_info *recv_data_info, unsigned
             if (parse_result == 0)
             {
                 unsigned int old_addr = manager_get_wiotaid();
-                rt_kprintf("old_addr = 0x08%x, wiota_addr = 0x08%x\r\n", old_addr, wiota_addr);
+                rt_kprintf("old_addr = 0x%x, wiota_addr = 0x%x\r\n", old_addr, wiota_addr);
                 if (old_addr == wiota_addr)
                 {
                     manager_wiota_connected();

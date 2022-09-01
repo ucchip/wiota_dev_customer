@@ -14,15 +14,23 @@
 #include <at.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <uc_pulpino.h>
 #include <rtdevice.h>
 #include "ati_prs.h"
+
 //#include "uc_boot_download.h"
 
 #ifdef AT_USING_SERVER
 
 #define AT_ECHO_MODE_CLOSE             0
 #define AT_ECHO_MODE_OPEN              1
+
+
+#define REG_WATCHDOG_EN    (WATCHDOG_BASE_ADDR + 0x00)
+#define REG_WATCHDOG_INITVAL (WATCHDOG_BASE_ADDR + 0x04)
+#define REG_WATCHDOG_FEED (WATCHDOG_BASE_ADDR + 0x08)
+#define reg_xip_ctrl   ((volatile uint32_t *) 0x1a10c02c)
+#define WAIT_XIP_FREE    while((*reg_xip_ctrl)&0x1)
 
 extern at_server_t at_get_server(void);
 
@@ -42,45 +50,53 @@ static at_result_t atz_exec(void)
 */
 #define AT_WDT_DEVICE_NAME    "wdt" 
 
-static int watchdog_reset(void)
+//static int watchdog_reset(void)
+//{
+//    rt_err_t ret = RT_EOK;
+//    rt_uint32_t timeout = 1;     
+//    rt_device_t at_wdg_dev = rt_device_find(AT_WDT_DEVICE_NAME);
+//    if (!at_wdg_dev)
+//    {
+//        rt_kprintf("find %s failed!\n", AT_WDT_DEVICE_NAME);
+//        return 1;
+//    }
+//
+//    ret = rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_SET_TIMEOUT, &timeout);
+//    if (ret != RT_EOK)
+//    {
+//        rt_kprintf("set %s timeout failed!\n", AT_WDT_DEVICE_NAME);
+//        return 2;
+//    }
+//
+//    if (rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_START, RT_NULL) != RT_EOK)
+//    {
+//        rt_kprintf("start %s failed!\n", AT_WDT_DEVICE_NAME);
+//        return 3;
+//    }
+//    
+//    rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_KEEPALIVE, NULL);
+//    
+//    return 0;
+//}
+
+
+
+void reset_8288(void)
 {
-    rt_err_t ret = RT_EOK;
-    rt_uint32_t timeout = 1;     
-    rt_device_t at_wdg_dev = rt_device_find(AT_WDT_DEVICE_NAME);
-    if (!at_wdg_dev)
-    {
-        rt_kprintf("find %s failed!\n", AT_WDT_DEVICE_NAME);
-        return 1;
-    }
-
-    ret = rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_SET_TIMEOUT, &timeout);
-    if (ret != RT_EOK)
-    {
-        rt_kprintf("set %s timeout failed!\n", AT_WDT_DEVICE_NAME);
-        return 2;
-    }
-
-    if (rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_START, RT_NULL) != RT_EOK)
-    {
-        rt_kprintf("start %s failed!\n", AT_WDT_DEVICE_NAME);
-        return 3;
-    }
-    
-    rt_device_control(at_wdg_dev, RT_DEVICE_CTRL_WDT_KEEPALIVE, NULL);
-    
-    return 0;
+	WAIT_XIP_FREE;
+	REG(REG_WATCHDOG_INITVAL) = 0xFFFFFFFF - 1;
+	REG(REG_WATCHDOG_FEED) |= 0x1;
+	REG(REG_WATCHDOG_EN) |= 0x1;
+	while(1);
+	
 }
+
 
 static at_result_t at_rst_exec(void)
 {
-    if (!watchdog_reset())
-    {
-        at_server_printfln("OK");
-        while(1);
-    }
+    reset_8288();
     return AT_RESULT_FAILE;
 }
-
 
 static at_result_t ate_setup(const char* args)
 {

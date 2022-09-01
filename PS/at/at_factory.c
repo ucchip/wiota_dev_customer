@@ -23,20 +23,63 @@ enum factory_can_write_read_type
 enum factory_command_type
 {
     FACTORY_WIOTA = 0,
-    FACTORY_GPIO,  // 1
+    FACTORY_GPIO = 1, // 1
+    FACTORY_AD = 3,   // 3
+    FACTORY_DA = 4,   // 4
 #ifdef UC8288_DRV_TEST
-    FACTORY_I2C,   // 2
-    FACTORY_AD,    // 3
-    FACTORY_DA,    // 4
-    FACTORY_UART1, //5
-    FACTORY_PWM,   // 6
-    FACTORY_CAN,
+    FACTORY_I2C = 2, // 2
+    FACTORY_UART1 = 5,   //5
+    FACTORY_PWM = 6,     // 6
+    FACTORY_CAN = 7,
 #endif
 };
 
-#ifdef UC8288_DRV_TEST
 #define DAC_DEV_NAME "dac"
 #define ADC_DEV_NAME "adc"
+
+static int at_test_ad(unsigned int channel)
+{
+    rt_adc_device_t adc_dev;
+    rt_uint32_t value;
+
+    adc_dev = (rt_adc_device_t)rt_device_find(ADC_DEV_NAME);
+    if (RT_NULL == adc_dev)
+    {
+        rt_kprintf("ad find %s  fail\n", ADC_DEV_NAME);
+        return -1;
+    }
+
+    rt_adc_enable(adc_dev, channel);
+
+    value = rt_adc_read(adc_dev, channel);
+
+    rt_adc_disable(adc_dev, channel);
+
+    return value;
+}
+
+static int at_test_da(unsigned int channel, unsigned int value)
+{
+    rt_dac_device_t dac_dev;
+
+    dac_dev = (rt_dac_device_t)rt_device_find(DAC_DEV_NAME);
+    if (RT_NULL == dac_dev)
+    {
+        rt_kprintf("da find fail\n");
+        return -1;
+    }
+
+    rt_dac_enable(dac_dev, channel);
+
+    rt_dac_write(dac_dev, channel, value);
+
+    //rt_dac_disable(dac_dev, channel);
+
+    return 0;
+}
+
+#ifdef UC8288_DRV_TEST
+
 #define AHT10_I2C_BUS_NAME "hw_i2c"
 #define UART1_DEV_NMAE "uart1"
 #define PWM_DEV_NAME "pwm0"
@@ -127,47 +170,6 @@ static int at_test_i2c(void)
             return 4;
         }
     }
-
-    return 0;
-}
-
-static int at_test_ad(unsigned int channel)
-{
-    rt_adc_device_t adc_dev;
-    rt_uint32_t value;
-
-    adc_dev = (rt_adc_device_t)rt_device_find(ADC_DEV_NAME);
-    if (RT_NULL == adc_dev)
-    {
-        rt_kprintf("ad find %s  fail\n", ADC_DEV_NAME);
-        return -1;
-    }
-
-    rt_adc_enable(adc_dev, channel);
-
-    value = rt_adc_read(adc_dev, channel);
-
-    rt_adc_disable(adc_dev, channel);
-
-    return value;
-}
-
-static int at_test_da(unsigned int channel, unsigned int value)
-{
-    rt_dac_device_t dac_dev;
-
-    dac_dev = (rt_dac_device_t)rt_device_find(DAC_DEV_NAME);
-    if (RT_NULL == dac_dev)
-    {
-        rt_kprintf("da find fail\n");
-        return -1;
-    }
-
-    rt_dac_enable(dac_dev, channel);
-
-    rt_dac_write(dac_dev, channel, value);
-
-    //rt_dac_disable(dac_dev, channel);
 
     return 0;
 }
@@ -309,75 +311,77 @@ static at_result_t at_factory_setup(const char *args)
         rt_pin_write(pin, value);
         break;
     }
+    case FACTORY_AD:
+    {
+        unsigned int ch = data;
+        int result = at_test_ad(ch);
+        if (result < 0)
+            return AT_RESULT_NULL;
+
+        switch (ch)
+        {
+        case ADC_CONFIG_CHANNEL_TEMP_B:
+        {
+            float val = 0.00;
+            val = (float)((float)1.42 / 4.0 + (result - 2048) * (float)1.42 / 2048.0 / 8.0);
+            at_server_printfln("+FACTORY=%d,0.%d", type, val * 100.0);
+            break;
+        }
+        default:
+        {
+            at_server_printfln("+FACTORY=%d,%d", type, result);
+            break;
+        }
+        }
+
+        break;
+    }
+    case FACTORY_DA:
+    {
+        unsigned int ch = data;
+        unsigned int val = data1;
+        if (at_test_da(ch, val) < 0)
+            return AT_RESULT_NULL;
+        break;
+    }
+
 #ifdef UC8288_DRV_TEST
-        case FACTORY_I2C:
-        {
-            if (at_test_i2c())
-                return AT_RESULT_FAILE;
-            break;
-        }
-        case FACTORY_AD:
-        {
-            unsigned int ch = data;
-            int result = at_test_ad(ch);
-            if (result < 0)
-                  return AT_RESULT_NULL;
+    case FACTORY_I2C:
+    {
+        if (at_test_i2c())
+            return AT_RESULT_FAILE;
+        break;
+    }
 
-            switch(ch)
-            {
-                case ADC_CONFIG_CHANNEL_TEMP_B:
-                {
-                    float val = 0.00;
-                    val = (float)((float)1.42/4.0 + (result - 2048)* (float)1.42/2048.0/8.0);
-                    at_server_printfln("+FACTORY=%d,0.%d", type, val*100.0);
-                    break;
-                }
-                default:
-                {
-                    at_server_printfln("+FACTORY=%d,%d", type, result);
-                    break;
-                 }
-            }
+    case FACTORY_UART1:
+    {
+        if (at_factory_test_uart1())
+            return AT_RESULT_NULL;
+        break;
+    }
+    case FACTORY_PWM:
+    {
+        int channel = data;
+        unsigned int period = data1;
 
-            break;
-        }
-        case FACTORY_DA:
-        {
-            unsigned int ch = data;
-            unsigned int val = data1;
-            if(at_test_da(ch, val) < 0)
-                return AT_RESULT_NULL;
-            break;
-        }
-        case FACTORY_UART1:
-        {
-            if(at_factory_test_uart1())
-                 return AT_RESULT_NULL;
-            break;
-        }
-        case FACTORY_PWM:
-        {
-            int channel = data;
-            unsigned int period = data1;
+        if (at_factory_test_pwm(channel, period))
+            return AT_RESULT_NULL;
+        break;
+    }
+    case FACTORY_CAN:
+    {
+        char recv[8] = {0};
+        if (at_factory_test_can(data, recv))
+            return AT_RESULT_NULL;
 
-            if (at_factory_test_pwm( channel, period))
-                return AT_RESULT_NULL;
-            break;
-         }
-        case FACTORY_CAN:
+        if (data == FACTORY_CAN_READ)
         {
-            char recv[8] = {0};
-            if (at_factory_test_can(data, recv))
-                return AT_RESULT_NULL;
-
-            if (data == FACTORY_CAN_READ)
-            {
-                at_server_printf("+FACTORY=%d,", type);
-                at_send_data(recv, sizeof(recv)/sizeof(recv[0]));
-            }
-
-            break;
+            at_server_printf("+FACTORY=%d,", type);
+            at_send_data(recv, sizeof(recv) / sizeof(recv[0]));
         }
+
+        break;
+    }
 #endif
     default:
         return AT_RESULT_REPETITIVE_FAILE;

@@ -667,15 +667,13 @@ static void manager_handle_app_msg(unsigned char wiota_msg_type, app_ps_header_t
         }
     }
 
+    rt_kprintf("manager_handle_app_msg cmd_type = %d\r\n", ps_head->cmd_type);
     if ((ps_head->cmd_type >= MANAGE_LOGIC_SYSTEM_CMD_TYPE_START) && (ps_head->cmd_type <= MANAGE_LOGIC_SYSTEM_CMD_TYPE_END))
     {
         //process system manage data
         manager_system_recv_data_process(&recv_data_info, data, data_len);
     }
-    else if ((ps_head->cmd_type == APP_CMD_OTA_CHECK_VERSION)
-        && (ps_head->cmd_type == APP_CMD_OTA_GET_DATA)
-        && (ps_head->cmd_type == APP_CMD_OTA_STOP)
-        && (ps_head->cmd_type == APP_CMD_OTA_STATE))
+    else if ((ps_head->cmd_type == APP_CMD_OTA_CHECK_VERSION) || (ps_head->cmd_type == APP_CMD_OTA_CHECK_VERSION_RES) || (ps_head->cmd_type == APP_CMD_OTA_GET_DATA) || (ps_head->cmd_type == APP_CMD_OTA_GET_DATA_RES) || (ps_head->cmd_type == APP_CMD_OTA_STOP) || (ps_head->cmd_type == APP_CMD_OTA_STOP_RES) || (ps_head->cmd_type == APP_CMD_OTA_STATE) || (ps_head->cmd_type == APP_CMD_OTA_STATE_RES))
     {
         //custom ota
         if (g_custom_ota_callback != NULL)
@@ -715,6 +713,7 @@ static void app_manager_handle_recv_data(uc_recv_back_p recv_data)
         {
         case UC_RECV_MSG:
         case UC_RECV_BC:
+        case UC_RECV_OTA:
             rt_kprintf("#### app_manager_handle_recv_data: type = %d\r\n", recv_data->type);
             print_hex_data(recv_data->data, recv_data->data_len);
             if (0 != app_data_decoding(recv_data->data, recv_data->data_len, &temp_data, &temp_data_len, &ps_head))
@@ -733,11 +732,6 @@ static void app_manager_handle_recv_data(uc_recv_back_p recv_data)
             {
                 rt_free(temp_data);
             }
-
-            break;
-
-        case UC_RECV_OTA:
-
             break;
 
         default:
