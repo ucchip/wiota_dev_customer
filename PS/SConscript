@@ -11,7 +11,7 @@ if GetDepend(['RT_USING_AT','UC8288_MODULE']):
     src += ['at/at_wiota.c', 'at/at_boot.c', 'at/at_wiota_auto_manager.c']
     path += [cwd + '/at']
 
-    if GetDepend(['WIOTA_FACTORY_FUNC']):
+    if GetDepend(['UC8288_FACTORY']):
         src += ['at/at_factory.c']
 
 lib = ['libwin_wiota_dev']
