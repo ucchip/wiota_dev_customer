@@ -63,7 +63,7 @@ if PLATFORM == 'gcc':
     #    CFLAGS += ' -O2'
 
     POST_ACTION = SIZE + ' $TARGET\n'
-    POST_ACTION += './tools/current_version.exe PS/app/include/uc_wiota_version.h' + '\n'
+    # POST_ACTION += './tools/current_version.exe PS/app/include/uc_wiota_version.h' + '\n'
     # POST_ACTION += 'riscv32-unknown-elf-objdump -d rtthread.elf > rtthread.asm' + '\n'
     POST_ACTION += './tools/bintools.exe -f uboot.bin  -u $TARGET ' + TARGET_NAME + '\n'
     POST_ACTION += 'cp -f flat.bin ' + TARGET_NAME + '\n'
