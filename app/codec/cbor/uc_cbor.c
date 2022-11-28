@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#ifdef WIOTA_APP_DEMO
+#ifdef GATEWAY_MODE_SUPPORT
 #include "uc_cbor.h"
 
 #define CN_CBOR_FAIL(code) \
@@ -365,4 +365,4 @@ cn_cbor *cn_cbor_decode(const unsigned char *buf, size_t len CBOR_CONTEXT, cn_cb
     }
     return ret;
 }
-#endif /* WIOTA_APP_DEMO */
+#endif /* GATEWAY_MODE_SUPPORT */

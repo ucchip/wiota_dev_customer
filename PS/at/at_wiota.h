@@ -13,6 +13,11 @@ enum at_wiota_state
 void at_wiota_set_state(int state);
 int at_wiota_get_state(void);
 
+#ifdef GATEWAY_MODE_SUPPORT
+boolean at_gateway_get_reboot(void);
+void at_gateway_set_reboot(boolean reboot_flag);
+unsigned int at_gateway_get_wiota_id(void);
+void at_gateway_set_wiota_id(unsigned int wiota_id);
+void at_gateway_release_sem(void);
 #endif
-
-
+#endif

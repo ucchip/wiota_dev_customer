@@ -358,7 +358,11 @@ static void at_wiota_manager_startegy(void)
         uc_wiota_get_all_stats(&stats_info_ptr);
 
         if ((stats_info_ptr.ul_sm_succ * 5 < stats_info_ptr.ul_sm_total && stats_info_ptr.ul_sm_total > 20) ||
-            UC_STATUS_SYNC_LOST == connect_state || UC_STATUS_ERROR == connect_state)
+            UC_STATUS_SYNC_LOST == connect_state || UC_STATUS_ERROR == connect_state
+#ifdef GATEWAY_MODE_SUPPORT
+            || at_gateway_get_reboot()
+#endif
+        )
         {
             rt_kprintf("%s line %d sm_succ %d sm_total %d connect state %d\n",
                        __FUNCTION__, __LINE__, stats_info_ptr.ul_sm_succ, stats_info_ptr.ul_sm_total, connect_state);
@@ -447,6 +451,12 @@ static void at_wiota_manager_task(void *parameter)
                 break;
             }
             uc_wiota_init();
+#ifdef GATEWAY_MODE_SUPPORT
+            if (at_gateway_get_reboot())
+            {
+                uc_wiota_set_wiotaid(at_gateway_get_wiota_id());
+            }
+#endif
             at_wiota_auto_report_state(AT_WIOTA_MANAGER_USER_FREQ);
             // rt_kprintf("%s line %d freq %d\n", __FUNCTION__, __LINE__, g_wiota_manager.current_freq_node->data.freq);
             uc_wiota_set_freq_info(g_wiota_manager.current_freq_node->data.freq);
@@ -463,6 +473,13 @@ static void at_wiota_manager_task(void *parameter)
             }
             else
             {
+#ifdef GATEWAY_MODE_SUPPORT
+                if (at_gateway_get_reboot())
+                {
+                    at_gateway_set_reboot(FALSE);
+                    at_gateway_release_sem();
+                }
+#endif
                 SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_STRATEGY);
                 g_wiota_manager.continue_scan_fail = 0;
             }

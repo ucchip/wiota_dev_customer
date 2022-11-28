@@ -48,6 +48,107 @@ typedef struct
 
 #define APP_MAX_CODING_DATA_LEN (310 - sizeof(app_ps_header_t))
 #define APP_MAX_DECODING_DATA_LEN (1024 - sizeof(app_ps_header_t))
+#define APP_MAX_FREQ_LIST_NUM 16
+#define APP_MAX_IOTE_UPGRADE_NUM 8
+#define APP_MAX_IOTE_UPGRADE_STOP_NUM 16
+#define APP_MAX_MISSING_DATA_BLOCK_NUM 16
+
+typedef enum
+{
+    AUTHENTICATION_REQ = 1,
+    AUTHENTICATION_RES = 2,
+    VERSION_VERIFY = 10,
+    OTA_UPGRADE_REQ = 11,
+    OTA_UPGRADE_STOP = 12,
+    OTA_UPGRADE_STATE = 13,
+    IOTE_MISSING_DATA_REQ = 14,
+    IOTE_STATE_UPDATE = 20,
+    IOTE_USER_DATA = 100,
+    IOTE_RESPON_STATE = 0xFFFFFFFF,
+} app_ps_cmd_e;
+
+typedef struct
+{
+    int auth_type;     // 0: identification fixed
+    char aut_code[16]; // key. max len 16.
+} app_ps_auth_req_t, *app_ps_auth_req_p;
+
+typedef enum
+{
+    AUTHENTICATION_SUC = 0,
+    AUTHENTICATION_NO_DATA,
+    AUTHENTICATION_FAIL,
+    AUTHENTICATION_INFO_CHANGE,
+} e_auth_state;
+
+typedef enum
+{
+    GATEWAY_OTA_END = 0,
+    GATEWAY_OTA_UPGRADING = 1,
+    GATEWAY_OTA_NOT_UPGRADE = 2,
+} gateway_ota_state_e;
+
+typedef struct
+{
+    e_auth_state state; // auth state. eg: e_auth_state
+    int wiota_id;
+    unsigned char freq_list[APP_MAX_FREQ_LIST_NUM]; // if 255, means end
+} app_ps_auth_res_t, *app_ps_auth_res_p;
+
+typedef struct
+{
+    char software_version[16];
+    char hardware_version[16];
+    char device_type[12];
+} app_ps_version_verify_t, *app_ps_version_verify_p;
+
+typedef struct
+{
+    int upgrade_type; // 0: full upgrade, 1: diff upgrade
+    int upgrade_range;
+    int iote_list[APP_MAX_IOTE_UPGRADE_NUM]; // if 0, means end
+    char new_version[16];                       // upgrade to which version
+    char old_version[16];                       // which version who need upgrade
+    char md5[36];
+    int file_size;
+    int upgrade_time;
+    char device_type[12];
+    int data_offset;
+    int data_length;
+    unsigned char data[1024]; // do not cbor coding this data ?
+} app_ps_ota_upgrade_req_t, *app_ps_ota_upgrade_req_p;
+
+typedef struct
+{
+    unsigned int iote_list[APP_MAX_IOTE_UPGRADE_STOP_NUM];
+} app_ps_ota_upgrade_stop_t, *app_ps_ota_upgrade_stop_p;
+
+typedef struct
+{
+    int upgrade_type;  // 0: full upgrade, 1: diff upgrade
+    char new_version[16]; // upgrade to which version
+    char old_version[16]; // which version who need upgrade
+    char device_type[12];
+    int process_state; // 0: end, 1: is upgrading, 2: not upgraded
+} app_ps_ota_upgrade_state_t, *app_ps_ota_upgrade_state_p;
+
+typedef struct
+{
+    char device_type[12];
+    char new_version[16]; // upgrade to which version
+    char old_version[16]; // which version who need upgrade
+    int upgrade_type;  // 0: full upgrade, 1: diff upgrade
+    int miss_data_num; // number of missing data blocks, not trans this value
+    int miss_data_offset[APP_MAX_MISSING_DATA_BLOCK_NUM];
+    int miss_data_length[APP_MAX_MISSING_DATA_BLOCK_NUM];
+} app_ps_iote_missing_data_req_t, *app_ps_iote_missing_data_req_p;
+
+typedef struct
+{
+    char device_type[16];
+    int rssi;
+    int temperature;
+} app_ps_iote_state_update_t, *app_ps_iote_state_update_p;
 
 unsigned char app_packet_num(void);
 
@@ -105,4 +206,37 @@ int app_data_decoding(unsigned char *input_data,
                       unsigned char **output_data,
                       unsigned int *output_data_len,
                       app_ps_header_t *ps_header);
+
+/*********************************************************************************
+ This function is decod data of cbor
+
+ param:
+        in:
+            input_cmd_type  cmd
+        out:
+            output_data : decod of data. must free memory.
+ return:int.
+**********************************************************************************/
+
+int app_cmd_decoding(app_ps_cmd_e input_cmd_type,
+                     unsigned char *input_data,
+                     unsigned int input_data_len,
+                     unsigned char **output_data);
+
+/*********************************************************************************
+ This function is coding data of cbor
+
+ param:
+        in:
+            input_cmd_type  cmd
+        out:
+            output_data : coding of data. must free memory.
+ return:int.
+**********************************************************************************/
+
+int app_cmd_coding(app_ps_cmd_e input_cmd_type,
+                   unsigned char *input_cmd,
+                   unsigned char **output_data,
+                   unsigned int *output_data_len);
+
 #endif

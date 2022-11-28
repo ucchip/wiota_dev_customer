@@ -1,4 +1,4 @@
-#if 0 //def WIOTA_APP_DEMO
+#if 0 //def GATEWAY_MODE_SUPPORT
 #include "uc_cbor.h"
 #ifdef _RT_THREAD_
 #include <rtthread.h>
@@ -168,4 +168,4 @@ void codec_test_main(void)
 
 }
 
-#endif // WIOTA_APP_DEMO
+#endif // GATEWAY_MODE_SUPPORT

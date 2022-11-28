@@ -20,7 +20,7 @@
 #include "uc_wiota_static.h"
 #include "custom_ota.h"
 #include "custom_manager.h"
-#include "md5.h"
+#include "uc_ota_flash.h"
 
 #define CUSTOM_OTA_FLASH_BIN_SIZE 328
 #define CUSTOM_OTA_FLASH_REVERSE_SIZE 136
@@ -46,158 +46,6 @@ static unsigned int g_custom_ota_timeout_event = OTA_TET_IDLE;
 static unsigned char g_custom_ota_request_data_count = 0;
 
 #define CUSTOM_OTA_PRIVATE_FLASH_INTERFACE
-#ifdef CUSTOM_OTA_PRIVATE_FLASH_INTERFACE
-
-#define BSWAP_32(x)                                         \
-    ((((x)&0xff000000u) >> 24) | (((x)&0x00ff0000u) >> 8) | \
-     (((x)&0x0000ff00u) << 8) | (((x)&0x000000ffu) << 24))
-
-#define FLASH_PAGE_SIZE (256)
-#define FLASH_SECTOR_SIZE (4096)
-
-static int ota_flash_read(uint32_t offset, uint8_t *buf, uint32_t size)
-{
-    uint32_t addr = 0x00000000 + offset;
-    uint32_t index = 0;
-
-    while (index < size)
-    {
-        uint32_t read_addr = 0;
-        uint32_t read_data = 0;
-        uint8_t order_len = 0;
-        uint8_t addr_offset = 0;
-        //rt_base_t level;
-        uint8_t *read_buf = RT_NULL;
-
-        read_buf = (uint8_t *)&read_data;
-
-        read_addr = ((addr + index) / 4) * 4;
-        if ((addr + index) % 4)
-        {
-            addr_offset = (addr + index) % 4;
-        }
-
-        if ((index + 4 - addr_offset) > size)
-        {
-            order_len = size - index;
-        }
-        else
-        {
-            order_len = 4 - addr_offset;
-        }
-
-        uc_wiota_flash_read(read_buf, read_addr, 4);
-
-        read_data = BSWAP_32(read_data);
-        memcpy(&buf[index], &read_buf[addr_offset], order_len);
-
-        index += order_len;
-    }
-
-    return size;
-}
-
-static int ota_flash_write(uint32_t offset, const uint8_t *buf, uint32_t size)
-{
-    rt_err_t result = RT_EOK;
-    uint32_t addr = 0x00000000 + offset;
-    rt_uint32_t end_addr = addr + size;
-    uint32_t index = 0;
-
-    if ((end_addr) > (0x00000000 + (FLASH_SECTOR_SIZE * FLASH_PAGE_SIZE)))
-    {
-        return -RT_EINVAL;
-    }
-
-    if (size < 1)
-    {
-        return -RT_EINVAL;
-        //return size;
-    }
-
-    while (index < size)
-    {
-        uint32_t write_addr = 0;
-        uint32_t write_data = 0;
-        uint8_t order_len = 0;
-        uint8_t addr_offset = 0;
-        //rt_base_t level;
-        uint8_t *write_buf = RT_NULL;
-
-        write_buf = (uint8_t *)&write_data;
-
-        write_addr = ((addr + index) / 4) * 4;
-        if ((addr + index) % 4)
-        {
-            addr_offset = (addr + index) % 4;
-        }
-
-        if ((index + 4 - addr_offset) > size)
-        {
-            order_len = size - index;
-        }
-        else
-        {
-            order_len = 4 - addr_offset;
-        }
-
-        if ((addr_offset > 0) || (order_len < 4))
-        {
-            ota_flash_read(write_addr, write_buf, 4);
-        }
-        memcpy(&write_buf[addr_offset], &buf[index], order_len);
-        write_data = BSWAP_32(write_data);
-
-        uc_wiota_flash_write(write_buf, write_addr, 4);
-
-#if 0
-        if (1)
-        {
-            uint32_t read_back_data = 0;
-            uint8_t* read_back_buf = 0;
-
-            read_back_buf = (uint8_t*)&read_back_data;
-            ota_flash_read(write_addr, read_back_buf, 4);
-            read_back_data = BSWAP_32(read_back_data);
-
-            if (memcmp(&write_buf[addr_offset], &read_back_buf[addr_offset], order_len) != 0)
-            {
-                result = -RT_ERROR;
-                break;
-            }
-        }
-#endif
-
-        index += order_len;
-    }
-
-    if (result != RT_EOK)
-    {
-        return result;
-    }
-
-    return size;
-}
-
-static int ota_flash_erase(uint32_t offset, uint32_t size)
-{
-    rt_err_t result = RT_EOK;
-    uint32_t addr = ((0x00000000 + offset) / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
-    uint32_t index = 0;
-
-    for (index = 0; index < size; index += FLASH_SECTOR_SIZE)
-    {
-        uc_wiota_flash_erase_4K(addr + index);
-    }
-
-    if (result != RT_EOK)
-    {
-        return result;
-    }
-
-    return size;
-}
-#endif
 
 void custom_ota_request_check_version(void)
 {
@@ -377,167 +225,6 @@ static unsigned int custom_ota_get_flash_start_addr(void)
     return flash_start_addr;
 }
 
-static void custom_ota_erase_flash(unsigned int start_addr, unsigned int erase_size)
-{
-    unsigned int erase_addr = start_addr;
-    unsigned int size = 0;
-
-    rt_kprintf("custom_ota_erase_flash start_addr = 0x%08x, erase_size = %d\r\n", start_addr, erase_size);
-    if (erase_size == 0)
-    {
-        return;
-    }
-
-    erase_addr = (erase_addr / 4096) * 4096;
-    uc_wiota_suspend_connect();
-    if (erase_addr < start_addr)
-    {
-#ifdef CUSTOM_OTA_PRIVATE_FLASH_INTERFACE
-        ota_flash_erase(erase_addr, 4096);
-#else
-        uc_wiota_flash_erase_4K(erase_addr);
-#endif
-        erase_addr += 4096;
-        size = start_addr - erase_addr;
-    }
-    while (size < erase_size)
-    {
-#ifdef CUSTOM_OTA_PRIVATE_FLASH_INTERFACE
-        ota_flash_erase(erase_addr, 4096);
-#else
-        uc_wiota_flash_erase_4K(erase_addr);
-#endif
-        erase_addr += 4096;
-        size += 4096;
-    }
-    uc_wiota_recover_connect();
-    rt_kprintf("custom_ota_erase_flash over\r\n");
-}
-
-static void custom_ota_write_flash(unsigned char *data_buf, unsigned int flash_addr, unsigned int length)
-{
-    rt_kprintf("custom_ota_write_flash flash_addr = 0x%08x, length = %d\r\n", flash_addr, length);
-    uc_wiota_suspend_connect();
-#ifdef CUSTOM_OTA_PRIVATE_FLASH_INTERFACE
-    ota_flash_write(flash_addr, data_buf, length);
-#else
-    uc_wiota_flash_write(data_buf, flash_addr, (unsigned short)length);
-#endif
-    uc_wiota_recover_connect();
-}
-
-static int custom_ota_cmp_md5(char *md5, unsigned char *check_code)
-{
-    unsigned char md5_hex[16];
-
-    if (strlen(md5) != 32)
-    {
-        return -1;
-    }
-
-    memset(md5_hex, 0x00, 16);
-    for (unsigned int index = 0; index < 32; index++)
-    {
-        unsigned char hex_val = 0;
-        if ((md5[index] >= '0') && (md5[index] <= '9'))
-        {
-            hex_val = md5[index] - '0';
-        }
-        else if ((md5[index] >= 'A') && (md5[index] <= 'F'))
-        {
-            hex_val = md5[index] - 'A' + 10;
-        }
-        else if ((md5[index] >= 'a') && (md5[index] <= 'f'))
-        {
-            hex_val = md5[index] - 'a' + 10;
-        }
-        else
-        {
-            return -2;
-        }
-        if (index % 2)
-        {
-            md5_hex[index / 2] |= hex_val;
-        }
-        else
-        {
-            md5_hex[index / 2] |= hex_val << 4;
-        }
-    }
-
-    if (memcmp(md5_hex, check_code, 16) != 0)
-    {
-        rt_kprintf("custom_ota_cmp_md5 Err, md5 = %s\r\n", md5);
-        return -3;
-    }
-
-    return 0;
-}
-
-static int custom_ota_check_flash_data(unsigned int flash_addr, unsigned int flash_size, char *md5)
-{
-    int result = 0;
-    MD5_CTX *md5_context = NULL;
-    unsigned char *data_buf = NULL;
-    unsigned int data_buf_len = 1024;
-    unsigned int data_offset = 0;
-    unsigned char check_code[16];
-
-    rt_kprintf("custom_ota_check_flash_data flash_addr = 0x%08x, flash_size = %d, md5 = %s\r\n", flash_addr, flash_size, md5);
-    md5_context = rt_malloc(sizeof(MD5_CTX));
-    data_buf = rt_malloc(data_buf_len);
-
-    if ((md5_context == NULL) || (data_buf == NULL))
-    {
-        result = -1;
-        goto _end;
-    }
-
-    MD5Init(md5_context);
-    while (data_offset < flash_size)
-    {
-        unsigned int read_len = data_buf_len;
-        if ((data_offset + read_len) > flash_size)
-        {
-            read_len = flash_size - data_offset;
-        }
-        uc_wiota_suspend_connect();
-#ifdef CUSTOM_OTA_PRIVATE_FLASH_INTERFACE
-        if (ota_flash_read(flash_addr + data_offset, data_buf, read_len) != read_len)
-#else
-        if (uc_wiota_flash_read(data_buf, flash_addr + data_offset, read_len) != UC_OP_SUCC)
-#endif
-        {
-            uc_wiota_recover_connect();
-            rt_kprintf("custom_ota_check_flash_data uc_wiota_flash_read Err\r\n");
-            result = -2;
-            goto _end;
-        }
-        uc_wiota_recover_connect();
-        MD5Update(md5_context, data_buf, read_len);
-        data_offset += read_len;
-    }
-    MD5Final(md5_context, check_code);
-
-    if (custom_ota_cmp_md5(md5, check_code) != 0)
-    {
-        result = -3;
-        goto _end;
-    }
-
-_end:
-    if (md5_context != NULL)
-    {
-        rt_free(md5_context);
-    }
-    if (data_buf != NULL)
-    {
-        rt_free(data_buf);
-    }
-
-    return result;
-}
-
 static void ota_timer_callback(void *param)
 {
     if (param != NULL)
@@ -581,31 +268,6 @@ static void custom_ota_stop_timer(void)
     {
         rt_timer_stop(g_custom_ota_timer);
     }
-}
-
-static void custom_ota_jump_program(unsigned int size, unsigned char update_type)
-{
-    int bin_size = CUSTOM_OTA_FLASH_BIN_SIZE;
-    int reserved_size = CUSTOM_OTA_FLASH_REVERSE_SIZE;
-    int ota_size = CUSTOM_OTA_FLASH_OTA_SIZE;
-
-    set_partition_size(bin_size, reserved_size, ota_size);
-    rt_kprintf("set_partition_size bin_size = %d, reserved_size = %d, ota_size = %d\r\n", bin_size, reserved_size, ota_size);
-    uc_wiota_set_download_file_size(size);
-    if (update_type == 0)
-    {
-        set_uboot_mode('d');
-    }
-    else
-    {
-        set_uboot_mode('b');
-    }
-    uc_wiota_exit();
-    rt_kprintf("custom_ota_jump_program size = %d, update_type = %d\r\n", size, update_type);
-    rt_thread_mdelay(2000);
-    rt_hw_interrupt_disable();
-    //boot_riscv_reboot();
-    rt_hw_cpu_reset();
 }
 
 void custom_ota_check_version_process(void)
@@ -849,7 +511,7 @@ void custom_ota_recv_data_process(t_recv_data_info *recv_data_info, unsigned cha
                                         {
                                             g_custom_ota_upgrade_data_info.block_count++;
                                         }
-                                        custom_ota_erase_flash(custom_ota_get_flash_start_addr(), g_custom_ota_upgrade_info.size);
+                                        uc_wiota_ota_flash_erase(custom_ota_get_flash_start_addr(), g_custom_ota_upgrade_info.size);
                                     }
                                     else
                                     {
@@ -862,7 +524,7 @@ void custom_ota_recv_data_process(t_recv_data_info *recv_data_info, unsigned cha
                                     rt_kprintf("ota data offset = %d\r\n", offset);
                                     if ((g_custom_ota_upgrade_data_info.block_recv_mask[offset / 8] & (1 << (offset % 8))) == 0x00)
                                     {
-                                        custom_ota_write_flash(specified_data_info->ota_data, custom_ota_get_flash_start_addr() + specified_data_info->offset, specified_data_info->len);
+                                        uc_wiota_ota_flash_write(specified_data_info->ota_data, custom_ota_get_flash_start_addr() + specified_data_info->offset, specified_data_info->len);
                                         g_custom_ota_upgrade_data_info.block_recv_mask[offset / 8] |= (1 << (offset % 8));
                                         rt_kprintf("block_recv_mask[%d] = 0x%x\r\n", offset / 8, g_custom_ota_upgrade_data_info.block_recv_mask[offset / 8]);
                                     }
@@ -877,11 +539,13 @@ void custom_ota_recv_data_process(t_recv_data_info *recv_data_info, unsigned cha
                                     }
                                     if (offset >= g_custom_ota_upgrade_data_info.block_count)
                                     {
-                                        if (custom_ota_check_flash_data(custom_ota_get_flash_start_addr(), g_custom_ota_upgrade_info.size, g_custom_ota_upgrade_info.md5) == 0)
+                                        if (uc_wiota_ota_check_flash_data(custom_ota_get_flash_start_addr(), g_custom_ota_upgrade_info.size, g_custom_ota_upgrade_info.md5) == 0)
                                         {
                                             custom_ota_start_update_timer(OTA_TET_WAIT_PROGRAM);
                                             g_custom_ota_upgrade_state = OTA_STATE_PROGRAM;
-                                            custom_ota_jump_program(g_custom_ota_upgrade_info.size, g_custom_ota_upgrade_info.update_type);
+
+                                            set_partition_size(CUSTOM_OTA_FLASH_BIN_SIZE, CUSTOM_OTA_FLASH_REVERSE_SIZE, CUSTOM_OTA_FLASH_OTA_SIZE);
+                                            uc_wiota_ota_jump_program(g_custom_ota_upgrade_info.size, g_custom_ota_upgrade_info.update_type);
                                         }
                                         else
                                         {

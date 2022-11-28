@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#ifdef WIOTA_APP_DEMO
+#if 0//defined(WIOTA_APP_DEMO) || defined(GATEWAY_MODE_SUPPORT)
 #include <uc_coding.h>
 
 typedef struct
@@ -96,4 +96,97 @@ void app_coding_test_demo(void)
     temp_data = RT_NULL;
 }
 
+void app_test_auth_request(void)
+{
+    app_ps_auth_req_t auth_req_data;
+    unsigned char *output_data;
+    unsigned int out_data_len;
+
+    app_ps_auth_req_t *auth_req_data1;
+
+    rt_kprintf("app_test_auth_request test\n");
+
+    auth_req_data.auth_type = 0;
+    auth_req_data.aut_code[0] = '9';
+
+    if (app_cmd_coding(AUTHENTICATION_REQ,
+                       (unsigned char *)&auth_req_data,
+                       &output_data,
+                       &out_data_len) < 0)
+    {
+        rt_kprintf("app_cmd_coding error\n");
+        return;
+    }
+    rt_kprintf("out_data_len = %d\n", out_data_len);
+    {
+        int len = 0;
+        rt_kprintf("output_data:\n");
+        for (len = 0; len < out_data_len; len++)
+            rt_kprintf("%02x ", output_data[len]);
+        rt_kprintf("\n");
+    }
+
+    if (app_cmd_decoding(AUTHENTICATION_REQ,
+                         output_data,
+                         out_data_len,
+                         (unsigned char **)&auth_req_data1) < 0)
+    {
+        rt_kprintf("app_cmd_decoding error\n");
+        rt_free(output_data);
+        return;
+    }
+
+    rt_kprintf("auth_type = %d\n", auth_req_data1->auth_type);
+    rt_kprintf("aut_code[0] = %c\n", auth_req_data1->aut_code[0]);
+
+    rt_free(output_data);
+    rt_free(auth_req_data1);
+}
+
+void app_test_auth_res(void)
+{
+    app_ps_auth_res_t auth_res = {0};
+    app_ps_auth_res_t *auth_res1;
+    unsigned char *output_data;
+    unsigned int out_data_len;
+
+    auth_res.state = AUTHENTICATION_NO_DATA;
+    auth_res.wiota_id = 2;
+    auth_res.freq_list[0] = 50;
+    auth_res.freq_list[1] = 255;
+
+    if (app_cmd_coding(AUTHENTICATION_RES,
+                       (unsigned char *)&auth_res,
+                       &output_data,
+                       &out_data_len) < 0)
+    {
+        rt_kprintf("app_cmd_coding error\n");
+        return;
+    }
+    rt_kprintf("out_data_len = %d\n", out_data_len);
+    {
+        int len = 0;
+        rt_kprintf("output_data:\n");
+        for (len = 0; len < out_data_len; len++)
+            rt_kprintf("%02x ", output_data[len]);
+        rt_kprintf("\n");
+    }
+
+    if (app_cmd_decoding(AUTHENTICATION_RES,
+                         output_data,
+                         out_data_len,
+                         (unsigned char **)&auth_res1) < 0)
+    {
+        rt_kprintf("app_cmd_decoding error\n");
+        rt_free(output_data);
+        return;
+    }
+
+    rt_kprintf("state = %d\n", auth_res1->state);
+    rt_kprintf("wiota_id = %d\n", auth_res1->wiota_id);
+    rt_kprintf("freq[0] = %d\n", auth_res1->freq_list[0]);
+
+    rt_free(output_data);
+    rt_free(auth_res1);
+}
 #endif

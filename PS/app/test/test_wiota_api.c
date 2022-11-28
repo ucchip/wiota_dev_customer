@@ -429,7 +429,7 @@ void app_test_main_task(void *pPara)
     // test! whole config
     uc_wiota_get_system_config(&wiota_config);
     rt_kprintf("config show %d %d %d %d %d %d 0x%x 0x%x\n",
-               wiota_config.id_len, wiota_config.pn_num, wiota_config.symbol_length, wiota_config.dlul_ratio,
+               wiota_config.id_len, wiota_config.pp, wiota_config.symbol_length, wiota_config.dlul_ratio,
                wiota_config.btvalue, wiota_config.group_number, wiota_config.systemid, wiota_config.subsystemid);
     //    wiota_config.pn_num = 2;  // change config then set
     wiota_config.symbol_length = 1; // 256,1024
@@ -621,7 +621,7 @@ void app_test1_main_task(void *pPara)
 
         uc_wiota_get_system_config(&wiota_config);
         rt_kprintf("config show %d %d %d %d %d %d %d 0x%x 0x%x\n",
-                   wiota_config.ap_max_pow, wiota_config.id_len, wiota_config.pn_num, wiota_config.symbol_length, wiota_config.dlul_ratio,
+                   wiota_config.ap_max_pow, wiota_config.id_len, wiota_config.pp, wiota_config.symbol_length, wiota_config.dlul_ratio,
                    wiota_config.btvalue, wiota_config.group_number, wiota_config.systemid, wiota_config.subsystemid);
         // wiota_config.pn_num = 2;  // change config then set
         // wiota_config.symbol_length = 3; // 256,1024

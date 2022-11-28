@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#ifdef WIOTA_APP_DEMO
+#if 0//def WIOTA_APP_DEMO
 #include <stdlib.h>
 #include "cJSON.h"
 

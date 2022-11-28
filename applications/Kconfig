@@ -4,6 +4,10 @@ config UC8288_MODULE
     bool "use at cmd, default open(UC8288_MODULE)"
     default y
 
+config GATEWAY_MODE_SUPPORT
+    bool "single gateway at cmd, default open(GATEWAY_MODE_SUPPORT)"
+    default y
+
 if RT_USING_WDT
     config _WATCHDOG_APP_
         bool "open wdt, default close(_WATCHDOG_APP_)"

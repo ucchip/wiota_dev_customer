@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#ifdef WIOTA_APP_DEMO
+#ifdef GATEWAY_MODE_SUPPORT
 #include "uc_cbor.h"
 #include "uc_wiota_api.h"
 #include "test_wiota_api.h"
@@ -191,4 +191,4 @@ void codec_demon_test(void)
     rt_free(decode_data);
 }
 
-#endif // WIOTA_APP_DEMO
+#endif // GATEWAY_MODE_SUPPORT

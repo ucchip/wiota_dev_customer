@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#ifdef WIOTA_APP_DEMO
+#ifdef GATEWAY_MODE_SUPPORT
 #include "uc_cbor.h"
 
 #define hton8p(p) (*(uint8_t *)(p))
@@ -347,4 +347,4 @@ int cn_cbor_encoder_write(uint8_t *buf,
     return ws.offset - buf_offset;
 }
 
-#endif /* WIOTA_APP_DEMO */
+#endif /* GATEWAY_MODE_SUPPORT */

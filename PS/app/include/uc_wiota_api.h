@@ -136,7 +136,7 @@ typedef struct {
 typedef struct {
     char            ap_max_pow;       // 21, 30,
     unsigned char   id_len;           // 0: 2, 1: 4, 2: 6, 3: 8
-    unsigned char   pn_num;           // 0: 1, 1: 2, 2: 4, 3: not use
+    unsigned char   pp;               // 0: 1, 1: 2, 2: 4, 3: not use
     unsigned char   symbol_length;    //128,256,512,1024
     unsigned char   dlul_ratio;       // 0 1:1,  1 1:2
     unsigned char   btvalue;          //bt from rf 1: 0.3, 0: 1.2
@@ -320,4 +320,7 @@ void set_uboot_log(unsigned char uart_flag,unsigned char log_flag,unsigned char 
 
 void get_uboot_log_set(unsigned char * uart_flag , unsigned char * log_flag , unsigned char * select_flag);
 
+#ifdef GATEWAY_MODE_SUPPORT
+int uc_wiota_set_wiotaid(unsigned int wiotaid);
+#endif
 #endif

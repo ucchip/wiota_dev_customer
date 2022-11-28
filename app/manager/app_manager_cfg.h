@@ -21,7 +21,7 @@ typedef struct
     unsigned char freq_list[16];
     char ap_max_pow;
     unsigned char id_len;
-    unsigned char pn_num;
+    unsigned char pp;
     unsigned char symbol_length;
     unsigned char dlul_ratio;
     unsigned char btvalue;

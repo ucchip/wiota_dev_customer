@@ -141,7 +141,7 @@ int manager_get_wiota_config(t_wiota_net_config *wiota_config)
 
     wiota_config->ap_max_pow = g_wiota_config.ap_max_pow;
     wiota_config->id_len = g_wiota_config.id_len;
-    wiota_config->pn_num = g_wiota_config.pn_num;
+    wiota_config->pp = g_wiota_config.pp;
     wiota_config->symbol_length = g_wiota_config.symbol_length;
     wiota_config->dlul_ratio = g_wiota_config.dlul_ratio;
     wiota_config->btvalue = g_wiota_config.btvalue;
@@ -176,7 +176,7 @@ int manager_set_wiota_config(unsigned int config_valid_mask, t_wiota_net_config 
     }
     if (config_valid_mask & (1 << I_WIOTA_CFG_PN_NUM))
     {
-        g_wiota_config.pn_num = wiota_config->pn_num;
+        g_wiota_config.pp = wiota_config->pp;
         wiota_config_update = 1;
     }
     if (config_valid_mask & (1 << I_WIOTA_CFG_SYMBOL_LENGTH))

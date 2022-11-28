@@ -3,7 +3,7 @@ from building import *
 cwd = GetCurrentDir()
 
 path = [cwd + '/app/include']
-path += [cwd + '/app/test']
+path += [cwd + '/test']
 
 src = Glob('app/test/*.c')
 
