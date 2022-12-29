@@ -478,6 +478,7 @@ static void at_wiota_manager_task(void *parameter)
                 {
                     at_gateway_set_reboot(FALSE);
                     at_gateway_release_sem();
+                    rt_kprintf("release gateway_sem\n");
                 }
 #endif
                 SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_STRATEGY);

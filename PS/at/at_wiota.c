@@ -2457,7 +2457,7 @@ static void at_gateway_handle_auth_res_msg(unsigned char *data, unsigned int dat
             uc_wiota_run();
             uc_wiota_connect();
         }
-        at_gateway_handle_send_ota_req_msg();
+        // at_gateway_handle_send_ota_req_msg();
         rt_timer_start(gateway_mode.ver_timer);
         break;
 
