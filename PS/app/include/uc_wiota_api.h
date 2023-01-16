@@ -183,6 +183,14 @@ typedef struct {
 
 
 typedef struct {
+    unsigned int    sub_sys_id;
+    unsigned char   freq_idx;
+    unsigned char   reserved0;  // 4byte align
+    unsigned short  reserved1;  // 4byte align
+}uc_freq_scan_req_dyn_t,*uc_freq_scan_req_dyn_p;
+
+
+typedef struct {
     unsigned char   freq_idx;
     signed char     snr;
     signed char     rssi;
@@ -254,7 +262,7 @@ void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_r
 
 void uc_wiota_register_recv_data_callback(uc_recv callback, UC_CALLBACK_DATA_TYPE type);
 
-void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
+void uc_wiota_scan_freq(unsigned char* data, unsigned short len, u8_t mode, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
 
 void uc_wiota_set_is_gating(unsigned char is_gating);
 
@@ -320,7 +328,7 @@ void set_uboot_log(unsigned char uart_flag,unsigned char log_flag,unsigned char 
 
 void get_uboot_log_set(unsigned char * uart_flag , unsigned char * log_flag , unsigned char * select_flag);
 
-#ifdef GATEWAY_MODE_SUPPORT
+#if 1//def GATEWAY_MODE_SUPPORT
 int uc_wiota_set_wiotaid(unsigned int wiotaid);
 #endif
 #endif

@@ -70,7 +70,7 @@ __critical void FlashWrite(uint32_t nAddr, const uint8_t* pData, uint16_t usLen)
 {
     uint16_t usPage, i, usLenTmp;
     uint32_t nTmp;
-    
+
     if (usLen == 0) { return; }
 
     usPage = (usLen & FLASH_PAGE_MASK) > 0 ? (usLen >> FLASH_PAGE_BIT_SHIFT) + 1 : usLen >> FLASH_PAGE_BIT_SHIFT;
@@ -160,13 +160,13 @@ __critical void FlashEnableWr(void)
 
 __critical void flash_delay(uint32_t delay_time)
 {
-   int i,j; 
+   int i,j;
    if (0 == delay_time) return;
    for (i=0;i<delay_time;i++ )
    {
-     for(j=0;j<40;j++) 
+     for(j=0;j<40;j++)
        {
-         asm("nop");    
+         asm("nop");
        }
    }
 }
@@ -185,3 +185,80 @@ __critical void Flash_Write_SR(uint8_t status)
     flash_delay(100);
     WAIT_FOR_WR_DONE;
 }
+
+__critical void FlashEraseSecurity(void)
+{
+    uint32_t nBaseAddr = 0;
+
+    WAIT_FOR_WR_DONE;
+    //  Flash_Read_SR();
+    WAIT_XIP_FREE;
+    FlashEnableWr();
+    REG_SPI_CMD = FLASH_CMD_ERASE_SECURITY << 24;
+    REG_SPI_ADDR = (nBaseAddr << 8);
+    REG_SPI_LEN  = 0x1808;
+    REG_SPI_DUMMY = 0;
+    WAIT_XIP_FREE;
+    SPI_START(SPI_CMD_RD);
+    WAIT_SPI_IDLE;
+    WAIT_FOR_WR_DONE;
+}
+
+__critical void FlashWriteSecurity(uint32_t rigister_num, uint32_t nAddr, const uint8_t* pData, uint16_t usLen)
+{
+    if (usLen == 0 || (usLen + nAddr) > 256) { return; }
+
+    if (1 == rigister_num)
+    {
+        nAddr = 0x100 | nAddr;
+    }
+
+    WAIT_FOR_WR_DONE;
+
+    FlashEnableWr();
+    FlashProgramSecurity(nAddr, pData, usLen);
+}
+
+__critical void FlashProgramSecurity(uint32_t nAddr, const uint8_t* pData, uint16_t usLen)
+{
+    WAIT_FOR_WR_DONE;
+    WAIT_XIP_FREE;
+    spi_write_fifo(NULL, 0);
+    WAIT_XIP_FREE;
+    REG_SPI_CMD = FLASH_CMD_PROGRAM_SECURITY << 24;  //set cmd
+    REG_SPI_ADDR = (nAddr << 8);
+    /* spi len reg format *
+     * bit16: bit15:8  bit7:0
+     * DLEN   ADDRLEN  CMDLEN
+     */
+    REG_SPI_LEN = 0x1808 | (usLen << 19);  //set cmd,addr and data len
+    WAIT_XIP_FREE;
+    SPI_START(SPI_CMD_WR);
+    WAIT_XIP_FREE;
+    spi_write_fifo((int*)pData, usLen << 3);
+    WAIT_SPI_IDLE;
+    WAIT_XIP_FREE;
+    WAIT_FOR_WR_DONE;
+}
+
+__critical void FlashReadSecurity(uint32_t rigister_num, uint32_t nAddr, uint8_t* pData, uint16_t usLen)
+{
+    if (usLen == 0 || (usLen + nAddr) > 256) { return; }
+
+    if (1 == rigister_num)
+    {
+        nAddr = 0x100 | nAddr;
+    }
+
+    spi_read_fifo(NULL, 0);
+    REG_SPI_DUMMY = 8;
+    WAIT_XIP_FREE;
+    REG_SPI_CMD = FLASH_CMD_READ_SECURITY << 24; // set cmd
+    REG_SPI_ADDR = (nAddr << 8);
+    REG_SPI_LEN = 0x1808 | (usLen << 19); // set cmd,addr and data len
+    WAIT_XIP_FREE;
+    SPI_START(SPI_CMD_RD);
+    spi_read_fifo((int*) pData, (usLen << 3));
+}
+
+

@@ -281,7 +281,7 @@ static int at_wiota_manager_scan(void)
     {
     case 0:
     {
-        uc_wiota_scan_freq(RT_NULL, 0, AT_WIOTA_FULL_SCAN_TIMEOUT, RT_NULL, &result);
+        uc_wiota_scan_freq(RT_NULL, 0, 0, AT_WIOTA_FULL_SCAN_TIMEOUT, RT_NULL, &result);
         // rt_kprintf("%s line %d uc_wiota_scan_freq result %d\n", __FUNCTION__, __LINE__, result.result);
         if (manager->continue_scan_fail < AT_WIOTA_CONTINE_SCAN_FAIL_MAX)
             res = at_wiota_freq_manager(result, 0);
@@ -304,7 +304,7 @@ static int at_wiota_manager_scan(void)
     }
     default:
     {
-        uc_wiota_scan_freq(list, list_len, AT_WIOTA_SCAN_TIMEOUT, RT_NULL, &result);
+        uc_wiota_scan_freq(list, list_len, 0, AT_WIOTA_SCAN_TIMEOUT, RT_NULL, &result);
         // rt_kprintf("%s line %d uc_wiota_scan_freq result %d\n", __FUNCTION__, __LINE__, result.result);
         if (manager->continue_scan_fail < AT_WIOTA_CONTINE_SCAN_FAIL_MAX)
             res = at_wiota_freq_manager(result, 0);

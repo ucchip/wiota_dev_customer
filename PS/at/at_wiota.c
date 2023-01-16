@@ -272,35 +272,38 @@ static u32_t nth_power(u32_t num, u32_t n)
     return s;
 }
 
-static void convert_string_to_int(u8_t numLen, u8_t num, const u8_t *pStart, u8_t *array)
+static u32_t convert_string_to_int(u8_t numLen, const u8_t *pStart, u32_t scale)
 {
     u8_t *temp = NULL;
     u8_t len = 0;
     u8_t nth = numLen;
+    u32_t numValue = 0;
 
     temp = (u8_t *)rt_malloc(numLen);
     if (temp == NULL)
     {
-        rt_kprintf("convert_string_to_int malloc failed\n");
-        return;
+        rt_kprintf("convert malloc failed\n");
+        return numValue;
     }
 
     for (len = 0; len < numLen; len++)
     {
         temp[len] = pStart[len] - '0';
-        array[num] += nth_power(10, nth - 1) * temp[len];
+        numValue += nth_power(scale, nth - 1) * temp[len];
         nth--;
     }
     rt_free(temp);
     temp = NULL;
+    return numValue;
 }
 
-static u8_t convert_string_to_array(u8_t *string, u8_t *array)
+static boolean convert_string_to_freq_array(u8_t *string, uc_freq_scan_req_dyn_t *array, u8_t mode, u8_t freq_num)
 {
     u8_t *pStart = string;
     u8_t *pEnd = string;
     u8_t num = 0;
     u8_t numLen = 0;
+    boolean isRight = FALSE;
 
     while (*pStart != '\0')
     {
@@ -308,34 +311,66 @@ static u8_t convert_string_to_array(u8_t *string, u8_t *array)
         {
             if (*pEnd == ',')
             {
-                convert_string_to_int(numLen, num, pStart, array);
-                num++;
+                if (num < freq_num)
+                {
+                    array[num].freq_idx = (u8_t)convert_string_to_int(numLen, pStart, 10);
+                }
+                else if (num < freq_num * 2)
+                {
+                    array[num - freq_num].sub_sys_id = convert_string_to_int(numLen, pStart, 16);
+                }
                 pEnd++;
                 pStart = pEnd;
                 numLen = 0;
+                num++;
             }
             numLen++;
             pEnd++;
         }
 
-        convert_string_to_int(numLen, num, pStart, array);
+        if (num < freq_num)
+        {
+            array[num].freq_idx = (u8_t)convert_string_to_int(numLen, pStart, 10);
+        }
+        else if (num < freq_num * 2)
+        {
+            array[num - freq_num].sub_sys_id = convert_string_to_int(numLen, pStart, 16);
+        }
         num++;
         pStart = pEnd;
     }
-    return num;
+
+    if (mode)
+    {
+        if (num == freq_num * 2)
+        {
+            isRight = TRUE;
+        }
+    }
+    else
+    {
+        if (num == freq_num)
+        {
+            isRight = TRUE;
+        }
+    }
+
+    return isRight;
 }
 
 static at_result_t at_scan_freq_setup(const char *args)
 {
-    u8_t freqNum = 0;
+    u32_t freqNum = 0;
     u32_t timeout = 0;
     u8_t *freqString = RT_NULL;
     u8_t *tempFreq = RT_NULL;
     uc_recv_back_t result;
-    u8_t convertNum = 0;
     u8_t *freqArry = NULL;
     u32_t dataLen = 0;
     u32_t strLen = 0;
+    u32_t mode = 0;
+    uc_freq_scan_req_dyn_p freqScanReq_ptr = NULL;
+    boolean isRight = FALSE;
 
     WIOTA_CHECK_AUTOMATIC_MANAGER();
 
@@ -344,7 +379,7 @@ static at_result_t at_scan_freq_setup(const char *args)
         return AT_RESULT_REPETITIVE_FAILE;
     }
 
-    args = parse((char *)(++args), "d,d,d", &timeout, &dataLen, &freqNum);
+    args = parse((char *)(++args), "d,d,d,d", &timeout, &mode, &dataLen, &freqNum);
     if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
@@ -368,45 +403,61 @@ static at_result_t at_scan_freq_setup(const char *args)
             {
                 at_server_printfln("get char failed!");
                 rt_free(freqString);
-                freqString = NULL;
                 return AT_RESULT_NULL;
             }
             dataLen--;
             tempFreq++;
         }
 
-        freqArry = (u8_t *)rt_malloc(freqNum * sizeof(u8_t));
-        if (freqArry == NULL)
+        freqScanReq_ptr = rt_malloc(freqNum * sizeof(uc_freq_scan_req_dyn_t));
+        if (freqScanReq_ptr == NULL)
         {
-            rt_free(freqString);
-            freqString = NULL;
+            rt_free(freqScanReq_ptr);
+            rt_kprintf("scan malloc fail\n");
             return AT_RESULT_NULL;
         }
-        rt_memset(freqArry, 0, freqNum * sizeof(u8_t));
+        rt_memset(freqScanReq_ptr, 0, freqNum * sizeof(uc_freq_scan_req_dyn_t));
 
         freqString[strLen - 2] = '\0';
 
-        convertNum = convert_string_to_array(freqString, freqArry);
-        if (convertNum != freqNum)
+        isRight = convert_string_to_freq_array(freqString, freqScanReq_ptr, (u8_t)mode, (u8_t)freqNum);
+        if (!isRight)
         {
             rt_free(freqString);
-            freqString = NULL;
-            rt_free(freqArry);
-            freqArry = NULL;
+            rt_free(freqScanReq_ptr);
+            rt_kprintf("scan convert fail\n");
             return AT_RESULT_FAILE;
         }
         rt_free(freqString);
-        freqString = NULL;
 
-        uc_wiota_scan_freq(freqArry, freqNum, timeout, RT_NULL, &result);
+        if (0 == mode)
+        {
+            freqArry = (u8_t *)rt_malloc(freqNum * sizeof(u8_t));
+            if (freqArry == NULL)
+            {
+                rt_free(freqScanReq_ptr);
+                rt_kprintf("scan malloc fail\n");
+                return AT_RESULT_NULL;
+            }
 
-        rt_free(freqArry);
-        freqArry = NULL;
+            for (u32_t i = 0; i < freqNum; i++)
+            {
+                freqArry[i] = freqScanReq_ptr[i].freq_idx;
+            }
+            rt_free(freqScanReq_ptr);
+            uc_wiota_scan_freq((u8_t *)freqArry, freqNum * sizeof(u8_t), (u8_t)mode, timeout, RT_NULL, &result);
+            rt_free(freqArry);
+        }
+        else
+        {
+            uc_wiota_scan_freq((u8_t *)freqScanReq_ptr, freqNum * sizeof(uc_freq_scan_req_dyn_t), (u8_t)mode, timeout, RT_NULL, &result);
+            rt_free(freqScanReq_ptr);
+        }
     }
     else
     {
         // uc_wiota_scan_freq(RT_NULL, 0, WIOTA_SCAN_FREQ_TIMEOUT, RT_NULL, &result);
-        uc_wiota_scan_freq(RT_NULL, 0, 0, RT_NULL, &result); // scan all wait for ever
+        uc_wiota_scan_freq(RT_NULL, 0, 0, 0, RT_NULL, &result); // scan all wait for ever
     }
 
     if (UC_OP_SUCC == result.result)
@@ -3109,7 +3160,7 @@ AT_CMD_EXPORT("AT+WIOTAINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_init_
 AT_CMD_EXPORT("AT+WIOTALPM", "=<mode>,<state>", RT_NULL, RT_NULL, at_wiotalpm_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTARATE", "=<rate_mode>,<rate_value>", RT_NULL, RT_NULL, at_wiotarate_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAPOW", "=<mode>,<power>", RT_NULL, RT_NULL, at_wiotapow_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTASCANFREQ", "=<timeout>,<dataLen>,<freqnum>", RT_NULL, RT_NULL, at_scan_freq_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTASCANFREQ", "=<timeout>,<mode>,<dataLen>,<freqnum>", RT_NULL, RT_NULL, at_scan_freq_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAFREQ", "=<freqpint>", RT_NULL, at_freq_query, at_freq_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTADCXO", "=<dcxo>", RT_NULL, RT_NULL, at_dcxo_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAUSERID", "=<id0>", RT_NULL, at_userid_query, at_userid_setup, RT_NULL);

@@ -218,11 +218,11 @@ void app_test_main_task(void* pPara)
 //    }
 
     is_scaning_freq = TRUE;
-    uc_wiota_scan_freq(scan_data, scan_len, 0, test_recv_callback, NULL);
-//    uc_wiota_scan_freq(scan_data, scan_len, 0, NULL, &recv_result_t);
-//    uc_wiota_scan_freq(NULL, 0, 0, NULL, &recv_result_t);
+    uc_wiota_scan_freq(scan_data, scan_len, 0, 0, test_recv_callback, NULL);
+//    uc_wiota_scan_freq(scan_data, scan_len, 0, 0, NULL, &recv_result_t);
+//    uc_wiota_scan_freq(NULL, 0, 0, 0, NULL, &recv_result_t);
 //    if (UC_OP_SUCC == recv_result_t.result) { rt_free(recv_result_t.data); }
-//    uc_wiota_scan_freq(NULL, 0, 0, test_recv_callback, NULL);
+//    uc_wiota_scan_freq(NULL, 0, 0, 0, test_recv_callback, NULL);
 
 
 //    l1_print_data_u32((u32_t*)(0x405000),256);
@@ -314,8 +314,8 @@ void app_test_main_task(void* pPara)
         if (is_need_scaning_freq) {
             is_need_scaning_freq = FALSE;
             is_scaning_freq = TRUE;
-//            uc_wiota_scan_freq(NULL, 0, 0, test_recv_callback, NULL);
-            uc_wiota_scan_freq(scan_data, scan_len, 0, test_recv_callback, NULL);
+//            uc_wiota_scan_freq(NULL, 0, 0, 0, test_recv_callback, NULL);
+            uc_wiota_scan_freq(scan_data, scan_len, 0, 0, test_recv_callback, NULL);
         }
 
         if (is_scaning_freq || UC_STATUS_SYNC != uc_wiota_get_state()) {
@@ -471,7 +471,7 @@ void app_test_main_task(void *pPara)
 #endif
 
     //    is_scaning_freq = TRUE;
-    //    uc_wiota_scan_freq(scan_data, scan_len, 0, test_recv_callback, NULL);
+    //    uc_wiota_scan_freq(scan_data, scan_len, 0, 0, test_recv_callback, NULL);
 
     is_need_reset = TRUE;
     new_freq_idx = TEST_FREQ_SINGLE;
@@ -522,8 +522,8 @@ void app_test_main_task(void *pPara)
         {
             is_need_scaning_freq = FALSE;
             is_scaning_freq = TRUE;
-            // uc_wiota_scan_freq(NULL, 0, 0, test_recv_callback, NULL);
-            uc_wiota_scan_freq(scan_data, scan_len, 0, test_recv_callback, NULL);
+            // uc_wiota_scan_freq(NULL, 0, 0, 0, test_recv_callback, NULL);
+            uc_wiota_scan_freq(scan_data, scan_len, 0, 0, test_recv_callback, NULL);
         }
 
         if (is_scaning_freq || UC_STATUS_SYNC != uc_wiota_get_state())
