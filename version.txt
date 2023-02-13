@@ -1,54 +1,37 @@
-v0.01 修改如下：
-	1、增加wiota at指令功能；
-	2、修改发送数据信号量释放逻辑异常造成的dump；
-	3、解决内存泄露问题；
-	4、增加生存时间接口，解决终端和AP的状态同步问题；
-	5、增加广播和OTA业务支持；
-v0.04修改如下：
-	1. new chip/ROM support
-	2. AT interface update
-	3. factory test support
-	4. riscv bugs fixed
-	5. riscv clock gating
-	6. paging receive support
-v0.041修改如下：
-	1、增加mcs设置接口
-v0.05修改如下：
-	1. basic traffic control function
-	2. rv internal bugs fixed
-	3. rv/cce version show at
-	4. report radio info of max power and current mcs
-	5. support ul/dl when OTA
-	6. light indicate: (1) light off: not sync, (2) flash slow: synced, (3) flash fast: ul, (4) light on: ota/dl
-	7. auto mcs strategy update
-v0.07修改如下：
-	iote：
-		1. riscv bugs fixed
-		2. auto mcs strategy update
-		3. cce bugs fixed
-		4. dl ul ratio = 1:2, muti mode update
-		5. optimit version query
-		6. log default uart1 bound rate 460800, at cmd default uart0 bound rate 115200
-		7. relevant at and api update.
-	ap8288：
-		1. close riscv log except init log
-		2. cce ul ack bug fixed
-v0.09修改如下：（v0.08版本有问题，直接到v0.09）
-	1. 统计信息的api和at，at+wiotastats
-	2. 串口烧写程序功能，ymodem
-	3. 高速传输模式功能，at+wiotarate
-	4. crc32->crc16，默认使用16bit的crc，at+wiotacrc
-	5. 发送数据接口加锁，在上次结果返回前，不能发送下次数据
-	6. 打开宏_WATCHIDOG_APP_
-	7. 基带解决由于CRC导致的特定数据无法解析的bug
-	8. 协议栈内部bug解决
-v0.11_iote修改如下：
-	1. 指示灯开关控制，GPIO 2/3/7/16/17
-	2. 主动保存静态数据接口
-	3. AT透传模式
-	4. AT+WIOTAVERSION?
-	5. 协议栈内部bug
-	
+
+
+v2.3_iote（S-v2.3）修改如下：
+	1. 扫频上报频点个数更新，不再限制为最优的4个
+	2. run之后可动态修改userid、subsysid、频点，需要先disconnect再配置，再重新connect
+	3. 断开连接的bug修复
+
+v2.2_iote（S-v2.2）修改如下：
+	1. OTP功能更新，校准数据不会被擦除
+	2. 扫频接口更新，增加子网配置，可频点和子网配对扫频
+	3. 协议栈测试bug修复
+	4. 温度曲线更新
+
+v2.1_iote修改如下：
+	1. 修改连接态时间计算问题
+	2. 修改900M bug
+
+v0.14_iote修改如下：
+	1. 解决了第一次扫频错误问题、扫频结果异常问题、全扫超时问题
+	2. radio info 接口更新
+	3. 打开了基带上下行gap配置，与之前版本不再兼容！
+	4. connect suspending bug修复
+	5. 打开量产ad/da test
+	6. 数据传输内部bug修复
+	7. ota功能更新，静态数据部分更新4字节，与之前版本不兼容，量产平台和读写静态数据工具均需要更新！
+	8. demo版本更新
+
+v0.13_iote修改如下：
+	1. 增加读写flash通用接口
+	2. 静态数据更新
+	3. 协议栈event trace起始地址更新，0x30EC00改为0x30FB00
+	4. 协议栈内部bug修复和优化
+	4.增加uboot启动
+
 v0.12_iote修改如下：
 	1. 应用demo
 	2. dtu透传模式
@@ -63,27 +46,59 @@ v0.12_iote修改如下：
 	11. adc enable bug修复
 	12. 量产测试流程更新
 
-v0.13_iote修改如下：
-	1. 增加读写flash通用接口
-	2. 静态数据更新
-	3. 协议栈event trace起始地址更新，0x30EC00改为0x30FB00
-	4. 协议栈内部bug修复和优化
-	4.增加uboot启动
+v0.11_iote修改如下：
+	1. 指示灯开关控制，GPIO 2/3/7/16/17
+	2. 主动保存静态数据接口
+	3. AT透传模式
+	4. AT+WIOTAVERSION?
+	5. 协议栈内部bug
 
-v0.14_iote修改如下：
-	1. 解决了第一次扫频错误问题、扫频结果异常问题、全扫超时问题
-	2. radio info 接口更新
-	3. 打开了基带上下行gap配置，与之前版本不再兼容！
-	4. connect suspending bug修复
-	5. 打开量产ad/da test
-	6. 数据传输内部bug修复
-	7. ota功能更新，静态数据部分更新4字节，与之前版本不兼容，量产平台和读写静态数据工具均需要更新！
-	8. demo版本更新
-v2.1_iote修改如下：
-	1. 修改连接态时间计算问题
-	2. 修改900M bug
-v2.2_iote修改如下：
-	1. OTP功能更新，校准数据不会被擦除
-	2. 扫频接口更新，增加子网配置，可频点和子网配对扫频
-	3. 协议栈测试bug修复
-	4. 温度曲线更新
+v0.09修改如下：（v0.08版本有问题，直接到v0.09）
+	1. 统计信息的api和at，at+wiotastats
+	2. 串口烧写程序功能，ymodem
+	3. 高速传输模式功能，at+wiotarate
+	4. crc32->crc16，默认使用16bit的crc，at+wiotacrc
+	5. 发送数据接口加锁，在上次结果返回前，不能发送下次数据
+	6. 打开宏_WATCHIDOG_APP_
+	7. 基带解决由于CRC导致的特定数据无法解析的bug
+	8. 协议栈内部bug解决
+
+v0.07修改如下：
+	iote：
+		1. riscv bugs fixed
+		2. auto mcs strategy update
+		3. cce bugs fixed
+		4. dl ul ratio = 1:2, muti mode update
+		5. optimit version query
+		6. log default uart1 bound rate 460800, at cmd default uart0 bound rate 115200
+		7. relevant at and api update.
+	ap8288：
+		1. close riscv log except init log
+		2. cce ul ack bug fixed
+
+v0.05修改如下：
+	1. basic traffic control function
+	2. rv internal bugs fixed
+	3. rv/cce version show at
+	4. report radio info of max power and current mcs
+	5. support ul/dl when OTA
+	6. light indicate: (1) light off: not sync, (2) flash slow: synced, (3) flash fast: ul, (4) light on: ota/dl
+	7. auto mcs strategy update
+
+v0.041修改如下：
+	1、增加mcs设置接口
+
+v0.04修改如下：
+	1. new chip/ROM support
+	2. AT interface update
+	3. factory test support
+	4. riscv bugs fixed
+	5. riscv clock gating
+	6. paging receive support
+
+v0.01 修改如下：
+	1、增加wiota at指令功能；
+	2、修改发送数据信号量释放逻辑异常造成的dump；
+	3、解决内存泄露问题；
+	4、增加生存时间接口，解决终端和AP的状态同步问题；
+	5、增加广播和OTA业务支持；

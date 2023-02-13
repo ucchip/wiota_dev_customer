@@ -76,6 +76,12 @@ enum at_wiota_log
         return AT_RESULT_REPETITIVE_FAILE; \
     }
 
+#define WIOTA_MUST_ALREADY_INIT(state)                   \
+    if (state != AT_WIOTA_INIT && state != AT_WIOTA_RUN) \
+    {                                                    \
+        return AT_RESULT_REPETITIVE_FAILE;               \
+    }
+
 #define WIOTA_CHECK_AUTOMATIC_MANAGER()   \
     if (uc_wiota_get_auto_connect_flag()) \
         return AT_RESULT_REFUSED;
@@ -111,10 +117,10 @@ typedef struct at_test_statistical_data
     int send_fail;
     int recv_fail;
     int max_mcs;
-    int msc;
-    int power;
-    int rssi;
-    int snr;
+    unsigned char mcs;
+    char power;
+    unsigned char rssi;
+    char snr;
 } t_at_test_statistical_data;
 
 typedef struct at_test_data
@@ -129,7 +135,7 @@ typedef struct at_test_data
     //rt_thread_t test_data_task;
     rt_mq_t test_queue;
     rt_sem_t test_sem;
-    char tast_state;
+    // char tast_state;
     t_at_test_statistical_data statistical;
 } t_at_test_data;
 
@@ -248,7 +254,7 @@ static at_result_t at_freq_setup(const char *args)
 
     WIOTA_CHECK_AUTOMATIC_MANAGER();
 
-    WIOTA_MUST_INIT(wiota_state)
+    WIOTA_MUST_ALREADY_INIT(wiota_state)
 
     args = parse((char *)(++args), "d", &freq);
     if (!args)
@@ -445,7 +451,7 @@ static at_result_t at_scan_freq_setup(const char *args)
                 freqArry[i] = freqScanReq_ptr[i].freq_idx;
             }
             rt_free(freqScanReq_ptr);
-            uc_wiota_scan_freq((u8_t *)freqArry, freqNum * sizeof(u8_t), (u8_t)mode, timeout, RT_NULL, &result);
+            uc_wiota_scan_freq((u8_t *)freqArry, freqNum * sizeof(uc_freq_scan_req_t), (u8_t)mode, timeout, RT_NULL, &result);
             rt_free(freqArry);
         }
         else
@@ -519,7 +525,7 @@ static at_result_t at_userid_setup(const char *args)
 
     WIOTA_CHECK_AUTOMATIC_MANAGER();
 
-    WIOTA_MUST_INIT(wiota_state)
+    WIOTA_MUST_ALREADY_INIT(wiota_state)
 
     args = parse((char *)(++args), "y", &userid[0]);
     if (!args)
@@ -590,7 +596,7 @@ static at_result_t at_system_config_setup(const char *args)
 
     WIOTA_CHECK_AUTOMATIC_MANAGER();
 
-    WIOTA_MUST_INIT(wiota_state)
+    WIOTA_MUST_ALREADY_INIT(wiota_state)
 
     args = parse((char *)(++args), "d,d,d,d,d,d,d,y,y",
                  &temp[0], &temp[1], &temp[2],
@@ -1556,7 +1562,7 @@ static void at_test_get_wiota_info(t_at_test_statistical_data *info, int i_time)
 
     uc_wiota_get_radio_info(&radio);
     info->max_mcs = radio.max_mcs;
-    info->msc = radio.cur_mcs;
+    info->mcs = radio.cur_mcs;
     info->power = radio.cur_power;
     info->rssi = radio.rssi;
     info->snr = radio.snr;
@@ -1598,28 +1604,28 @@ static void at_test_report_to_uart(void)
     case AT_TEST_COMMAND_UP_TEST:
         at_server_printfln("+UP: %dbps %dbps %d rssi -%d snr %d",
                            g_test_data.statistical.upcurrentrate / 1000 * 8, rate_mcs,
-                           g_test_data.statistical.msc, g_test_data.statistical.rssi, g_test_data.statistical.snr);
+                           g_test_data.statistical.mcs, g_test_data.statistical.rssi, g_test_data.statistical.snr);
         break;
     case AT_TEST_COMMAND_DOWN_TEST:
         at_server_printfln("+DOWN: %dbps %d rssi -%d snr %d",
                            g_test_data.statistical.downcurrentrate / 1000 * 8,
-                           g_test_data.statistical.msc, g_test_data.statistical.rssi, g_test_data.statistical.snr);
+                           g_test_data.statistical.mcs, g_test_data.statistical.rssi, g_test_data.statistical.snr);
         break;
     case AT_TEST_COMMAND_LOOP_TEST:
         at_server_printfln("+LOOP: %dbps %dbps %dbps %d rssi -%d snr %d",
                            g_test_data.statistical.upcurrentrate / 1000 * 8,
                            g_test_data.statistical.downcurrentrate / 1000 * 8, rate_mcs,
-                           g_test_data.statistical.msc, g_test_data.statistical.rssi, g_test_data.statistical.snr);
+                           g_test_data.statistical.mcs, g_test_data.statistical.rssi, g_test_data.statistical.snr);
         break;
     case AT_TEST_COMMAND_DATA_MODE:
         at_server_printfln("+DATA: %dbps %dbps %d rssi -%d snr %d",
                            g_test_data.statistical.downcurrentrate / 1000 * 8, rate_mcs,
-                           g_test_data.statistical.msc, g_test_data.statistical.rssi, g_test_data.statistical.snr);
+                           g_test_data.statistical.mcs, g_test_data.statistical.rssi, g_test_data.statistical.snr);
         break;
     case AT_TEST_COMMAND_DATA_DOWN:
         at_server_printfln("+DATADOWN: %dbps %d rssi -%d snr %d dl succ %d fail %d rato %d%",
                            g_test_data.statistical.downcurrentrate / 1000 * 8,
-                           g_test_data.statistical.msc, g_test_data.statistical.rssi, g_test_data.statistical.snr,
+                           g_test_data.statistical.mcs, g_test_data.statistical.rssi, g_test_data.statistical.snr,
                            dl_succ, dl_fail, dl_rato);
         break;
     default:
@@ -2040,6 +2046,7 @@ typedef struct at_gateway_mode
     boolean heart_state;
     boolean gateway_mode;
     boolean reboot_flag;
+    boolean is_rsp;
 
     // ota used
     rt_timer_t ota_timer;
@@ -2091,6 +2098,16 @@ boolean at_gateway_get_mode(void)
 static void at_gateway_set_mode(boolean gw_mode)
 {
     gateway_mode.gateway_mode = gw_mode;
+}
+
+static boolean at_gateway_get_rsp_flag(void)
+{
+    return gateway_mode.is_rsp;
+}
+
+static void at_gateway_set_rsp_flag(boolean is_rsp)
+{
+    gateway_mode.is_rsp = is_rsp;
 }
 
 boolean at_gateway_get_reboot(void)
@@ -2176,7 +2193,10 @@ at_result_t at_gateway_mode_send_data(unsigned char *data, unsigned int data_len
     const char *res_str[3] = {"SEND SUC", "SEND FAIL", "NET_NOT_CONNECT"};
 
     app_set_header_property(PRO_SRC_ADDR, 1, &ps_header.property);
-    app_set_header_property(PRO_NEED_RES, 1, &ps_header.property);
+    if (at_gateway_get_rsp_flag())
+    {
+        app_set_header_property(PRO_NEED_RES, 1, &ps_header.property);
+    }
     ps_header.cmd_type = IOTE_USER_DATA;
     ps_header.addr.src_addr = at_gateway_get_dev_id();
     ps_header.packet_num = app_packet_num();
@@ -2331,6 +2351,7 @@ static at_result_t at_gateway_send_ps_cmd_data(unsigned char *data, app_ps_heade
         rt_free(cmd_coding);
         return AT_RESULT_FAILE;
     }
+
     send_result = uc_wiota_send_data(data_coding, data_coding_len, 10000, RT_NULL);
 
     at_gateway_print_send_result(ps_header->cmd_type, send_result);
@@ -2425,7 +2446,7 @@ static void at_gateway_send_msg_to_queue(int msg_code)
 
     recv_data.msg_code = msg_code;
 
-    if (RT_EOK != at_gateway_send_queue(gateway_mode.gateway_mq, &recv_data, 10000))
+    if (RT_EOK != at_gateway_send_queue(gateway_mode.gateway_mq, &recv_data, 0))
     {
         rt_kprintf("%s line %d gateway send queue fail\n", __FUNCTION__, __LINE__);
         return;
@@ -2498,7 +2519,7 @@ static void at_gateway_handle_auth_res_msg(unsigned char *data, unsigned int dat
         if (uc_wiota_get_auto_connect_flag())
         {
             at_gateway_set_reboot(TRUE);
-            rt_sem_take(gateway_mode.gateway_sem, RT_WAITING_FOREVER);
+            // rt_sem_take(gateway_mode.gateway_sem, RT_WAITING_FOREVER);
         }
         else
         {
@@ -2506,6 +2527,8 @@ static void at_gateway_handle_auth_res_msg(unsigned char *data, unsigned int dat
             uc_wiota_init();
             uc_wiota_set_wiotaid(auth_res_data->wiota_id);
             uc_wiota_run();
+            uc_wiota_register_recv_data_callback(wiota_recv_callback, UC_CALLBACK_NORAMAL_MSG);
+            uc_wiota_register_recv_data_callback(wiota_recv_callback, UC_CALLBACK_STATE_INFO);
             uc_wiota_connect();
         }
         // at_gateway_handle_send_ota_req_msg();
@@ -2919,8 +2942,9 @@ static void at_gateway_mode_deinit(void)
 static at_result_t at_single_gateway_mode_setup(const char *args)
 {
     int mode = 0;
+    int is_rsp = 0;
 
-    args = parse((char *)(++args), "d", &mode);
+    args = parse((char *)(++args), "d,d", &mode, &is_rsp);
     if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
@@ -3001,6 +3025,7 @@ static at_result_t at_single_gateway_mode_setup(const char *args)
             rt_thread_startup(gateway_mode.gateway_handler);
 
             at_gateway_set_mode(TRUE);
+            at_gateway_set_rsp_flag(is_rsp);
             at_server_printfln("+GATEWAYMODE:RUN");
             at_server_printfln("+GATEWAYVERSION:%s", GATEWAY_SOFT_VERSION);
             return AT_RESULT_OK;
@@ -3055,7 +3080,7 @@ static at_result_t at_single_gateway_auth_setup(const char *args)
     //     at_server_printfln("+GATEWAYAUTH:REPEAT AUTH");
     //     return AT_RESULT_REPETITIVE_FAILE;
     // }
-
+    rt_memset(gateway_mode.auth_code, 0, sizeof(gateway_mode.auth_code));
     rt_strncpy(gateway_mode.auth_code, auth_code, rt_strlen(auth_code) - 2); // del \r\n
 
     return at_gateway_send_auth_info();
@@ -3183,7 +3208,7 @@ AT_CMD_EXPORT("AT+WIOTALIGHT", "=<mode>", RT_NULL, RT_NULL, at_wiotalight_setup,
 AT_CMD_EXPORT("AT+WIOTASAVESTATIC", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_save_static_exec);
 
 #ifdef GATEWAY_MODE_SUPPORT
-AT_CMD_EXPORT("AT+GATEWAYMODE", "=<mode>", RT_NULL, RT_NULL, at_single_gateway_mode_setup, RT_NULL);
+AT_CMD_EXPORT("AT+GATEWAYMODE", "=<mode>,<is_rsp>", RT_NULL, RT_NULL, at_single_gateway_mode_setup, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYAUTH", "=<auth_code>", RT_NULL, RT_NULL, at_single_gateway_auth_setup, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYHEART", "=<heart_state>,<timeout>", RT_NULL, RT_NULL, at_single_gateway_heart_setup, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYOTAREQ", "=<device_type>", RT_NULL, RT_NULL, at_single_gateway_ota_req_setup, RT_NULL);

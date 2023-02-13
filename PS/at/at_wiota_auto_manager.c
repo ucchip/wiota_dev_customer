@@ -19,6 +19,9 @@ enum at_wiota_manager_process
     AT_WIOTA_MANAGER_PROCESS_RUN,
     AT_WIOTA_MANAGER_PROCESS_STRATEGY,
     AT_WIOTA_MANAGER_PROCESS_EXIT,
+#ifdef GATEWAY_MODE_SUPPORT
+    AT_WIOTA_MANAGER_PROCESS_GW_MODE_EXIT,
+#endif
     AT_WIOTA_MANAGER_PROCESS_END,
 };
 
@@ -451,12 +454,6 @@ static void at_wiota_manager_task(void *parameter)
                 break;
             }
             uc_wiota_init();
-#ifdef GATEWAY_MODE_SUPPORT
-            if (at_gateway_get_reboot())
-            {
-                uc_wiota_set_wiotaid(at_gateway_get_wiota_id());
-            }
-#endif
             at_wiota_auto_report_state(AT_WIOTA_MANAGER_USER_FREQ);
             // rt_kprintf("%s line %d freq %d\n", __FUNCTION__, __LINE__, g_wiota_manager.current_freq_node->data.freq);
             uc_wiota_set_freq_info(g_wiota_manager.current_freq_node->data.freq);
@@ -473,14 +470,6 @@ static void at_wiota_manager_task(void *parameter)
             }
             else
             {
-#ifdef GATEWAY_MODE_SUPPORT
-                if (at_gateway_get_reboot())
-                {
-                    at_gateway_set_reboot(FALSE);
-                    at_gateway_release_sem();
-                    rt_kprintf("release gateway_sem\n");
-                }
-#endif
                 SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_STRATEGY);
                 g_wiota_manager.continue_scan_fail = 0;
             }
@@ -490,7 +479,18 @@ static void at_wiota_manager_task(void *parameter)
         {
             at_wiota_auto_report_state(AT_WIOTA_MANAGER_CONNECT_SUC);
             at_wiota_manager_startegy();
-            SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_EXIT);
+#ifdef GATEWAY_MODE_SUPPORT
+            if (at_gateway_get_reboot())
+            {
+                SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_GW_MODE_EXIT);
+            }
+            else
+            {
+#endif
+                SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_EXIT);
+#ifdef GATEWAY_MODE_SUPPORT
+            }
+#endif
             break;
         }
         case AT_WIOTA_MANAGER_PROCESS_EXIT:
@@ -502,6 +502,18 @@ static void at_wiota_manager_task(void *parameter)
             SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_INIT);
             break;
         }
+#ifdef GATEWAY_MODE_SUPPORT
+        case AT_WIOTA_MANAGER_PROCESS_GW_MODE_EXIT:
+        {
+            uc_wiota_exit();
+            uc_wiota_init();
+            uc_wiota_set_wiotaid(at_gateway_get_wiota_id());
+            at_gateway_set_reboot(FALSE);
+            at_wiota_set_state(AT_WIOTA_INIT);
+            SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_RUN);
+            break;
+        }
+#endif
         }
     }
 }
