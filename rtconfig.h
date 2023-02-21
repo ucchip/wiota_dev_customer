@@ -19,7 +19,6 @@
 
 /* kservice optimization */
 
-#define RT_KSERVICE_USING_TINY_SIZE
 #define RT_DEBUG
 
 /* Inter-Thread communication */
@@ -31,7 +30,6 @@
 /* Memory Management */
 
 #define RT_USING_SMALL_MEM
-#define RT_USING_MEMTRACE
 #define RT_USING_HEAP
 
 /* Kernel Device Object */
@@ -124,5 +122,7 @@
 #define UC8288_FACTORY
 #define _L1_FACTORY_FUNC_
 #define _CLK_GATING_
+#define AT_WIOTA_GATEWAY_API
+#define AT_WIOTA_GATEWAY
 
 #endif

@@ -10,8 +10,8 @@ MEMORY
 {
 	uboot       : ORIGIN = 0x00000000, LENGTH = 0X7000  /* 28K uboot length*/
 	uc_rom      : ORIGIN = 0x00007000, LENGTH = 0x3000  /* 12K uncompressed code sys data, NO RODATA!!!!*/
-	protocal_stack   : ORIGIN = 0x0000A000, LENGTH = 0x11000
-	instrram    : ORIGIN = 0x0001B000, LENGTH = 0xE000 /* 176K actually rom... */
+	protocal_stack   : ORIGIN = 0x0000A000, LENGTH = 0x11000  /*68K*/
+	instrram    : ORIGIN = 0x0001B000, LENGTH = 0x12000 /* 72K actually rom... */
 	datarom     : ORIGIN = 0x00200000, LENGTH = 0x4FC00 /* 84K data rom*/
 	dataram     : ORIGIN = 0x00308000, LENGTH = 0x7B00  /* 30K byte board.h also need change!!! */
 	traceram    : ORIGIN = 0x0030FB00, LENGTH = 0x400   /* 1 KB */
@@ -73,27 +73,11 @@ SECTIONS
 		*uc_wiota_api*(.text*);
 		*uc_wiota_static*(.text*);
 		*test_wiota_api*(.text*);
-		*l1_algo*(.text*);
-		*l1_config*(.text*);
-		*l1_interface*(.text*);
-		*l1_main*(.text*);
-		*l1_rf*(.text*);
-		*l1_task_manage*(.text*);
-		*l1_cce_log*(.text*);
-		*l1_factory*(.text*);
-		*l1_lpm*(.text*);
-		*l1_module*(.text*);
-		*l1_state*(.text*);
-		*l1_test*(.text*);
+		*l1_*(.text*);
 		*c_cce_firmware*(.text*);
 		*cce*(.text*);
-		*mac_crc*(.text*);
-		*mac_test*(.text*);
-		*adp_mem*(.text*);
-		*adp_queue*(.text*);
-		*adp_sem*(.text*);
-		*adp_task*(.text*);
-		*adp_time*(.text*);
+		*mac*(.text*);
+		*adp*(.text*);
 		*ctrl_cmd*(.text*);
 		*trcKernelPort*(.text*);
 		*trcStreamingPort*(.text*);
@@ -102,7 +86,6 @@ SECTIONS
 		*dll*(.text*);
 		*uart_tool*(.text*);
 		*global_task*(.text*);
-		*mac_main*(.text*);
 		. = LENGTH(protocal_stack ) -4;
 		LONG(0);
 	} > protocal_stack

@@ -4,10 +4,6 @@ config UC8288_MODULE
     bool "use at cmd, default open(UC8288_MODULE)"
     default y
 
-config GATEWAY_MODE_SUPPORT
-    bool "single gateway at cmd, default open(GATEWAY_MODE_SUPPORT)"
-    default y
-
 if RT_USING_ADC
     config _ADC_APP_
         bool "open adc, default close(_ADC_APP_)"

@@ -1,0 +1,17 @@
+# for module compiling
+import os
+Import('RTT_ROOT')
+from building import *
+
+cwd  = GetCurrentDir()
+
+path = [cwd  + '/include']
+path += [cwd + '/test']
+
+src = Split('''
+src/uc_wiota_gateway_api.c
+''')
+
+group = DefineGroup('app', src, depend = [''], CPPPATH = path)
+
+Return('group')

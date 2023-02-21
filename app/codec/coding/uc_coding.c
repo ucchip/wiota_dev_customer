@@ -1,8 +1,8 @@
 #include <rtthread.h>
-#if defined(WIOTA_APP_DEMO) || defined(GATEWAY_MODE_SUPPORT)
+#if defined(WIOTA_APP_DEMO) || defined(AT_WIOTA_GATEWAY_API)
 #include <uc_coding.h>
 #include "fastlz.h"
-#ifdef GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
 #include "uc_cbor.h"
 #endif
 
@@ -46,8 +46,8 @@ int app_data_coding(app_ps_header_t *ps_header,
     unsigned int buf_len = sizeof(app_ps_header_t) + input_data_len;
     unsigned char *buf = RT_NULL;
     unsigned int offset = 0;
-    unsigned int int_len = sizeof(unsigned int);
-    unsigned char char_len = sizeof(unsigned char);
+    // unsigned int int_len = sizeof(unsigned int);
+    // unsigned char char_len = sizeof(unsigned char);
     unsigned int comp_data_len = 0;
     unsigned char *comp_data = RT_NULL;
 
@@ -67,40 +67,53 @@ int app_data_coding(app_ps_header_t *ps_header,
     rt_memset(buf, 0, buf_len);
 
     // copy property
-    rt_memcpy(buf + offset, &ps_header->property, sizeof(app_ps_property_t));
-    offset += sizeof(app_ps_property_t);
+    //rt_memcpy(buf + offset, &ps_header->property, sizeof(app_ps_property_t));
+    //offset += sizeof(app_ps_property_t);
+    *((app_ps_property_t *)buf) = ps_header->property;
+    offset ++;
 
     // copy src_addr
     if (is_src_addr == 1)
     {
-        rt_memcpy(buf + offset, &ps_header->addr.src_addr, int_len);
-        offset += int_len;
+        //rt_memcpy(buf + offset, &ps_header->addr.src_addr, int_len);
+        //offset += int_len;
+        *((unsigned int *)(buf + offset)) = ps_header->addr.src_addr;
+        offset += 4;
     }
 
     // copy dest_addr
     if (is_dest_addr == 1)
     {
-        rt_memcpy(buf + offset, &ps_header->addr.dest_addr, int_len);
-        offset += int_len;
+        //rt_memcpy(buf + offset, &ps_header->addr.dest_addr, int_len);
+        //offset += int_len;
+        *((unsigned int *)(buf + offset)) = ps_header->addr.dest_addr;
+        offset += 4;
     }
 
     // copy packet_num
     if (is_packet_num == 1)
     {
-        rt_memcpy(buf + offset, &ps_header->packet_num, char_len);
-        offset += char_len;
+        //rt_memcpy(buf + offset, &ps_header->packet_num, char_len);
+        //offset += char_len;
+        *(buf + offset) = ps_header->packet_num;
+        offset ++;
     }
 
     // copy segment_info
     if (segment_flag == 1)
     {
-        rt_memcpy(buf + offset, &ps_header->segment_info, (char_len * 2));
-        offset += (char_len * 2);
+        //rt_memcpy(buf + offset, &ps_header->segment_info, (char_len * 2));
+        //offset += (char_len * 2);
+        ((app_ps_segment_info_t *)(buf + offset))->total_num = ps_header->segment_info.total_num;
+        ((app_ps_segment_info_t *)(buf + offset))->current_num = ps_header->segment_info.current_num;
+        offset += 2;
     }
 
     // copy cmd_type
-    rt_memcpy(buf + offset, &ps_header->cmd_type, char_len);
-    offset += char_len;
+    //rt_memcpy(buf + offset, &ps_header->cmd_type, char_len);
+    //offset += char_len;
+    *(buf + offset) = ps_header->cmd_type;
+    offset ++;
 
     if (input_data != RT_NULL && input_data_len != 0)
     {
@@ -162,8 +175,13 @@ int app_data_decoding(unsigned char *input_data,
     unsigned char *buf = RT_NULL;
     unsigned int buf_len = 0;
     unsigned int offset = 0;
-    unsigned int int_len = sizeof(unsigned int);
-    unsigned char char_len = sizeof(unsigned char);
+    // unsigned int int_len = sizeof(unsigned int);
+    // unsigned char char_len = sizeof(unsigned char);
+    unsigned char is_src_addr ;
+    unsigned char is_dest_addr ;
+    unsigned char is_packet_num;
+    unsigned char segment_flag;
+    unsigned char compress_flag;
 
     if (input_data == RT_NULL || input_data_len == 0 || input_data_len > APP_MAX_DECODING_DATA_LEN)
     {
@@ -172,54 +190,67 @@ int app_data_decoding(unsigned char *input_data,
     }
 
     // parse property
-    rt_memcpy(&ps_header->property, input_data + offset, sizeof(app_ps_property_t));
+    //rt_memcpy(&ps_header->property, input_data + offset, sizeof(app_ps_property_t));
+    ps_header->property = *((app_ps_property_t *)input_data);
+    offset ++;
 
-    unsigned char is_src_addr = ps_header->property.is_src_addr;
-    unsigned char is_dest_addr = ps_header->property.is_dest_addr;
-    unsigned char is_packet_num = ps_header->property.is_packet_num;
-    unsigned char segment_flag = ps_header->property.segment_flag;
-    unsigned char compress_flag = ps_header->property.compress_flag;
+    is_src_addr = ps_header->property.is_src_addr;
+    is_dest_addr = ps_header->property.is_dest_addr;
+    is_packet_num = ps_header->property.is_packet_num;
+    segment_flag = ps_header->property.segment_flag;
+    compress_flag = ps_header->property.compress_flag;
 
-    rt_kprintf("is_src_addr=%d,is_dest_addr=%d, is_packet_num=%d,segment_flag=%d,compress_flag=%d\n", is_src_addr, is_dest_addr, is_packet_num, segment_flag, compress_flag);
-    offset += sizeof(app_ps_property_t);
+    // rt_kprintf("is_src_addr=%d,is_dest_addr=%d, is_packet_num=%d,segment_flag=%d,compress_flag=%d\n", is_src_addr, is_dest_addr, is_packet_num, segment_flag, compress_flag);
+    //offset += sizeof(app_ps_property_t);
 
     // parse src_addr
     if (is_src_addr == 1)
     {
-        rt_memcpy(&ps_header->addr.src_addr, input_data + offset, int_len);
-        offset += int_len;
+        //rt_memcpy(&ps_header->addr.src_addr, input_data + offset, int_len);
+        ps_header->addr.src_addr = *((unsigned int *)(input_data + offset));
+        offset += 4;
     }
 
     // parse dest_addr
     if (is_dest_addr == 1)
     {
-        rt_memcpy(&ps_header->addr.dest_addr, input_data + offset, int_len);
-        offset += int_len;
+        //rt_memcpy(&ps_header->addr.dest_addr, input_data + offset, int_len);
+        ps_header->addr.dest_addr = *((unsigned int *)(input_data + offset));
+        offset += 4;
     }
 
     // parse packet_num
     if (is_packet_num == 1)
     {
-        rt_memcpy(&ps_header->packet_num, input_data + offset, char_len);
-        offset += char_len;
+        //rt_memcpy(&ps_header->packet_num, input_data + offset, char_len);
+        ps_header->packet_num = *( input_data + offset);
+        offset ++;
     }
 
     // parse segment_info
     if (segment_flag == 1)
     {
-        rt_memcpy(&ps_header->segment_info, input_data + offset, (char_len * 2));
-        offset += (char_len * 2);
+        //rt_memcpy(&ps_header->segment_info, input_data + offset, (char_len * 2));
+        //offset += (char_len * 2);
+        // ps_header->segment_info = *((app_ps_segment_info_t *)(input_data + offset));
+        ps_header->segment_info.total_num = ((app_ps_segment_info_t *)(input_data + offset))->total_num;
+        ps_header->segment_info.current_num = ((app_ps_segment_info_t *)(input_data + offset))->current_num;
+        offset += 2;
     }
 
     // parse cmd_type
-    rt_memcpy(&ps_header->cmd_type, input_data + offset, char_len);
-    offset += char_len;
+    //rt_memcpy(&ps_header->cmd_type, input_data + offset, char_len);
+    ps_header->cmd_type = *(input_data + offset);
+    offset++;
 
     // malloc space to save data
     buf_len = input_data_len - offset;
-    rt_kprintf("buf_len=%d,offset=%d\n", buf_len, offset);
+    rt_kprintf("buf_len=%d,offset=%d,total_num=0x%x,current_num=0x%x,cmd_type=0x%x\n", buf_len, offset,
+        ps_header->segment_info.total_num,
+        ps_header->segment_info.current_num,
+        ps_header->cmd_type);
 
-    if (buf_len > 0)
+    if (input_data_len > offset)
     {
         buf = (unsigned char *)rt_malloc(buf_len + 1);
         if (RT_NULL == buf)
@@ -227,10 +258,11 @@ int app_data_decoding(unsigned char *input_data,
             rt_kprintf("%s, %d malloc fail\n", __FUNCTION__, __LINE__);
             return -2;
         }
-        rt_memset(buf, 0, buf_len + 1);
+        //rt_memset(buf, 0, buf_len + 1);
 
         // parse data
         rt_memcpy(buf, input_data + offset, buf_len);
+        *(buf + buf_len) = 0;
 
         // handle data decompress, output data and data_len
         if (compress_flag == 1)
@@ -263,7 +295,7 @@ int app_data_decoding(unsigned char *input_data,
     return 0;
 }
 
-#ifdef GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
 static int app_cmd_auth_req_coding(unsigned char *input_cmd,
                                    unsigned char **output_data,
                                    unsigned int *output_data_len)
@@ -390,10 +422,17 @@ static int app_cmd_auth_res_coding(unsigned char *input_cmd,
     int size_local = 0;
     int freq;
     unsigned char *encoded_out = RT_NULL;
+    unsigned int temp = 0;
 
     cb_map = cn_cbor_map_create(&err);
-
-    cb_data = cn_cbor_int_create(ps_cmd_p->state, &err);
+    
+    //xyang
+    // cb_data = cn_cbor_int_create(ps_cmd_p->connect_index.state, &err);
+    temp = (ps_cmd_p->connect_index.state << 24);
+    temp = (ps_cmd_p->connect_index.freq << 16);
+    temp = (ps_cmd_p->connect_index.na1 << 8);
+    temp = ps_cmd_p->connect_index.na2;
+    cb_data = cn_cbor_int_create(temp, &err);
     cn_cbor_mapput_int(cb_map, 1, cb_data, &err);
 
     if (err.err != CN_CBOR_NO_ERROR)
@@ -507,7 +546,12 @@ static int app_cmd_auth_res_decoding(unsigned char *input_data,
         rt_kprintf("app_cmd_auth_res_decoding line %d error \n", __LINE__);
         return -1;
     }
-    decode_data->state = cb_data->v.sint;
+
+    //xyang
+    decode_data->connect_index.state = (cb_data->v.sint >> 24);
+    decode_data->connect_index.freq = (cb_data->v.sint >> 16);
+    decode_data->connect_index.na1 = (cb_data->v.sint >> 8);
+    decode_data->connect_index.na2 = cb_data->v.sint;
 
     cb_data = cn_cbor_mapget_int(cb_decode, 2);
     if (!cb_data)
@@ -1500,7 +1544,7 @@ static int app_cmd_iote_state_update_coding(unsigned char *input_cmd,
         return -1;
     }
 
-    cb_data = cn_cbor_int_create(ps_cmd_p->temperature, &err);
+    cb_data = cn_cbor_int_create(ps_cmd_p->snr, &err);
     cn_cbor_mapput_int(cb_map, 3, cb_data, &err);
     if (err.err != CN_CBOR_NO_ERROR)
     {
@@ -1563,6 +1607,7 @@ static int app_cmd_iote_response_state_coding(unsigned char *input_cmd,
     if (RT_NULL == encoded_out)
     {
         cn_cbor_free(cb_map);
+        cn_cbor_free(cb_data);
         return -1;
     }
     size_local = cn_cbor_encoder_write(encoded_out, 0, APP_MAX_CODING_DATA_LEN, cb_map);
@@ -1570,8 +1615,8 @@ static int app_cmd_iote_response_state_coding(unsigned char *input_cmd,
     if (-1 == size_local)
     {
         rt_free(encoded_out);
-        encoded_out = RT_NULL;
         cn_cbor_free(cb_map);
+        cn_cbor_free(cb_data);
         return -1;
     }
 
@@ -1628,7 +1673,7 @@ static int app_cmd_iote_state_update_decoding(unsigned char *input_data,
         cn_cbor_free(cb_decode);
         return -1;
     }
-    decode_data->temperature = cb_data->v.sint;
+    decode_data->snr = cb_data->v.sint;
 
     cn_cbor_free(cb_decode);
     *output_data = (unsigned char *)decode_data;
@@ -1773,5 +1818,5 @@ int app_cmd_decoding(app_ps_cmd_e input_cmd_type,
 
     return result;
 }
-#endif // ifdef GATEWAY_MODE_SUPPORT
-#endif // defined(WIOTA_APP_DEMO) || defined(GATEWAY_MODE_SUPPORT)
+#endif
+#endif // defined(WIOTA_APP_DEMO)

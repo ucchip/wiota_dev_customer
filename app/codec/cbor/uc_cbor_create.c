@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#ifdef GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
 #include "uc_cbor.h"
 
 #define INIT_CB(v)                                 \
@@ -230,4 +230,4 @@ unsigned char cn_cbor_array_append(cn_cbor *cb_array,
     return TRUE;
 }
 
-#endif /* GATEWAY_MODE_SUPPORT */
+#endif

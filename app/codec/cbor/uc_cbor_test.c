@@ -1,4 +1,4 @@
-#if 0 //def GATEWAY_MODE_SUPPORT
+#if 0
 #include "uc_cbor.h"
 #ifdef _RT_THREAD_
 #include <rtthread.h>

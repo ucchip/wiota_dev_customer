@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#ifdef GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
 #include "uc_cbor.h"
 
 cn_cbor *cn_cbor_mapget_int(const cn_cbor *cb, int key)
@@ -71,4 +71,4 @@ cn_cbor *cn_cbor_index(const cn_cbor *cb, unsigned int idx)
     return NULL;
 }
 
-#endif //GATEWAY_MODE_SUPPORT
+#endif // AT_WIOTA_GATEWAY_API

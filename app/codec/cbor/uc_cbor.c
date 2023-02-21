@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#ifdef GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
 #include "uc_cbor.h"
 
 #define CN_CBOR_FAIL(code) \

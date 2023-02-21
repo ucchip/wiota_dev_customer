@@ -135,7 +135,7 @@ int main(void)
         watchdog_app_enable();
 #endif
 
-    app_test();
+    //app_test();
 
 #ifndef WIOTA_APP_DEMO
 #ifdef UC8288_MODULE
@@ -148,6 +148,9 @@ int main(void)
 #endif
 #else
     app_manager_enter();
+#ifndef AT_WIOTA_GATEWAY
+    app_wiota_gateway_api_demo();
+#endif
 #endif
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)

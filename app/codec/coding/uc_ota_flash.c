@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#if defined(WIOTA_APP_DEMO) || defined(GATEWAY_MODE_SUPPORT)
+#if defined(WIOTA_APP_DEMO) || defined(AT_WIOTA_GATEWAY_API)
 #include <rtdevice.h>
 #include <rthw.h>
 #include "uc_wiota_api.h"
@@ -247,7 +247,7 @@ void uc_wiota_ota_jump_program(unsigned int file_size, unsigned char upgrade_typ
     uc_wiota_exit();
     rt_thread_mdelay(2000);
     rt_hw_interrupt_disable();
-    rt_hw_cpu_reset();
-    // boot_riscv_reboot();
+    // rt_hw_cpu_reset();
+    boot_riscv_reboot();
 }
 #endif

@@ -328,7 +328,7 @@ void set_uboot_log(unsigned char uart_flag,unsigned char log_flag,unsigned char 
 
 void get_uboot_log_set(unsigned char * uart_flag , unsigned char * log_flag , unsigned char * select_flag);
 
-#if 1//def GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
 int uc_wiota_set_wiotaid(unsigned int wiotaid);
 #endif
 #endif

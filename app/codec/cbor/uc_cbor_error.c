@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#ifdef GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
 
 const char *cn_cbor_error_str[] = {
     "CN_CBOR_NO_ERROR",
@@ -14,4 +14,4 @@ const char *cn_cbor_error_str[] = {
     "CN_CBOR_ERR_OUT_OF_MEMORY",
     "CN_CBOR_ERR_FLOAT_NOT_SUPPORTED"};
 
-#endif // GATEWAY_MODE_SUPPORT
+#endif // AT_WIOTA_GATEWAY_API

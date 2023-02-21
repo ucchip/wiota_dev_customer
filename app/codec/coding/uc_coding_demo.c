@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#if 0//defined(WIOTA_APP_DEMO) || defined(GATEWAY_MODE_SUPPORT)
+#if 0
 #include <uc_coding.h>
 
 typedef struct

@@ -320,6 +320,7 @@ static at_result_t at_factory_setup(const char *args)
 
         switch (ch)
         {
+#ifdef UC8288_DRV_TEST
         case ADC_CONFIG_CHANNEL_TEMP_B:
         {
             float val = 0.00;
@@ -327,6 +328,7 @@ static at_result_t at_factory_setup(const char *args)
             at_server_printfln("+FACTORY=%d,0.%d", type, val * 100.0);
             break;
         }
+#endif
         default:
         {
             at_server_printfln("+FACTORY=%d,%d", type, result);

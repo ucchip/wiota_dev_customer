@@ -24,4 +24,12 @@ config _CLK_GATING_
     bool "clk gating, default open(_CLK_GATING_)"
     default y
 
+config AT_WIOTA_GATEWAY_API
+    bool "single gateway mode api, default open(AT_WIOTA_GATEWAY_API)"
+    default y
+
+config AT_WIOTA_GATEWAY
+    bool "single gateway at cmd, default open(AT_WIOTA_GATEWAY)"
+    default y
+
 endmenu

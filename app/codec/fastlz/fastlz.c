@@ -24,7 +24,7 @@
   THE SOFTWARE.
 */
 #include <rtthread.h>
-#if defined(WIOTA_APP_DEMO) || defined(GATEWAY_MODE_SUPPORT)
+#if defined(WIOTA_APP_DEMO) || defined(AT_WIOTA_GATEWAY_API)
 #if !defined(FASTLZ__COMPRESSOR) && !defined(FASTLZ_DECOMPRESSOR)
 #include <rtconfig.h>
 

@@ -10,6 +10,7 @@
 #include "uc_adda.h"
 //#include "uc_boot_download.h"
 #include "at_wiota.h"
+#include "uc_wiota_gateway_api.h"
 
 enum at_wiota_manager_process
 {
@@ -19,7 +20,7 @@ enum at_wiota_manager_process
     AT_WIOTA_MANAGER_PROCESS_RUN,
     AT_WIOTA_MANAGER_PROCESS_STRATEGY,
     AT_WIOTA_MANAGER_PROCESS_EXIT,
-#ifdef GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
     AT_WIOTA_MANAGER_PROCESS_GW_MODE_EXIT,
 #endif
     AT_WIOTA_MANAGER_PROCESS_END,
@@ -38,6 +39,13 @@ enum at_wiota_manager_report_state
 #define AT_WIOTA_SCAN_TIMEOUT 40000
 #define AT_WIOTA_FULL_SCAN_TIMEOUT 500000
 #define AT_WIOTA_CONTINE_SCAN_FAIL_MAX 3
+
+#ifdef AT_WIOTA_GATEWAY_API
+extern void uc_wiota_gateway_set_run_flag(boolean run_flag);
+extern unsigned int uc_wiota_gateway_get_wiota_id(void);
+extern boolean uc_wiota_gateway_get_reboot_flag(void);
+extern void uc_wiota_gateway_set_reboot_flag(boolean flag);
+#endif
 
 typedef struct freq_list_manager_node
 {
@@ -276,9 +284,10 @@ static int at_wiota_manager_scan(void)
     at_wiota_clean_freq_list();
 
     // rt_kprintf("manager->continue_scan_fail  %d\n", manager->continue_scan_fail);
-
-    list_len = at_wiota_get_static_freq((char *)list);
-    // rt_kprintf("%s line %d list_len %d\n", __FUNCTION__, __LINE__, list_len);
+    if (manager->continue_scan_fail < 5)
+        list_len = at_wiota_get_static_freq((char *)list);
+    else
+        rt_kprintf("%s line %d list_len %d.continue_scan_fail %d\n", __FUNCTION__, __LINE__, list_len, manager->continue_scan_fail );
 
     switch (list_len)
     {
@@ -362,8 +371,8 @@ static void at_wiota_manager_startegy(void)
 
         if ((stats_info_ptr.ul_sm_succ * 5 < stats_info_ptr.ul_sm_total && stats_info_ptr.ul_sm_total > 20) ||
             UC_STATUS_SYNC_LOST == connect_state || UC_STATUS_ERROR == connect_state
-#ifdef GATEWAY_MODE_SUPPORT
-            || at_gateway_get_reboot()
+#ifdef AT_WIOTA_GATEWAY_API
+            || uc_wiota_gateway_get_reboot_flag()
 #endif
         )
         {
@@ -434,7 +443,7 @@ static void at_wiota_manager_task(void *parameter)
         {
             if (at_wiota_manager_scan())
             {
-                SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_SCAN);
+                //SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_SCAN);
                 at_wiota_auto_report_state(AT_WIOTA_MANAGER_REPORT_FREQ_FAIL);
                 rt_thread_mdelay(1000 * g_wiota_manager.continue_scan_fail);
             }
@@ -454,6 +463,12 @@ static void at_wiota_manager_task(void *parameter)
                 break;
             }
             uc_wiota_init();
+#ifdef AT_WIOTA_GATEWAY_API
+            if (uc_wiota_gateway_get_reboot_flag())
+            {
+                uc_wiota_set_wiotaid(uc_wiota_gateway_get_wiota_id());
+            }
+#endif
             at_wiota_auto_report_state(AT_WIOTA_MANAGER_USER_FREQ);
             // rt_kprintf("%s line %d freq %d\n", __FUNCTION__, __LINE__, g_wiota_manager.current_freq_node->data.freq);
             uc_wiota_set_freq_info(g_wiota_manager.current_freq_node->data.freq);
@@ -470,6 +485,12 @@ static void at_wiota_manager_task(void *parameter)
             }
             else
             {
+#ifdef AT_WIOTA_GATEWAY_API
+                if (uc_wiota_gateway_get_reboot_flag())
+                {
+                    uc_wiota_gateway_set_reboot_flag(FALSE);
+                }
+#endif
                 SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_STRATEGY);
                 g_wiota_manager.continue_scan_fail = 0;
             }
@@ -479,8 +500,8 @@ static void at_wiota_manager_task(void *parameter)
         {
             at_wiota_auto_report_state(AT_WIOTA_MANAGER_CONNECT_SUC);
             at_wiota_manager_startegy();
-#ifdef GATEWAY_MODE_SUPPORT
-            if (at_gateway_get_reboot())
+#ifdef AT_WIOTA_GATEWAY_API
+            if(uc_wiota_gateway_get_reboot_flag())
             {
                 SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_GW_MODE_EXIT);
             }
@@ -488,7 +509,7 @@ static void at_wiota_manager_task(void *parameter)
             {
 #endif
                 SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_EXIT);
-#ifdef GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
             }
 #endif
             break;
@@ -502,18 +523,41 @@ static void at_wiota_manager_task(void *parameter)
             SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_INIT);
             break;
         }
-#ifdef GATEWAY_MODE_SUPPORT
+#ifdef AT_WIOTA_GATEWAY_API
         case AT_WIOTA_MANAGER_PROCESS_GW_MODE_EXIT:
         {
             uc_wiota_exit();
             uc_wiota_init();
-            uc_wiota_set_wiotaid(at_gateway_get_wiota_id());
-            at_gateway_set_reboot(FALSE);
+            uc_wiota_set_wiotaid(uc_wiota_gateway_get_wiota_id());
+            uc_wiota_gateway_set_reboot_flag(RT_FALSE);
             at_wiota_set_state(AT_WIOTA_INIT);
             SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_RUN);
             break;
         }
 #endif
+        }
+    }
+}
+
+void at_wiota_get_avail_freq_list(unsigned char *output_list, unsigned char list_len)
+{
+    t_freq_list_manager *temp_node;
+    unsigned char index = 0;
+    unsigned char used_freq = uc_wiota_get_freq_info();
+
+    if(g_wiota_manager.current_freq_node != RT_NULL)
+    {
+        rt_list_for_each_entry(temp_node, &g_wiota_manager.freq_list.node, node)
+        {
+            if(temp_node->data.freq != used_freq)
+            {
+                output_list[index++] = temp_node->data.freq;
+                if(index >= list_len)
+                {
+                    break;
+                }
+            }
+
         }
     }
 }

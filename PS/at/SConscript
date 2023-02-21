@@ -1,0 +1,27 @@
+# for module compiling
+import os
+Import('RTT_ROOT')
+from building import *
+
+cwd  = GetCurrentDir()
+
+src = []
+path = []
+
+if GetDepend(['RT_USING_AT']):
+    src += ['at_boot.c', 'at_wiota_auto_manager.c', 'at_wiota_gateway_api.c']
+    path += [cwd]
+    if GetDepend(['SUPPORT_SPI_AT']):
+        src += ['spi_at_test.c']
+    if GetDepend(['UC8288_AT_TEST']):
+        src += ['at_wiota_test.c']
+    if GetDepend(['UC8288_MODULE']):
+        src += ['at_wiota.c']
+        if GetDepend(['UC8288_FACTORY']):
+            src += ['at_factory.c']
+    if GetDepend(['AT_WIOTA_GATEWAY_API']):
+        if GetDepend(['AT_WIOTA_GATEWAY']):
+            src += ['at_wiota_gateway_api.c']
+group = DefineGroup('at', src, depend = ['RT_USING_AT'], CPPPATH = path)
+
+Return('group')

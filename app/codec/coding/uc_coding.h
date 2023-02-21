@@ -52,6 +52,7 @@ typedef struct
 #define APP_MAX_IOTE_UPGRADE_NUM 8
 #define APP_MAX_IOTE_UPGRADE_STOP_NUM 16
 #define APP_MAX_MISSING_DATA_BLOCK_NUM 16
+#define APP_CONNECT_FREQ_NUM 8
 
 typedef enum
 {
@@ -71,6 +72,7 @@ typedef struct
 {
     int auth_type;     // 0: identification fixed
     char aut_code[16]; // key. max len 16.
+    unsigned char freq[APP_CONNECT_FREQ_NUM]; //freq list
 } app_ps_auth_req_t, *app_ps_auth_req_p;
 
 typedef enum
@@ -79,6 +81,7 @@ typedef enum
     AUTHENTICATION_NO_DATA,
     AUTHENTICATION_FAIL,
     AUTHENTICATION_INFO_CHANGE,
+    AUTHENTICATION_RECONNECT,
 } e_auth_state;
 
 typedef enum
@@ -90,7 +93,16 @@ typedef enum
 
 typedef struct
 {
-    e_auth_state state; // auth state. eg: e_auth_state
+    //e_auth_state
+    unsigned char state;
+    unsigned char freq;
+    unsigned char na1;
+    unsigned char na2;
+} app_connect_res_t, *app_connect_res_p;
+
+typedef struct
+{
+    app_connect_res_t connect_index; // auth state. eg: e_auth_state
     int wiota_id;
     unsigned char freq_list[APP_MAX_FREQ_LIST_NUM]; // if 255, means end
 } app_ps_auth_res_t, *app_ps_auth_res_p;
@@ -115,7 +127,7 @@ typedef struct
     char device_type[12];
     int data_offset;
     int data_length;
-    unsigned char data[1024]; // do not cbor coding this data ?
+    unsigned char data[940]; // do not cbor coding this data ? // ?? 
 } app_ps_ota_upgrade_req_t, *app_ps_ota_upgrade_req_p;
 
 typedef struct
@@ -145,9 +157,9 @@ typedef struct
 
 typedef struct
 {
-    char device_type[16];
+    char device_type[12];
     int rssi;
-    int temperature;
+    int snr;
 } app_ps_iote_state_update_t, *app_ps_iote_state_update_p;
 
 unsigned char app_packet_num(void);
