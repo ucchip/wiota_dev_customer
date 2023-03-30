@@ -103,7 +103,7 @@ typedef struct
 typedef struct
 {
     app_connect_res_t connect_index; // auth state. eg: e_auth_state
-    int wiota_id;
+    unsigned int wiota_id;
     unsigned char freq_list[APP_MAX_FREQ_LIST_NUM]; // if 255, means end
 } app_ps_auth_res_t, *app_ps_auth_res_p;
 

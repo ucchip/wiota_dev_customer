@@ -185,19 +185,19 @@ static at_result_t at_test_setup(const char* args)
 
         case AT_TEST_SLEEP:
 //            l1_lpm_read_rtc_time();
-            l1_lpm_sleep_test();
+            // l1_lpm_sleep_test();
             break;
 
         case AT_TEST_TIME:
-            l1_lpm_read_rtc_time();
+            // l1_lpm_read_rtc_time();
             break;
 
         case AT_TEST_ALARM_SET:
-            l1_lpm_set_alarm_test(20);
+            l1_lpm_set_alarm_time(20);
             break;
 
         case AT_TEST_ALARM_READ:
-            l1_lpm_read_rtc_alarm_time();
+            rt_alarm_read();
             break;
 
         case AT_TEST_AUTO_MCS:

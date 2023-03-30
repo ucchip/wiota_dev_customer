@@ -58,7 +58,7 @@ int app_data_coding(app_ps_header_t *ps_header,
     }
 
     // malloc output_data space, maybe > output_data_len
-    buf = (unsigned char *)rt_malloc(buf_len);
+    buf = (unsigned char *)rt_malloc(buf_len + 4);
     if (RT_NULL == buf)
     {
         rt_kprintf("%s, %d malloc fail\n", __FUNCTION__, __LINE__);

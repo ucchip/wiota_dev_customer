@@ -69,6 +69,7 @@
 #include "uc_spi_flash_app.h"
 #endif
 
+
 extern void uc_wiota_static_data_init(void);
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
@@ -148,6 +149,9 @@ int main(void)
 #endif
 #else
     app_manager_enter();
+#endif
+
+#ifdef AT_WIOTA_GATEWAY_API
 #ifndef AT_WIOTA_GATEWAY
     app_wiota_gateway_api_demo();
 #endif

@@ -33,7 +33,7 @@ _rom_start     = ORIGIN(uc_rom);
 
 SECTIONS
 {
-	
+
 	.uboot :
 	{
 		. += LENGTH(uboot) -4;
@@ -70,9 +70,6 @@ SECTIONS
 
 	.protocal_stack :
 	{
-		*uc_wiota_api*(.text*);
-		*uc_wiota_static*(.text*);
-		*test_wiota_api*(.text*);
 		*l1_*(.text*);
 		*c_cce_firmware*(.text*);
 		*cce*(.text*);
@@ -112,7 +109,7 @@ SECTIONS
        _endtext = .;
 	   . = LENGTH(instrram) -4;
 	   LONG(0);
-	   
+
     }  > instrram
 
     /*--------------------------------------------------------------------*/
@@ -180,7 +177,7 @@ SECTIONS
         . = ALIGN(4);
     } > datarom
 
-    
+
     .shbss :
     {
         . = ALIGN(4);
@@ -253,8 +250,8 @@ SECTIONS
     {
         . = ALIGN(4);
         *(.trace_buff)
-    } > traceram 
-	
+    } > traceram
+
 	.ota_flag :
 	{
 		LONG(0x46054355);
@@ -264,5 +261,5 @@ SECTIONS
 		LONG(LENGTH(instrram));
 		LONG(LENGTH(datarom));
 	} > ota_flag
-    
+
 }

@@ -40,6 +40,11 @@ void timer_init(TIMER_TYPE* TIMERx, TIMER_CFG_Type* cfg)
     TIMERx->TRR = cfg->cnt;
 }
 
+void timer_deinit(TIMER_TYPE *TIMERx, TIMER_CFG_Type *cfg)
+{
+    TIMERx->CMP = cfg->cmp;
+}
+
 void timer_enable(TIMER_TYPE* TIMERx)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));

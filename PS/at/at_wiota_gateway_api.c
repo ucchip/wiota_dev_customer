@@ -14,6 +14,7 @@
 
 
 #define AUTH_KEY_LEN            18
+#define WIOTA_GATEWAY_WAIT_DATA_TIMEOUT 10000
 
 extern void at_wiota_get_avail_freq_list(unsigned char *output_list, unsigned char list_len);
 
@@ -32,12 +33,18 @@ static at_result_t at_wiota_gateway_api_init(const char *args)
     char auth_key[AUTH_KEY_LEN] = {0xFF};
     unsigned char auth_key_len = 0;
     int init_state = 0;
+    unsigned mode = 0;
     unsigned char list[8] = {0xff};
 
-    args = parse((char *)(++args), "s", AUTH_KEY_LEN, auth_key);
+    args = parse((char *)(++args), "d,s", &mode, AUTH_KEY_LEN, auth_key);
     if (!args)
     {
         //rt_kprintf("at_wiota_gateway_api_init error para.\n");
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    if (mode != UC_GATEWAY_MODE && mode != UC_TRANSMISSION_MODE)
+    {
         return AT_RESULT_PARSE_FAILE;
     }
 
@@ -51,7 +58,8 @@ static at_result_t at_wiota_gateway_api_init(const char *args)
         at_wiota_get_avail_freq_list(list, APP_CONNECT_FREQ_NUM);
     #endif
     
-    init_state = uc_wiota_gateway_start(auth_key, list);
+    
+    init_state = uc_wiota_gateway_start(mode, auth_key, list);
     if(UC_GATEWAY_OK == init_state)
     {
         return AT_RESULT_OK;
@@ -74,16 +82,45 @@ static at_result_t at_wiota_gateway_api_deinit(void)
     return AT_RESULT_FAILE;
 }
 
+extern at_server_t at_get_server(void);
+
+static rt_err_t gateway_get_char_timeout(rt_tick_t timeout, char *chr)
+{
+    at_server_t at_server = at_get_server();
+    return at_server->get_char(at_server, chr, timeout);
+}
+
+
 static at_result_t at_wiota_gateway_api_send_data(const char *args)
 {
     unsigned int timeout = 0;
     unsigned int buf_len = 0;
+    unsigned int data_len = 0;
     int send_state = 0;
     char send_buf[GATEWAY_SEND_BUF_MAX_LEN] = {0};
+    char *psendbuffer = send_buf;
 
-    args = parse((char *)(++args), "d,d,s", &timeout, &buf_len, GATEWAY_SEND_BUF_MAX_LEN, send_buf);
+    args = parse((char *)(++args), "d,d", &timeout, &buf_len, GATEWAY_SEND_BUF_MAX_LEN);
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+    data_len = buf_len;
 
-    send_state = uc_wiota_gateway_send_data(send_buf, buf_len, timeout);
+    at_server_printf(">");
+
+    while (buf_len)
+    {
+        if (gateway_get_char_timeout(rt_tick_from_millisecond(WIOTA_GATEWAY_WAIT_DATA_TIMEOUT), (char *)psendbuffer) != RT_EOK)
+        {
+            at_server_printfln("SEND FAIL");
+            return AT_RESULT_NULL;
+        }
+        buf_len--;
+        psendbuffer++;
+    }
+
+    send_state = uc_wiota_gateway_send_data(send_buf, data_len, timeout);
     if(send_state == 0)
     {
         at_server_printfln("+SEND ERROR");
@@ -135,9 +172,9 @@ static at_result_t at_wiota_gateway_set_ota_req_period(const char *args)
     return AT_RESULT_OK;
 }
 
-AT_CMD_EXPORT("AT+GATEWAYINIT", "=<auth_key>", RT_NULL, RT_NULL, at_wiota_gateway_api_init, RT_NULL);
+AT_CMD_EXPORT("AT+GATEWAYINIT", "=<mode>,<auth_key>", RT_NULL, RT_NULL, at_wiota_gateway_api_init, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYDEINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_deinit);
-AT_CMD_EXPORT("AT+GATEWAYSEND", "=<timeout>,<len>,<send_buf>", RT_NULL, RT_NULL, at_wiota_gateway_api_send_data, RT_NULL);
+AT_CMD_EXPORT("AT+GATEWAYSEND", "=<timeout>,<len>", RT_NULL, RT_NULL, at_wiota_gateway_api_send_data, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYOTAREQ", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_ota_req);
 AT_CMD_EXPORT("AT+GATEWAYREPORTSTATE", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_report_state);
 AT_CMD_EXPORT("AT+GATEWAYSETOTAPERIOD", "=<ota_req_period>", RT_NULL, RT_NULL, at_wiota_gateway_set_ota_req_period, RT_NULL);

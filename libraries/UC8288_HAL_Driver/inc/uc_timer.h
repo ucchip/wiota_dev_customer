@@ -55,6 +55,7 @@ typedef enum
 #define PARAM_TIMER_IT_TYPE(it)              ((it==TIMER_IT_OVF)||(it==TIMER_IT_CMP))
 
 extern void timer_init(TIMER_TYPE* TIMERx, TIMER_CFG_Type* cfg);
+extern void timer_deinit(TIMER_TYPE* TIMERx, TIMER_CFG_Type* cfg);
 extern void timer_enable(TIMER_TYPE* TIMERx);
 extern void timer_disable(TIMER_TYPE* TIMERx);
 extern void timer_int_enable(TIMER_TYPE* TIMERx, TIMER_INT_TYPE it);

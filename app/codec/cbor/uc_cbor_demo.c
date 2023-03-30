@@ -1,9 +1,8 @@
-#if 0
 #include <rtthread.h>
 #ifdef AT_WIOTA_GATEWAY_API
 #include "uc_cbor.h"
 #include "uc_wiota_api.h"
-#include "test_wiota_api.h"
+// #include "test_wiota_api.h"
 // #include "at.h"
 
 #define ENCODED_SIZE 1024
@@ -191,5 +190,5 @@ void codec_demon_test(void)
     }
     rt_free(decode_data);
 }
-#endif
+
 #endif // AT_WIOTA_GATEWAY_API

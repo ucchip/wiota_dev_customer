@@ -80,9 +80,9 @@ static at_result_t at_partition_size_query(void)
 {
 	int bin_size=0,reserved_size = 0 , ota_size = 0;
 	get_partition_size(&bin_size,&reserved_size,&ota_size);
-	at_server_printfln("+BINSIZE:%d", bin_size);
-	at_server_printfln("+RESERVEDSIZE:%d", reserved_size);
-	at_server_printfln("+OTASIZE:%d", ota_size);
+	at_server_printfln("+BINSIZE:%d", bin_size/1024);
+	at_server_printfln("+RESERVEDSIZE:%d", reserved_size/1024);
+	at_server_printfln("+OTASIZE:%d", ota_size/1024);
 	return AT_RESULT_OK;
 }
 
@@ -94,7 +94,7 @@ static at_result_t at_set_partition_size(const char *args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
-	set_partition_size(bin_size,reserved_size,ota_size);
+	set_partition_size(bin_size * 1024,reserved_size * 1024,ota_size * 1024);
 	return AT_RESULT_OK;
 }
 

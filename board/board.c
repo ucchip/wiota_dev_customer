@@ -69,6 +69,26 @@ void timer0_compare_handler(void)
 #define configCPU_CLOCK_HZ          ( ( unsigned long ) BSP_CLOCK_SYSTEM_FREQ_HZ)
 #define configTICK_RATE_DIV         ( RT_TICK_PER_SECOND )
 
+void rt_hw_systick_reinit(uint32_t freq_div)
+{
+    /* Setup Timer A */
+    TIMER_CFG_Type TIMERX_InitStructure;
+
+    timer_int_disable(UC_TIMER0, TIMER_IT_CMP);
+    timer_disable(UC_TIMER0);
+    timer_int_clear_pending(UC_TIMER0, TIMER_IT_CMP);
+
+    /* set compare value*/
+    TIMERX_InitStructure.cmp = configCPU_CLOCK_HZ / (freq_div * 5 * configTICK_RATE_DIV);
+
+    /* Timer0 start timer */
+    timer_deinit(UC_TIMER0, &TIMERX_InitStructure);
+    timer_enable(UC_TIMER0);
+
+    /* Enable TA IRQ */
+    timer_int_enable(UC_TIMER0, TIMER_IT_CMP);
+}
+
 static void rt_hw_systick_init(void)
 {
     /* Setup Timer A */

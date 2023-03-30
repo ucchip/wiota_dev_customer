@@ -332,8 +332,8 @@ void app_test_main_task(void* pPara)
 //        uc_wiota_recv_data(NULL, 9000, test_recv_req_callback);
 
 //        uc_wiota_exit();
-//        l1_lpm_set_alarm_test(121);
-//        l1_lpm_set_alarm_test(600);
+//        l1_lpm_set_alarm_time(121);
+//        l1_lpm_set_alarm_time(600);
 //        rt_thread_mdelay(100);
 //        l1_lpm_sleep_test();
 
@@ -882,7 +882,7 @@ void gps_data_read_task(void *pPara)
     uc_wiota_connect();
 
     // close wiota ps log
-    uc_wiota_log_switch(UC_LOG_UART, 0);
+    //uc_wiota_log_switch(UC_LOG_UART, 0);
 
     // init uart0
     uc_wiota_read_gps_data_init();
