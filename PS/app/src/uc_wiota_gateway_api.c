@@ -927,7 +927,7 @@ static int uc_wiota_gateway_set_id()
         }
     }
 
-    return 2;
+    return 0;
 }
 
 int uc_gatewaytest(void)
@@ -964,6 +964,7 @@ int uc_wiota_gateway_start(uc_gatway_mode_e mode, char *auth_key, unsigned char 
         
         if (uc_wiota_gateway_set_id())
         {
+			rt_kprintf("uc_wiota_gateway_set_id error\n");
              return UC_GATEWAY_NO_CONNECT;
         }
 
@@ -1261,6 +1262,9 @@ int uc_wiota_gateway_end(void)
     {
         uc_gateway_clean_data();
     }
+    else
+        return 1;
+    
     return 0;
 }
 
