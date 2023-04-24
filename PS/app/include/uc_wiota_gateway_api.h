@@ -3,7 +3,7 @@
 #define __AT_WIOTA_GATEWAY_API_H__
 #include "uc_coding.h"
 #define GATEWAY_SEND_MAX_LEN 300
-#define GATEWAY_SEND_BUF_MAX_LEN        293
+//#define GATEWAY_SEND_BUF_MAX_LEN        293
 
 typedef enum
 {

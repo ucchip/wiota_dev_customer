@@ -43,7 +43,6 @@ static at_result_t at_wiota_gateway_api_init(const char *args)
     int init_state = 0;
     unsigned mode = 0;
     unsigned char list[8] = {0xff};
-    rt_kprintf("%s line %d\n", __FUNCTION__, __LINE__);
 
     args = parse((char *)(++args), "d,s", &mode, AUTH_KEY_LEN, auth_key);
     if (!args)
@@ -69,6 +68,8 @@ static at_result_t at_wiota_gateway_api_init(const char *args)
     
     
     init_state = uc_wiota_gateway_start(mode, auth_key, list);
+    
+    rt_kprintf("%s line %d init_state %d\n", __FUNCTION__, __LINE__, init_state);
     rt_thread_delay(2);
     if(UC_GATEWAY_OK == init_state)
     {
@@ -80,16 +81,9 @@ static at_result_t at_wiota_gateway_api_init(const char *args)
 
 static at_result_t at_wiota_gateway_api_deinit(void)
 {
-    int ret = 0;
-    
-    ret = uc_wiota_gateway_end();
-    if(0 == ret)
-    {
-        return AT_RESULT_OK;
-    }
+    uc_wiota_gateway_end();
 
-    //rt_kprintf("at_wiota_gateway_api_deinit failed.\n");
-    return AT_RESULT_FAILE;
+    return AT_RESULT_OK;
 }
 
 extern at_server_t at_get_server(void);
@@ -107,14 +101,22 @@ static at_result_t at_wiota_gateway_api_send_data(const char *args)
     unsigned int buf_len = 0;
     unsigned int data_len = 0;
     int send_state = 0;
-    char send_buf[GATEWAY_SEND_BUF_MAX_LEN] = {0};
+    // add crc data len
+    char send_buf[GATEWAY_SEND_MAX_LEN+2] = {0};
     char *psendbuffer = send_buf;
 
-    args = parse((char *)(++args), "d,d", &timeout, &buf_len, GATEWAY_SEND_BUF_MAX_LEN);
+    args = parse((char *)(++args), "d,d", &timeout, &buf_len);
     if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
+
+    if (buf_len > GATEWAY_SEND_MAX_LEN)
+    {
+        rt_kprintf("buf_len %d error\n", buf_len);
+        return AT_RESULT_PARSE_FAILE;
+    }
+    
     data_len = buf_len;
 
     at_server_printf(">");
@@ -123,7 +125,7 @@ static at_result_t at_wiota_gateway_api_send_data(const char *args)
     {
         if (gateway_get_char_timeout(rt_tick_from_millisecond(WIOTA_GATEWAY_WAIT_DATA_TIMEOUT), (char *)psendbuffer) != RT_EOK)
         {
-            at_server_printfln("WITA TIMEOUT");
+            at_server_printfln("WAIT TIMEOUT");
             return AT_RESULT_NULL;
         }
         buf_len--;
@@ -133,7 +135,6 @@ static at_result_t at_wiota_gateway_api_send_data(const char *args)
     send_state = uc_wiota_gateway_send_data(send_buf, data_len, timeout);
     if(send_state == 0)
     {
-        //at_server_printfln("+SEND ERROR");
         return AT_RESULT_FAILE;
     }
 

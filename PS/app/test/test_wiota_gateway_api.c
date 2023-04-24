@@ -213,61 +213,127 @@ static int gateway_get_static_freq(char *list)
 
     for (num = 0; num < 16; num++)
     {
-        //rt_kprintf("static freq *(list+%d) %d\n", num, *(list+num));
-        if (*(list + num) == 0xFF)
+        rt_kprintf("static freq *(list+%d) %d\n", num, *(list+num));
+        if (*(list + num) == 0xFF || *(list + num) == 0)
             break;
     }
     return num;
 }
-
-static char gateway_test_scantf(void)
+static int test_wiota_get_subsystem_id_list(unsigned int *list)
 {
+    int num;
+    sub_system_config_t config;
+    uc_wiota_get_system_config(&config);
+
+    memcpy(list, config.subsystemid_list, sizeof(config.subsystemid_list));
+
+    for (num = 0; num < sizeof(config.subsystemid_list); num++)
+    {
+        rt_kprintf("static subsystem_id *(list+%d) 0x%x\n", num, *(list+num));
+        if (*(list + num) == (~0) || *(list + num) == 0)
+            break;
+    }
+
+    if (0 == num)
+    {
+        *list = config.subsystemid;
+
+         if (*(list + num) != (~0) && *(list + num) != 0)
+            num = 1;
+    }
+
+    return num;
+}
+
+static char gateway_test_scantf(unsigned int *sub_system_id)
+{
+    unsigned char freq = 0xFF;
+    char rssi;
+    char subsystem_id_len = 0;
+    unsigned char num = 0;
     unsigned char list[16] = {0xff};
     int list_len;
     uc_recv_back_t recv_result;
-    unsigned char freq = 0xFF;
-    char rssi;
+    sub_system_config_t config;
+    unsigned int subsystem_id_list[8] = {0};
+    unsigned int id;
+    char strategy = 0;
 
     uc_wiota_init();
-    uc_wiota_run();
+
+    uc_wiota_get_system_config(&config);
+    subsystem_id_len = test_wiota_get_subsystem_id_list(subsystem_id_list);
 
     list_len = gateway_get_static_freq((char *)list);
-    switch (list_len)
+
+    strategy = list_len * subsystem_id_len;
+
+    rt_kprintf("gateway strategy %d\n", strategy);
+
+    switch (strategy)
     {
     case 0:
         uc_wiota_exit();
-        return freq;
+        if (0 == subsystem_id_len)
+        {
+            *sub_system_id = config.subsystemid;
+            subsystem_id_list[0] = config.subsystemid;
+            subsystem_id_len = 1;
+        }
+        if (0 == list_len)
+        {
+             if (0 != subsystem_id_len)
+                *sub_system_id = config.subsystemid;
+
+            return freq;
+        }
+        break;
     case 1:
         uc_wiota_exit();
+        *sub_system_id = subsystem_id_list[0];
         return list[0];
     }
 
-    uc_wiota_scan_freq(list, list_len, 0, GATEWAY_SCAN_TIMEOUT, RT_NULL, &recv_result);
-    if (UC_OP_SUCC == recv_result.result)
-    {
-        int freq_num = recv_result.data_len / sizeof(uc_freq_scan_result_t);
-        uc_freq_scan_result_p freq_info = (uc_freq_scan_result_p)recv_result.data;
+    uc_wiota_run();
 
-        for (int i = 0; i < freq_num; i++)
+    uc_wiota_get_userid(&id, &num);
+
+    for (num = (id%subsystem_id_len); num < subsystem_id_len + (id % subsystem_id_len); num ++)
+    {
+        config.subsystemid = subsystem_id_list[num % subsystem_id_len];
+        uc_wiota_set_system_config(&config);
+
+        uc_wiota_scan_freq(list, list_len, 0, GATEWAY_SCAN_TIMEOUT, RT_NULL, &recv_result);
+        if (UC_OP_SUCC == recv_result.result)
         {
-            if (freq_info->is_synced)
+            int freq_num = recv_result.data_len / sizeof(uc_freq_scan_result_t);
+            uc_freq_scan_result_p freq_info = (uc_freq_scan_result_p)recv_result.data;
+
+            for (int i = 0; i < freq_num; i++)
             {
-                if (freq == 0xFF)
+                if (freq_info->is_synced)
                 {
-                    freq = freq_info->freq_idx;
-                    rssi = freq_info->rssi;
-                }
-                else if (rssi < freq_info->rssi)
-                {
-                    freq = freq_info->freq_idx;
-                    rssi = freq_info->rssi;
+                    if (freq == 0xFF)
+                    {
+                        freq = freq_info->freq_idx;
+                        rssi = freq_info->rssi;
+                        *sub_system_id = subsystem_id_list[num % subsystem_id_len];
+                    }
+                    else if (rssi < freq_info->rssi)
+                    {
+                        freq = freq_info->freq_idx;
+                        rssi = freq_info->rssi;
+                        *sub_system_id = subsystem_id_list[num % subsystem_id_len];
+                    }
                 }
             }
-        }
 
-        rt_free(recv_result.data);
+            rt_free(recv_result.data);
+        }
     }
     uc_wiota_exit();
+
+    rt_kprintf("gateway select subsystem id 0x%x freq %d\n", *sub_system_id, freq);
     return freq;
 }
 
@@ -358,8 +424,10 @@ static void wiota_gateway_api_test_task(void *para)
     //unsigned char list[16] = {0xff};
     unsigned char freq = 0xFF;
     int result = 0;
+    unsigned int sub_system_id = 0;
+    sub_system_config_t config;
 
-    //uc_wiota_log_switch(0, 0);
+    uc_wiota_log_switch(UC_LOG_UART, 1);
 
     network_state = LEN_TW;
 
@@ -367,21 +435,27 @@ static void wiota_gateway_api_test_task(void *para)
     {
         //uc_gateway_state_t state;
 
+
         network_state = LEN_TW;
         gatway_led_state = LED_OFF;
         gateway_test_heap();
         //mem_test_trace();
 
-        freq = gateway_test_scantf();
+        freq = gateway_test_scantf(&sub_system_id);
         if (0xFF == freq)
         {
+            rt_kprintf("gateway_test_scantf fail\n");
             rt_thread_mdelay(1000);
             continue;
         }
 
         uc_wiota_init();
 
-        rt_kprintf("select freq %d\n", freq);
+        uc_wiota_get_system_config(&config);
+        config.subsystemid = sub_system_id;
+        uc_wiota_set_system_config(&config);
+
+        rt_kprintf("select subsystem id 0x%x freq %d\n", sub_system_id, freq);
         uc_wiota_set_freq_info(freq);
         uc_wiota_run();
         uc_wiota_connect();

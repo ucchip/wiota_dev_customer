@@ -17,7 +17,6 @@
 #include "uc_event.h"
 #endif
 
-#ifndef WIOTA_APP_DEMO
 #ifdef UC8288_MODULE
 #ifdef RT_USING_AT
 #include "at.h"
@@ -25,9 +24,7 @@
 #else
 #include "test_wiota_api.h"
 #endif
-#else
-#include "app_manager.h"
-#endif
+
 
 #ifdef _WATCHDOG_APP_
 #include "uc_watchdog_app.h"
@@ -138,7 +135,6 @@ int main(void)
 
     //app_test();
 
-#ifndef WIOTA_APP_DEMO
 #ifdef UC8288_MODULE
 #ifdef RT_USING_AT
     at_server_init();
@@ -147,9 +143,7 @@ int main(void)
 #else
     app_task_init();
 #endif
-#else
-    app_manager_enter();
-#endif
+
 
 #ifdef AT_WIOTA_GATEWAY_API
 #ifndef AT_WIOTA_GATEWAY

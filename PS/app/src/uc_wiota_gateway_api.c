@@ -1,6 +1,5 @@
 #include <rtthread.h>
 // #ifdef RT_USING_AT
-#ifndef WIOTA_APP_DEMO
 // #ifdef UC8288_MODULE
 #include <rtdevice.h>
 #include <board.h>
@@ -356,8 +355,9 @@ static int uc_wiota_gateway_send_auth_req(void)
 
 static int uc_gateway_check_connect_state(void)
 {
-    short count = 300;
+    short count = 400;
      unsigned char flag = 0;
+     
      while(count --)
      {
          if (UC_STATUS_SYNC == uc_wiota_get_state())
@@ -366,8 +366,16 @@ static int uc_gateway_check_connect_state(void)
              if (flag > 2)
                  return 0; // success
          }
+         
+         if (count == 200)
+         {
+            uc_wiota_disconnect();
+            uc_wiota_connect();
+         }
+         
          rt_thread_delay(20);
      }
+     rt_kprintf("uc_gateway_check_connect_state fail\n");
     return 1;// fail
 }
 
@@ -545,13 +553,7 @@ static void uc_wiota_gateway_ota_upgrade_res_msg(unsigned char *data, unsigned i
 
      get_partition_size(&bin_size , &reserved_size , &ota_size);
      rt_kprintf("bin size %d reserved_size %d\n", bin_size, reserved_size);
-    #if 0
-    if (app_cmd_decoding(OTA_UPGRADE_REQ, data, data_len, &cmd_decoding) < 0)
-    {
-        rt_kprintf("%s line %d app_cmd_decoding error\n", __FUNCTION__, __LINE__);
-        return;
-    }
-    #endif
+
     ota_upgrade_req = (app_ps_ota_upgrade_req_t *)data;
 
     if (uc_wiota_gateway_check_if_upgrade_required(ota_upgrade_req))
@@ -616,7 +618,7 @@ static void uc_wiota_gateway_ota_upgrade_res_msg(unsigned char *data, unsigned i
                     gateway_mode.ota_state = GATEWAY_OTA_PROGRAM;
                     rt_free(gateway_mode.mask_map);
                     gateway_mode.mask_map = RT_NULL;
-                    rt_timer_stop(gateway_mode.ota_timer);
+                    //rt_timer_stop(gateway_mode.ota_timer);
 
                     wiota_gateway_mode_flag = RT_FALSE;
                     //set_partition_size(GATEWAY_OTA_FLASH_BIN_SIZE, GATEWAY_OTA_FLASH_REVERSE_SIZE, GATEWAY_OTA_FLASH_OTA_SIZE);
@@ -629,8 +631,10 @@ static void uc_wiota_gateway_ota_upgrade_res_msg(unsigned char *data, unsigned i
                     gateway_mode.ota_state = GATEWAY_OTA_DEFAULT;
                     rt_free(gateway_mode.mask_map);
                     gateway_mode.mask_map = RT_NULL;
-                    rt_timer_stop(gateway_mode.ota_timer);
+                    //rt_timer_stop(gateway_mode.ota_timer);
                 }
+
+                rt_timer_stop(gateway_mode.ota_timer);
             }
         }
     }
@@ -643,13 +647,7 @@ static void uc_wiota_gateway_ota_upgrade_stop_msg(unsigned char *data, unsigned 
     //unsigned char *cmd_decoding = RT_NULL;
     app_ps_ota_upgrade_stop_t *ota_upgrade_stop = RT_NULL;
     unsigned int dev_address = uc_wiota_gateway_get_dev_address();
-#if 0
-    if (app_cmd_decoding(OTA_UPGRADE_STOP, data, data_len, &cmd_decoding) < 0)
-    {
-        rt_kprintf("%s line %d app_cmd_decoding error\n", __FUNCTION__, __LINE__);
-        return;
-    }
-#endif
+
     ota_upgrade_stop = (app_ps_ota_upgrade_stop_t *)data;
 
     for (int i = 0; i < APP_MAX_IOTE_UPGRADE_STOP_NUM; i++)
@@ -679,14 +677,7 @@ static void uc_wiota_gateway_ota_upgrade_state_msg(unsigned char *data, unsigned
     u8_t version[15] = {0};
 
     uc_wiota_get_version(version, RT_NULL, RT_NULL,RT_NULL);
-#if 0
-    if (app_cmd_decoding(OTA_UPGRADE_STATE, data, data_len, &cmd_decoding) < 0)
-    {
-        rt_kprintf("%s line %d app_cmd_decoding error\n", __FUNCTION__, __LINE__);
-        return;
-    }
-    ota_upgrade_state = (app_ps_ota_upgrade_state_t *)data;
-#endif
+
     if (0 == rt_strncmp(ota_upgrade_state->old_version, (const char*)version, rt_strlen((const char *)version)) &&
         0 == rt_strncmp(ota_upgrade_state->new_version, gateway_mode.new_version, rt_strlen(gateway_mode.new_version)) &&
         0 == rt_strncmp(ota_upgrade_state->device_type, gateway_mode.device_type, rt_strlen(gateway_mode.device_type)) &&
@@ -987,7 +978,7 @@ int uc_wiota_gateway_start(uc_gatway_mode_e mode, char *auth_key, unsigned char 
                                                 uc_wiota_gateway_handle_ota_recv_timer_msg,
                                                 RT_NULL,
                                                 10000,      //tick
-                                                RT_TIMER_FLAG_ONE_SHOT | RT_TIMER_FLAG_SOFT_TIMER);
+                                                RT_TIMER_FLAG_PERIODIC | RT_TIMER_FLAG_SOFT_TIMER);
         if(gateway_mode.ota_timer == RT_NULL)
         {
             uc_wiota_gateway_dele_queue(gateway_mode.gateway_mq);
@@ -1102,6 +1093,13 @@ int uc_wiota_gateway_send_data(void *data, unsigned int data_len, unsigned int t
     if (data_len > GATEWAY_SEND_MAX_LEN)
     {
         rt_kprintf("uc_wiota_gateway_send_data len error.len %d\n", data_len);
+        return 0;
+    }
+
+    
+    if(UC_STATUS_SYNC != uc_wiota_get_state())
+    {
+        rt_kprintf("uc_wiota_gateway_send_data wiota state error\n");
         return 0;
     }
 
@@ -1325,6 +1323,5 @@ static void uc_wiota_gateway_api_handle(void *para)
 
 #endif  // AT_WIOTA_GATEWAY_API
 // #endif  // RT_USING_AT
-#endif  // WIOTA_APP_DEMO
 // #endif  // UC8288_MODULE
 

@@ -44,9 +44,9 @@ typedef enum
     UC_RECV_MSG = 0,   // normal msg from ap
     UC_RECV_BC,        // broadcast msg from ap
     UC_RECV_OTA,       // ota msg from ap
-    UC_RECV_MULT0,     // ota msg from ap
-    UC_RECV_MULT1,     // ota msg from ap
-    UC_RECV_MULT2,     // ota msg from ap
+    UC_RECV_MULT0,     // multcast0 msg from ap
+    UC_RECV_MULT1,     // multcast1 msg from ap
+    UC_RECV_MULT2,     // multcast2 msg from ap
     UC_RECV_SCAN_FREQ, // result of freq scan by riscv
     UC_RECV_SYNC_LOST, // sync lost notify by riscv, need scan freq
 } UC_RECV_DATA_TYPE;
@@ -169,10 +169,9 @@ typedef struct
     unsigned char old_subsys_v;    // default 0, if set 1, match old version(v2.3_ap8088) subsystem id
     unsigned char bitscb;        // bit scb func, defautl open after v2.3(not include), set 1
     unsigned char reserved[2];   // for 4bytes alain
-    unsigned int systemid;
     unsigned int subsystemid;
     unsigned char freq_list[16];
-    unsigned char na[28];     // total 64 byte
+    unsigned int subsystemid_list[8];
 } sub_system_config_t;
 
 typedef struct
@@ -223,6 +222,7 @@ typedef struct
     signed char snr;
     signed char rssi;
     unsigned char is_synced;
+    unsigned int sub_sys_id;
 } uc_freq_scan_result_t, *uc_freq_scan_result_p;
 
 typedef struct
@@ -254,10 +254,11 @@ typedef struct
     unsigned char lpm_nlen; // 1,2,3,4, default 4
     unsigned char lpm_utimes; // 1,2,3, default 2
     unsigned char threshold; // detect threshold, 1~15, default 10
-    unsigned char reserved0;
+    unsigned char extra_flag; // defalut, if set 1, last period will use extra_period, then wake up
     unsigned short awaken_id; // indicate which id should detect
     unsigned short reserved;
     unsigned int detect_period; // ms, like 1000 ms
+    unsigned int extra_period; // ms, extra new period before wake up
 } uc_lpm_rx_cfg_t, *uc_lpm_rx_cfg_p;
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
@@ -307,7 +308,7 @@ void uc_wiota_register_recv_data_callback(uc_recv callback, UC_CALLBACK_DATA_TYP
 
 void uc_wiota_scan_freq(unsigned char *data, unsigned short len, u8_t mode, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
 
-void uc_wiota_set_is_gating(unsigned char is_gating);
+void uc_wiota_set_is_gating(unsigned char is_gating, boolean is_phy_gating);
 
 void uc_wiota_set_gating_event(unsigned char action, unsigned char event_id);
 

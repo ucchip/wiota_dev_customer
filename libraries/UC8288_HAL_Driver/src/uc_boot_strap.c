@@ -47,6 +47,10 @@ uint16_t auto_dummy = 3;
 #define reg_spi_dummy  ((volatile uint32_t *) 0x1a10c014)
 #define reg_dcxo_ctrl1 ((volatile uint32_t *) 0x1a10a01c)
 #define reg_dcxo_ctrl2 ((volatile uint32_t *) 0x1a10a020)
+#define reg_freq_div   ((volatile uint32_t *) 0x1a10a00c)
+#define cce_mode_ctrl  ((volatile uint32_t *) 0x1a10a038)
+#define paging_exit    ((volatile uint32_t *) 0x3b0c10)
+
 
 #define SPI_START(cmd)  (*reg_spi_status = (1<<(SPI_CSN0+8))|(1<<(cmd))); //start
 #define WAIT_XIP_FREE    while((*reg_xip_ctrl)&0x1)
@@ -228,9 +232,9 @@ __critical_64 void init_parameters()
     IER = 0;
     IPR = 0;
     *reg_spi_dummy = 0;
-    
+
   // over-clock config
-  
+
     // *(volatile int*) (0x1a107060) |= 0x1 << 9;
 
     // *(volatile int*) (0x1a10a020) |= 0x1 << 23;
@@ -304,6 +308,11 @@ __critical_128 void boot_strap()
     WAIT_XIP_FREE;
     //8288 dcxo doubler enable; set 96M
     *(reg_dcxo_ctrl2) |= (1 << 16);
+    *(reg_freq_div) &= (0xFFFFFFF1);
+    *(cce_mode_ctrl) = 0;
+    *(paging_exit) |= (1);
+    *(cce_mode_ctrl) = 8;
+
     //should add some delay here
     xip_switch_mode();
     //-----------One Cacheline of Code --------------

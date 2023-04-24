@@ -37,7 +37,6 @@
 #pragma warning (disable : 4001)
 #endif
 #include <rtthread.h>
-#ifdef WIOTA_APP_DEMO
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -3118,4 +3117,3 @@ CJSON_PUBLIC(void) cJSON_free(void *object)
 {
     global_hooks.deallocate(object);
 }
-#endif

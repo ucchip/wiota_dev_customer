@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#if defined(WIOTA_APP_DEMO) || defined(AT_WIOTA_GATEWAY_API)
+#if  defined(AT_WIOTA_GATEWAY_API)
 #include <rtdevice.h>
 #include <rthw.h>
 #include "uc_wiota_api.h"

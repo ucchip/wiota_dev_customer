@@ -395,7 +395,7 @@ void app_test_main_task(void* pPara)
 //}
 
 #define TEST_FREQ_SINGLE 100
-extern u32_t g_tracking_succ_test_cnt;
+extern u32_t g_tracking_succ_seq_cnt;
 
 // small demo for all auto
 void app_test_main_task(void *pPara)
@@ -428,9 +428,9 @@ void app_test_main_task(void *pPara)
 
     // test! whole config
     uc_wiota_get_system_config(&wiota_config);
-    rt_kprintf("config show %d %d %d %d %d %d 0x%x 0x%x\n",
+    rt_kprintf("config show %d %d %d %d %d %d 0x%x\n",
                wiota_config.id_len, wiota_config.pp, wiota_config.symbol_length, wiota_config.dlul_ratio,
-               wiota_config.btvalue, wiota_config.group_number, wiota_config.systemid, wiota_config.subsystemid);
+               wiota_config.btvalue, wiota_config.group_number, wiota_config.subsystemid);
     //    wiota_config.pn_num = 2;  // change config then set
     wiota_config.symbol_length = 1; // 256,1024
     wiota_config.ap_max_pow = 22;
@@ -459,7 +459,7 @@ void app_test_main_task(void *pPara)
     //    uc_wiota_set_cur_power(21);
     //    uc_wiota_set_max_power(17);
 
-    //    uc_wiota_set_is_gating(TRUE);
+    //    uc_wiota_set_is_gating(TRUE, TRUE);
 
     // after config set, run wiota !
     uc_wiota_run();
@@ -540,7 +540,7 @@ void app_test_main_task(void *pPara)
         }
 
         //        uc_wiota_send_data(testData, 206, 10000, NULL);
-        //        if (g_tracking_succ_test_cnt > 11) {
+        //        if (g_tracking_succ_seq_cnt > 11) {
         //            uc_wiota_send_data(testData, 20, 10000, NULL);
         //        }
 
@@ -620,9 +620,9 @@ void app_test1_main_task(void *pPara)
         rt_kprintf("before total %d used %d maxused %d\n", total, used, max_used);
 
         uc_wiota_get_system_config(&wiota_config);
-        rt_kprintf("config show %d %d %d %d %d %d %d 0x%x 0x%x\n",
+        rt_kprintf("config show %d %d %d %d %d %d %d 0x%x\n",
                    wiota_config.ap_max_pow, wiota_config.id_len, wiota_config.pp, wiota_config.symbol_length, wiota_config.dlul_ratio,
-                   wiota_config.btvalue, wiota_config.group_number, wiota_config.systemid, wiota_config.subsystemid);
+                   wiota_config.btvalue, wiota_config.group_number, wiota_config.subsystemid);
         // wiota_config.pn_num = 2;  // change config then set
         // wiota_config.symbol_length = 3; // 256,1024
         // wiota_config.ap_max_pow = 14;

@@ -47,6 +47,8 @@ typedef struct DtuInfoT
  */
 void uc_wiota_static_data_init(void);
 
+void uc_wiota_set_dev_addr(unsigned int dev_addr);
+
 /**
  * @brief  set user ID
  *
@@ -145,6 +147,17 @@ void uc_wiota_get_dtu_config(dtu_info_t *cfg);
  * @note   the maximum mumber of frequency point is 16.
  */
 int uc_wiota_set_freq_list(unsigned char *freq_list, unsigned char num);
+
+/**
+ * @brief  set subsystemid list
+ *
+ * @param  subsystemid list
+ * @param  num the number of subsystemid
+ * @return 0: if successfull
+ *         !0: otherwise
+ * @note   the maximum mumber of subsystemid is 6.
+ */
+void uc_wiota_get_subsystemid_list(unsigned int *subsystemid_list);
 
 /**
  * @brief  get frequency point list

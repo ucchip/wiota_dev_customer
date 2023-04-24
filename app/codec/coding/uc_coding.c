@@ -1,10 +1,8 @@
 #include <rtthread.h>
-#if defined(WIOTA_APP_DEMO) || defined(AT_WIOTA_GATEWAY_API)
+#ifdef AT_WIOTA_GATEWAY_API
 #include <uc_coding.h>
 #include "fastlz.h"
-#ifdef AT_WIOTA_GATEWAY_API
 #include "uc_cbor.h"
-#endif
 
 unsigned char app_packet_num(void)
 {
@@ -295,7 +293,6 @@ int app_data_decoding(unsigned char *input_data,
     return 0;
 }
 
-#ifdef AT_WIOTA_GATEWAY_API
 static int app_cmd_auth_req_coding(unsigned char *input_cmd,
                                    unsigned char **output_data,
                                    unsigned int *output_data_len)
@@ -1819,4 +1816,3 @@ int app_cmd_decoding(app_ps_cmd_e input_cmd_type,
     return result;
 }
 #endif
-#endif // defined(WIOTA_APP_DEMO)
