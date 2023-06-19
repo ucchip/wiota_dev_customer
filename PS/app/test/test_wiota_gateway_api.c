@@ -13,6 +13,8 @@
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
 #include "uc_wiota_gateway_api.h"
+#include "uc_wiota_version.h"
+
 // #include "at.h"
 #ifdef _LINUX_
 #include <stdlib.h>
@@ -30,6 +32,9 @@
 static unsigned int network_state = LED_OFF;
 static unsigned int gatway_led_state = LED_OFF;
 static unsigned int gateway_send_state = LEN_TW;
+static unsigned int gateway_recv_count = 0;
+static unsigned int fail_count = 0;
+char test_gateway_send_buf[312] = {0};
 
 #define AUTO_TEST_APP
 
@@ -37,7 +42,9 @@ static unsigned int gateway_send_state = LEN_TW;
 #define TEST_LED_PIN_NUM 2
 #define TEST_GATEWAY_PIN_NUM 3
 #define TEST_GATEWAY_SEND_PIN_NUM 7
+#define TEST_GATEWAY_RECV_PIN_NUM 16
 
+static boolean led_recv_state = RT_FALSE;
 static boolean led_send_state = RT_FALSE;
 static boolean led7_state = RT_FALSE;
 static boolean led3_state = RT_FALSE;
@@ -131,9 +138,35 @@ static void led_send_reversed_state(void)
     }
 }
 
+static void led_recv_off(void)
+{
+    rt_pin_write(TEST_GATEWAY_RECV_PIN_NUM, PIN_LOW);
+    led_recv_state = RT_TRUE;
+}
+
+static void led_recv_on(void)
+{
+    rt_pin_write(TEST_GATEWAY_RECV_PIN_NUM, PIN_HIGH);
+    led_recv_state = RT_FALSE;
+}
+
+static void led_recv_state_fun(void)
+{
+    if (led_recv_state)
+    {
+        led_recv_on();
+    }
+    else
+    {
+        led_recv_off();
+    }
+}
+
 static void wiota_gateway_api_auto_test_task(void *para)
 {
     static int rem = 0;
+    static int recv_rem = 0;
+    int flag = 0;
     rt_kprintf("wiota_gateway_api_auto_test_task on.\n");
     led7_init();
     led3_init();
@@ -176,7 +209,8 @@ static void wiota_gateway_api_auto_test_task(void *para)
                 while ((cout--) > 0)
                 {
                     led_send_reversed_state();
-                    rt_thread_mdelay(300);
+                    rt_thread_mdelay(200);
+                    flag = 1;
                 }
             }
             else
@@ -185,20 +219,42 @@ static void wiota_gateway_api_auto_test_task(void *para)
                 while ((cout--) > 0)
                 {
                     led_send_reversed_state();
-                    rt_thread_mdelay(300);
+                    rt_thread_mdelay(200);
+                    flag = 1;
                 }
             }
             led_send_off();
             rem = gateway_send_state;
         }
-        else
+
+
+        if (gateway_recv_count != recv_rem)
+        {
+            recv_rem = gateway_recv_count;
+            led_recv_state_fun();
             rt_thread_mdelay(200);
+            led_recv_state_fun();
+            rt_thread_mdelay(200);
+            led_recv_off();
+            flag = 1;
+        }
+
+        if (0 == flag)
+        {
+            rt_thread_mdelay(200);
+        }
+        else
+        {
+            flag = 0;
+        }
     }
 }
 #endif
 static void gateway_test_user_recv_data(void *data, unsigned int len, unsigned char data_type)
 {
-    rt_kprintf("+user recv:0x%x, %d, %s\n", data_type, len, data);
+    rt_kprintf("+gateway recv:0x%x, %d, %s\n", data_type, len, data);
+    gateway_recv_count ++;
+    fail_count = 0;
 }
 
 static void user_get_exception_state(unsigned char exception_type)
@@ -227,7 +283,7 @@ static int test_wiota_get_subsystem_id_list(unsigned int *list)
 
     memcpy(list, config.subsystemid_list, sizeof(config.subsystemid_list));
 
-    for (num = 0; num < sizeof(config.subsystemid_list); num++)
+    for (num = 0; num < sizeof(config.subsystemid_list)/sizeof(config.subsystemid_list[0]); num++)
     {
         rt_kprintf("static subsystem_id *(list+%d) 0x%x\n", num, *(list+num));
         if (*(list + num) == (~0) || *(list + num) == 0)
@@ -339,21 +395,28 @@ static char gateway_test_scantf(unsigned int *sub_system_id)
 
 static void gateway_send_data_test(void)
 {
-    char dev_id_buf[16] = {0};
-    unsigned char count = 0;
+    unsigned int count = 0;
+    unsigned int send_succe_count = 0;
     unsigned int delay_time = 0;
     unsigned char serial[16] = {0};
     uc_stats_info_t stats_info_ptr;
-    // int send_counter = 2;
+    unsigned int dev_addr = 0;
+    unsigned int userid[2] = {0};
+    unsigned char userid_len = 0;
+    //static const char *current_version_time_va = TIMESTAMP;
 
-    for (int n = 0; n < 16; n++)
-        dev_id_buf[n] = n;
+    fail_count = 0;
 
     uc_wiota_get_dev_serial(serial);
-
+    dev_addr = ((serial[4] & 0x7f)<< 24)\
+                                    | (serial[5] << 16)\
+                                    | (serial[6] << 8)\
+                                    |  serial[7];    
     delay_time = ((serial[12] << 8) | serial[13]);
-
-    rt_kprintf("gateway_send_data_test start\n");
+    
+    uc_wiota_get_userid(userid, &userid_len);
+   
+    rt_kprintf("gateway_send_data_test start");
 
     while (1)
     {
@@ -367,27 +430,43 @@ static void gateway_send_data_test(void)
                        __FUNCTION__, __LINE__, stats_info_ptr.ul_sm_succ, stats_info_ptr.ul_sm_total, connect_state);
             return;
         }
+        
+        uc_wiota_gateway_state_update_info_msg();
 
+        rt_sprintf(test_gateway_send_buf , "dev:0x%x,userid:0x%x(%u),freq:%d,delay time:%d,send all:%d,send succ:%d,send fail rate:%d,recvcount:%d,rach_fail:%d,active_fail:%d,ul_succ:%d,dl_fail:%d,dl_succ:%d,bc_fail:%d,bc_succ:%d,ul_sm_succ:%d,ul_sm_total:%d", 
+            dev_addr, userid[0], userid[0], uc_wiota_get_freq_info(), delay_time, count, send_succe_count, ((count - send_succe_count) * 100)/count, gateway_recv_count,
+            stats_info_ptr.rach_fail, stats_info_ptr.active_fail, stats_info_ptr.ul_succ, stats_info_ptr.dl_fail, stats_info_ptr.dl_succ, stats_info_ptr.bc_fail, stats_info_ptr.bc_succ,
+            stats_info_ptr.ul_sm_succ, stats_info_ptr.ul_sm_total);
+        
         count++;
-        if (uc_wiota_gateway_send_data(dev_id_buf, 16, 10000) == 0)
+        if (count > 0x1FFFFFFF)
+        {
+            count = 1;
+            send_succe_count = 1;
+         }
+        
+        if (uc_wiota_gateway_send_data(test_gateway_send_buf, rt_strlen(test_gateway_send_buf), 10000) == 0)
         { // fail
             rt_kprintf("uc_wiota_gateway_api_handle send data fail.\n");
             gateway_send_state = ((count << 1) + 1);
+            fail_count ++;
         }
         else
         { //success
             rt_kprintf("uc_wiota_gateway_api_handle send data succ:\n");
-            for (int num = 0; num < 10; num++)
-                rt_kprintf("0x%x ", dev_id_buf[num]);
-            rt_kprintf("\n");
+            rt_kprintf("string:%s\n", test_gateway_send_buf);
             gateway_send_state = (count << 1);
+            fail_count = 0;
+            send_succe_count ++;
         }
-
-        for (int n = 0; n < 16; n++)
-            dev_id_buf[n] += 16;
 
         rt_kprintf("now delay time %d(0x%x)ms. 0 is default 10s\n", delay_time, delay_time);
         rt_thread_mdelay(delay_time == 0 ? 10000 : delay_time);
+        if (fail_count > 10)
+         {
+            rt_kprintf("10 consecutive fail\n");
+            return ;
+         }
     }
 }
 
@@ -516,10 +595,10 @@ void app_wiota_gateway_api_demo()
 #endif
     rt_kprintf("app_wiota_gateway_api_demo beginning...\n");
 
-    task_handle = rt_thread_create("gateway_test",
+    task_handle = rt_thread_create("gw_test",
                                    wiota_gateway_api_test_task,
                                    RT_NULL,
-                                   1024,
+                                   2048,
                                    5,
                                    3);
     if (task_handle != RT_NULL)

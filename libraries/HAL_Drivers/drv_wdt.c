@@ -34,7 +34,8 @@ static rt_err_t watchdog_control(rt_watchdog_t* wdt, int cmd, void* arg)
     {
         /* feed the watchdog */
         case RT_DEVICE_CTRL_WDT_KEEPALIVE:
-            wdt_feed(UC_WATCHDOG);
+            if (1 == uc8088_wdt.is_start)
+                wdt_feed(UC_WATCHDOG);
             break;
 
         /* set watchdog timeout */
@@ -60,6 +61,14 @@ static rt_err_t watchdog_control(rt_watchdog_t* wdt, int cmd, void* arg)
             wdt_enable(UC_WATCHDOG);
             wdt_feed(UC_WATCHDOG);
             uc8088_wdt.is_start = 1;
+            break;
+
+        case RT_DEVICE_CTRL_WDT_STOP:
+            if (1 == uc8088_wdt.is_start)
+            {
+                wdt_disable(UC_WATCHDOG);
+                uc8088_wdt.is_start = 0;
+            }
             break;
 
         default:

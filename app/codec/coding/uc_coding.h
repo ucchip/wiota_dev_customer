@@ -158,8 +158,14 @@ typedef struct
 typedef struct
 {
     char device_type[12];
-    int rssi;
-    int snr;
+    unsigned char freq;
+    unsigned char rssi;
+    signed char snr;
+    signed char cur_power;
+    signed char min_power;
+    signed char max_power;
+    unsigned char cur_mcs;
+    unsigned char max_mcs;
 } app_ps_iote_state_update_t, *app_ps_iote_state_update_p;
 
 unsigned char app_packet_num(void);

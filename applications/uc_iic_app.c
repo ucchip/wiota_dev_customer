@@ -94,7 +94,7 @@ void iic_app_sample(void)
         return;
     }
     
-    ret = read_regs((struct rt_i2c_bus_device *)dev, 4, get_data);
+    ret = read_regs((struct rt_i2c_bus_device *)iic_dev, 4, get_data);
     if(ret != RT_EOK)
     {
         rt_kprintf("iic write data failed!\n");

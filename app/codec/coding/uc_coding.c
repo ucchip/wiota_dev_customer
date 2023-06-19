@@ -49,7 +49,7 @@ int app_data_coding(app_ps_header_t *ps_header,
     unsigned int comp_data_len = 0;
     unsigned char *comp_data = RT_NULL;
 
-    if (ps_header == RT_NULL || input_data_len > APP_MAX_CODING_DATA_LEN)
+    if (ps_header == RT_NULL )
     {
         rt_kprintf("%s, %d input_data error\n", __FUNCTION__, __LINE__);
         return -1;

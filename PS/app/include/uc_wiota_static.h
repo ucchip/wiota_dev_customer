@@ -124,6 +124,20 @@ void uc_wiota_set_is_osc(unsigned char is_osc);
 unsigned char uc_wiota_get_is_osc(void);
 
 /**
+ * @brief  set at baud rate
+ *
+ * @return
+ */
+void uc_wiota_set_at_baud_rate(unsigned int baud_rate);
+
+/**
+ * @brief  get at baud rate
+ *
+ * @return like 115200
+ */
+unsigned int uc_wiota_get_at_baud_rate(void);
+
+/**
  * @brief  get auto connect flag
  *
  * @return the auto connect flag (0 or 1)

@@ -143,6 +143,16 @@ typedef enum
     VOL_MODE_TEMP_MAX,
 } UC_VOL_MODE_E;
 
+typedef enum
+{
+    AWAKENED_CAUSE_HARD_RESET = 0,      // also watchdog reset, spi cs reset
+    AWAKENED_CAUSE_SLEEP = 1,
+    AWAKENED_CAUSE_PAGING = 2,
+    AWAKENED_CAUSE_GATING = 3,          // no need care
+    AWAKENED_CAUSE_FORCED_INTERNAL = 4, // not use
+    AWAKENED_CAUSE_OTHERS,
+} UC_AWAKENED_CAUSE;
+
 typedef struct
 {
     unsigned char rssi; // absolute value, 0~150, always negative
@@ -362,6 +372,15 @@ void uc_wiota_get_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
 
 u16_t uc_wiota_get_awaken_id_limit(u8_t symbol_len);
 
+void uc_wiota_sync_paging_enter();
+
+void uc_wiota_set_outer_32K(boolean is_open);
+
+unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // UC_AWAKENED_CAUSE
+
+u32_t uc_wiota_get_curr_rf_cnt(void);
+
+void uc_wiota_set_tx_mode(u8_t mode);
 
 // below is for inter test !
 
@@ -393,7 +412,7 @@ void set_uboot_log(unsigned char uart_flag, unsigned char log_flag, unsigned cha
 
 void get_uboot_log_set(unsigned char *uart_flag, unsigned char *log_flag, unsigned char *select_flag);
 
-#ifdef AT_WIOTA_GATEWAY_API
+#if 0
 int uc_wiota_set_wiotaid(unsigned int wiotaid);
 #endif
 #endif

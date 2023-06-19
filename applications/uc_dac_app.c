@@ -36,6 +36,7 @@ int dac_app_set_value(rt_uint32_t value)
     
     rt_dac_enable(dac_dev, DAC_DEV_CHANNEL);
     rt_dac_write(dac_dev, DAC_DEV_CHANNEL, value);
+    rt_dac_disable(dac_dev, DAC_DEV_CHANNEL);
     
     return ret;
 }

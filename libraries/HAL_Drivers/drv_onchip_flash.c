@@ -42,9 +42,7 @@ int onchip_flash_read(uint32_t offset, uint8_t* buf, uint32_t size)
         uint8_t order_len = 0;
         uint8_t addr_offset = 0;
         //rt_base_t level;
-        uint8_t* read_buf = RT_NULL;
-
-        read_buf = (uint8_t*)&read_data;
+        uint8_t* read_buf = (uint8_t*)&read_data;
 
         read_addr = ((addr + index) / 4) * 4;
         if ((addr + index) % 4)
@@ -81,17 +79,16 @@ int onchip_flash_read(uint32_t offset, uint8_t* buf, uint32_t size)
         index += order_len;
     }
 
-    return size;
+    return index;
 }
 
 int onchip_flash_write(uint32_t offset, const uint8_t* buf, uint32_t size)
 {
-    rt_err_t result      = RT_EOK;
+    rt_err_t result = RT_EOK;
     uint32_t addr = 0x00000000 + offset;
     rt_uint32_t end_addr = addr + size;
     uint32_t index = 0;
     //LOG_D("write: addr (0x%x), size %d\r\n", (void*)addr, size);
-
     if ((end_addr) > (0x00000000 + (FLASH_SECTOR_SIZE * FLASH_SECTOR_OF_CHIP)))
     {
         LOG_D("write outrange flash size! addr is (0x%p)", (void*)(addr + size));
@@ -112,9 +109,7 @@ int onchip_flash_write(uint32_t offset, const uint8_t* buf, uint32_t size)
         uint8_t order_len = 0;
         uint8_t addr_offset = 0;
         //rt_base_t level;
-        uint8_t* write_buf = RT_NULL;
-
-        write_buf = (uint8_t*)&write_data;
+        uint8_t* write_buf = (uint8_t*)&write_data;
 
         write_addr = ((addr + index) / 4) * 4;
         if ((addr + index) % 4)
@@ -147,24 +142,21 @@ int onchip_flash_write(uint32_t offset, const uint8_t* buf, uint32_t size)
         //rt_hw_interrupt_enable(level);
         int_enable();
 
-#if 1
-        if (1)
+#if 0
+        uint32_t read_back_data = 0;
+        uint8_t* read_back_buf = 0;
+
+        read_back_buf = (uint8_t*)&read_back_data;
+        onchip_flash_read(write_addr, read_back_buf, 4);
+        read_back_data = BSWAP_32(read_back_data);
+
+        if (memcmp(&write_buf[addr_offset], &read_back_buf[addr_offset], order_len) != 0)
         {
-            uint32_t read_back_data = 0;
-            uint8_t* read_back_buf = 0;
-
-            read_back_buf = (uint8_t*)&read_back_data;
-            onchip_flash_read(write_addr, read_back_buf, 4);
-            read_back_data = BSWAP_32(read_back_data);
-
-            if (memcmp(&write_buf[addr_offset], &read_back_buf[addr_offset], order_len) != 0)
-            {
-                LOG_D("write readback Err\r\n");
-                LOG_D("write_data = 0x%08x\r\n", BSWAP_32(write_data));
-                LOG_D("read_back_data = 0x%08x\r\n", BSWAP_32(read_back_data));
-                result = -RT_ERROR;
-                break;
-            }
+            LOG_D("write readback Err\r\n");
+            LOG_D("write_data = 0x%08x\r\n", BSWAP_32(write_data));
+            LOG_D("read_back_data = 0x%08x\r\n", BSWAP_32(read_back_data));
+            result = -RT_ERROR;
+            break;
         }
 #endif
 
@@ -177,15 +169,14 @@ int onchip_flash_write(uint32_t offset, const uint8_t* buf, uint32_t size)
         return result;
     }
 
-    return size;
+    return index;
 }
 
 int onchip_flash_erase(uint32_t offset, uint32_t size)
 {
-    rt_err_t result = RT_EOK;
     uint32_t addr = ((0x00000000 + offset) / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
     uint32_t index = 0;
-    //LOG_D("erase: addr (0x%x), size %d\r\n", (void*)addr, size);
+    // LOG_D("erase: addr (0x%x), size %d\r\n", (void*)addr, size);
 
     for (index = 0; index < size; index += FLASH_SECTOR_SIZE)
     {
@@ -198,13 +189,7 @@ int onchip_flash_erase(uint32_t offset, uint32_t size)
         //rt_hw_interrupt_enable(level);
         int_enable();
     }
-
-    if (result != RT_EOK)
-    {
-        return result;
-    }
-
-    return size;
+    return RT_EOK;
 }
 
 #endif /* BSP_USING_ON_CHIP_FLASH */

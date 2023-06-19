@@ -135,9 +135,11 @@ static at_result_t at_wiota_gateway_api_send_data(const char *args)
     send_state = uc_wiota_gateway_send_data(send_buf, data_len, timeout);
     if(send_state == 0)
     {
+        at_server_printfln("SEND FAIL");
         return AT_RESULT_FAILE;
     }
-
+    
+    at_server_printfln("SEND SUCC");
     return AT_RESULT_OK;
 }
 

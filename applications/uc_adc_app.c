@@ -2,10 +2,10 @@
 #ifdef _ADC_APP_
 #include <rtdevice.h>
 #include "uc_adc_app.h"
+#include "uc_adda.h"
 
 #define ADC_DEVICE_NAME    "adc"
-#define ADC_DEV_CHANNEL     1
-
+#define ADC_DEV_CHANNEL     ADC_CONFIG_CHANNEL_A
 
 static rt_device_t adc_dev = NULL;
 

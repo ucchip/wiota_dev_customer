@@ -36,7 +36,7 @@
 #define FLASH_PAGE_OF_BLOCK     (256)       // Unit:page
 
 #define FLASH_SECTOR_OF_BLOCK   (16)        // Unit:Sector
-#define FLASH_SECTOR_OF_CHIP    (512)       // Unit:Sector
+#define FLASH_SECTOR_OF_CHIP    (128)       // Unit:Sector
 
 #define FLASH_BLOCK_OF_CHIP     (32)        // Unit:Block
 

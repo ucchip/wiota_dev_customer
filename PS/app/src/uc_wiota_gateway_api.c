@@ -142,7 +142,14 @@ static void uc_wiota_gateway_set_dev_address(unsigned int dev_address)
 
 static unsigned int uc_wiota_gateway_get_dev_address(void)
 {
-    return gateway_mode.dev_address;
+    unsigned char serial[16] = {0};
+    //return gateway_mode.dev_address;
+    uc_wiota_get_dev_serial(serial);
+        
+    return (((serial[4] & 0x7f)<< 24)
+                            | (serial[5] << 16)
+                            | (serial[6] << 8)
+                            |  serial[7]);
 }
 
 boolean uc_wiota_gateway_get_reboot_flag(void)
@@ -325,24 +332,12 @@ static int uc_wiota_gateway_send_auth_req(void)
     int ret = 0;
     app_ps_auth_req_t auth_req_data = {0};
     app_ps_header_t ps_header = {0};
-    // unsigned int src_addr = 0;
-    // unsigned char src_addr_len = 0;
-    unsigned char serial[16] = {0};
 
     auth_req_data.auth_type = 0;
     rt_strncpy(auth_req_data.aut_code, gateway_mode.auth_code, rt_strlen(gateway_mode.auth_code));
     rt_strncpy((char *)auth_req_data.freq, (const char*)gw_freq_list, APP_CONNECT_FREQ_NUM);
 
     app_set_header_property(PRO_SRC_ADDR, 1, &ps_header.property);
-    //uc_wiota_get_userid(&src_addr, &src_addr_len);
-    uc_wiota_get_dev_serial(serial);
-
-    unsigned int userid = ((serial[4] & 0x7f)<< 24)\
-                        | (serial[5] << 16)\
-                        | (serial[6] << 8)\
-                        |  serial[7];
-
-    uc_wiota_gateway_set_dev_address(userid);
 
     ps_header.addr.src_addr = uc_wiota_gateway_get_dev_address();
     ps_header.cmd_type = AUTHENTICATION_REQ;
@@ -397,7 +392,7 @@ static void uc_wiota_gateway_auth_res_msg(unsigned char *data, unsigned int data
         {
             rt_thread_delay(150);
             uc_wiota_disconnect();
-            uc_wiota_set_wiotaid(auth_res_data->wiota_id);
+            uc_wiota_set_userid(&auth_res_data->wiota_id, (unsigned char)sizeof(auth_res_data->wiota_id));
             uc_wiota_connect();
             rt_thread_delay(200);
             if ( 0 == uc_gateway_check_connect_state())
@@ -889,6 +884,7 @@ static int uc_wiota_gateway_set_id()
     rt_kprintf("user id 0x%x\n", dev_id);
     uc_wiota_get_userid(&userid, &len);
 
+
     if (dev_id != userid)
     {
         int count = 0;
@@ -1038,7 +1034,7 @@ int uc_wiota_gateway_start(uc_gatway_mode_e mode, char *auth_key, unsigned char 
                 {
                     rt_thread_mdelay(10);
                     delay_count++;
-                    if(delay_count >= 2000)
+                    if(delay_count >= 600)
                     {
                         rt_kprintf("uc_wiota_gateway_start timeout type %d.\n", gateway_mode.gateway_handler->type);
                         uc_gateway_clean_data();
@@ -1151,8 +1147,15 @@ int uc_wiota_gateway_state_update_info_msg(void)
         uc_wiota_get_radio_info(&radio);
 
         rt_strncpy(state_update_data.device_type, device_type, rt_strlen(device_type));
+        state_update_data.freq = uc_wiota_get_freq_info();
+        
         state_update_data.rssi = radio.rssi;
         state_update_data.snr = radio.snr;
+        state_update_data.cur_power = radio.cur_power;
+        state_update_data.min_power = radio.min_power;
+        state_update_data.max_power = radio.max_power;
+        state_update_data.cur_mcs = radio.cur_mcs;
+        state_update_data.max_mcs = radio.max_mcs;
 
         app_set_header_property(PRO_SRC_ADDR, 1, &ps_header.property);
         ps_header.cmd_type = IOTE_STATE_UPDATE;
@@ -1324,4 +1327,3 @@ static void uc_wiota_gateway_api_handle(void *para)
 #endif  // AT_WIOTA_GATEWAY_API
 // #endif  // RT_USING_AT
 // #endif  // UC8288_MODULE
-

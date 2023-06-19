@@ -42,6 +42,9 @@ if GetDepend(['RT_USING_I2C']):
     if GetDepend(['RT_USING_I2C_BITOPS']):
         src += ['drv_soft_i2c.c']
 
+if GetDepend(['_SPI_FLASH_APP_']):
+    src += ['drv_onchip_flash.c']
+
 path = [cwd]
 
 group = DefineGroup('HAL_Drivers', src, depend = [''], CPPPATH = path)

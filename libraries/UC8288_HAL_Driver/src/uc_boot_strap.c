@@ -50,6 +50,7 @@ uint16_t auto_dummy = 3;
 #define reg_freq_div   ((volatile uint32_t *) 0x1a10a00c)
 #define cce_mode_ctrl  ((volatile uint32_t *) 0x1a10a038)
 #define paging_exit    ((volatile uint32_t *) 0x3b0c10)
+#define pmu_ctrl       ((volatile uint32_t *) 0x1a10a000)
 
 
 #define SPI_START(cmd)  (*reg_spi_status = (1<<(SPI_CSN0+8))|(1<<(cmd))); //start
@@ -310,8 +311,9 @@ __critical_128 void boot_strap()
     *(reg_dcxo_ctrl2) |= (1 << 16);
     *(reg_freq_div) &= (0xFFFFFFF1);
     *(cce_mode_ctrl) = 0;
-    *(paging_exit) |= (1);
+    *(paging_exit) |= (1);  // clear paging
     *(cce_mode_ctrl) = 8;
+    *(pmu_ctrl) &= ~(1 << 1); // clear sleep
 
     //should add some delay here
     xip_switch_mode();

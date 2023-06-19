@@ -22,6 +22,12 @@ if RT_USING_DAC
         default n
 endif
 
+if RT_USING_I2C
+    config _IIC_APP_
+        bool "open i2c, default close(_IIC_APP_)"
+        default n
+endif
+
 if RT_USING_PIN
     config _PIN_APP_
         bool "open pin, default close(_PIN_APP_)"
@@ -45,5 +51,23 @@ if RT_USING_PWM
         bool "open pwm, default close(_PWM_APP_)"
         default n
 endif
+
+config _SPI_FLASH_APP_
+    bool "open spi, default close(_SPI_FLASH_APP_)"
+    default n
+
+if RT_USING_SPI
+    config _SPIM_FLASH_APP_
+        bool "open spi master, default close(_SPIM_FLASH_APP_)"
+        default n
+endif
+
+config _RS485_APP_
+    bool "open rs485, default close(_RS485_APP_)"
+    default n
+
+config _UART_APP_
+    bool "open uart, default close(_UART_APP_)"
+    default n
 
 endmenu
