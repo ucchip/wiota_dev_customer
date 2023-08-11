@@ -145,6 +145,14 @@ unsigned int uc_wiota_get_at_baud_rate(void);
 unsigned char uc_wiota_get_auto_connect_flag(void);
 
 /**
+ * @brief  set auto_connect flag
+ *
+ * @param  auto_connect theauto_connect flag
+ */
+
+void uc_wiota_set_auto_connect(u8_t auto_connect);
+
+/**
  * @brief  get DTU config
  *
  * @param  cfg the DTU config information

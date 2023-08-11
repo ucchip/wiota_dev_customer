@@ -1,3 +1,4 @@
+#if 0
 
 /*
  * Copyright (c) 2006-2020, RT-Thread Development Team
@@ -23,7 +24,6 @@
 #include "uc_string_lib.h"
 #endif
 
-#ifdef AT_WIOTA_GATEWAY_API
 
 #define LED_ON 0
 #define LEN_TW 1
@@ -35,6 +35,7 @@ static unsigned int gateway_send_state = LEN_TW;
 static unsigned int gateway_recv_count = 0;
 static unsigned int fail_count = 0;
 char test_gateway_send_buf[312] = {0};
+char test_gateway_send_allow = 0;
 
 #define AUTO_TEST_APP
 
@@ -257,9 +258,22 @@ static void gateway_test_user_recv_data(void *data, unsigned int len, unsigned c
     fail_count = 0;
 }
 
-static void user_get_exception_state(unsigned char exception_type)
+static void test_user_get_exception_state(unsigned char exception_type)
 {
-    //rt_kprintf("gateway excxption type:0x%x\n", exception_type);
+    const char exception_string[5][24] = {
+        "GATEWAY_DEFAULT",
+        "GATEWAY_NORMAL",
+        "GATEWAY_FAILED",
+        "GATEWAY_END",
+        "GATEWAY_RECONNECT"
+        };
+
+    rt_kprintf("+GATEWAYSTATE:%s\n", exception_string[exception_type]);
+
+    if (GATEWAY_NORMAL != exception_type)
+    {
+        test_gateway_send_allow = 0;
+    }
 }
 
 static int gateway_get_static_freq(char *list)
@@ -301,7 +315,7 @@ static int test_wiota_get_subsystem_id_list(unsigned int *list)
     return num;
 }
 
-static char gateway_test_scantf(unsigned int *sub_system_id)
+static char gateway_test_scantf(unsigned int *sub_system_id, unsigned char *available_freq_list)
 {
     unsigned char freq = 0xFF;
     char rssi;
@@ -369,6 +383,8 @@ static char gateway_test_scantf(unsigned int *sub_system_id)
             {
                 if (freq_info->is_synced)
                 {
+                   // rt_kprintf("%s line %d freq_idx %d\n", __FUNCTION__, __LINE__, freq_info->freq_idx);
+                                            
                     if (freq == 0xFF)
                     {
                         freq = freq_info->freq_idx;
@@ -380,6 +396,25 @@ static char gateway_test_scantf(unsigned int *sub_system_id)
                         freq = freq_info->freq_idx;
                         rssi = freq_info->rssi;
                         *sub_system_id = subsystem_id_list[num % subsystem_id_len];
+                    }
+                    
+                     for (int n = 0; n < 8; n++)
+                    {
+                        //rt_kprintf("gateway available_freq_list[%d] = %d\n", n, available_freq_list[n]);
+                        if (available_freq_list[n] != 255 && available_freq_list[n] != 0 )
+                        {
+                            //rt_kprintf("%s line %d\n", __FUNCTION__, __LINE__);
+                            if ( *(available_freq_list + n) == freq_info->freq_idx)
+                            {
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            //rt_kprintf("%s line %d\n", __FUNCTION__, __LINE__);
+                            available_freq_list[n] = freq_info->freq_idx;
+                            break;
+                        }
                     }
                 }
             }
@@ -406,6 +441,7 @@ static void gateway_send_data_test(void)
     //static const char *current_version_time_va = TIMESTAMP;
 
     fail_count = 0;
+    test_gateway_send_allow = 0;
 
     uc_wiota_get_dev_serial(serial);
     dev_addr = ((serial[4] & 0x7f)<< 24)\
@@ -417,7 +453,7 @@ static void gateway_send_data_test(void)
     uc_wiota_get_userid(userid, &userid_len);
    
     rt_kprintf("gateway_send_data_test start");
-
+    
     while (1)
     {
         UC_WIOTA_STATUS connect_state = uc_wiota_get_state();
@@ -505,22 +541,26 @@ static void wiota_gateway_api_test_task(void *para)
     int result = 0;
     unsigned int sub_system_id = 0;
     sub_system_config_t config;
+    unsigned char available_freq_list[8] = {0};
+    unsigned char serial[16] = {0};
 
     uc_wiota_log_switch(UC_LOG_UART, 1);
 
+    uc_wiota_get_dev_serial(serial);
+    
     network_state = LEN_TW;
 
     while (1)
     {
         //uc_gateway_state_t state;
-
+        memset(available_freq_list, 0, 8);
 
         network_state = LEN_TW;
         gatway_led_state = LED_OFF;
         gateway_test_heap();
         //mem_test_trace();
 
-        freq = gateway_test_scantf(&sub_system_id);
+        freq = gateway_test_scantf(&sub_system_id, available_freq_list);
         if (0xFF == freq)
         {
             rt_kprintf("gateway_test_scantf fail\n");
@@ -548,8 +588,11 @@ static void wiota_gateway_api_test_task(void *para)
 
         network_state = LED_ON;
         gatway_led_state = LEN_TW;
-
-        result = uc_wiota_gateway_start(UC_GATEWAY_MODE, "123456", RT_NULL);
+        
+        result = uc_wiota_gateway_start(
+            0 == serial[14] ? UC_GATEWAY_MODE: UC_TRANSMISSION_MODE, 
+            "123456", 
+            available_freq_list);
         rt_kprintf("%s line %d result %d\n", __FUNCTION__, __LINE__, result);
         switch (result)
         {
@@ -564,7 +607,7 @@ static void wiota_gateway_api_test_task(void *para)
             continue;
         }
 
-        uc_wiota_gateway_register_user_recv_cb(gateway_test_user_recv_data, user_get_exception_state);
+        uc_wiota_gateway_register_user_recv_cb(gateway_test_user_recv_data, test_user_get_exception_state);
 
         gateway_send_data_test();
 

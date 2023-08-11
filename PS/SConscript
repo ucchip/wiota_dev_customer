@@ -3,17 +3,12 @@ from building import *
 cwd = GetCurrentDir()
 
 path = [cwd + '/app/include']
-path += [cwd + '/app/test']
+path += [cwd + '/test']
+path += [cwd + '/at/']
 
 src = Glob('app/test/*.c')
 src += Glob('app/src/*.c')
-
-if GetDepend(['RT_USING_AT','UC8288_MODULE']):
-    src += ['at/at_wiota.c', 'at/at_boot.c', 'at/at_wiota_auto_manager.c', 'at/at_wiota_gateway_api.c']
-    path += [cwd + '/at']
-
-    if GetDepend(['UC8288_FACTORY']):
-        src += ['at/at_factory.c']
+src += Glob('at/*.c')
 
 lib = ['libwin_wiota_dev']
 libpath = [cwd + '/lib']

@@ -75,5 +75,6 @@ char uc_uart_getchar(UART_TYPE* uartx, uint8_t* get_char);
 void uc_uart_sendchar(UART_TYPE* uartx, const char c);
 uint8_t uc_uart_get_intrxflag(UART_TYPE* uartx);
 void uc_uart_enable_intrx(UART_TYPE* uartx, uint8_t ctrl);
+void uc_uartx_wait_tx_done(UART_TYPE *uartx);
 
 #endif

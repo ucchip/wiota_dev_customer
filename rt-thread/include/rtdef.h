@@ -967,6 +967,8 @@ enum rt_device_class_type
 #define RT_DEVICE_CTRL_RTC_GET_ALARM    0x12            /**< get alarm */
 #define RT_DEVICE_CTRL_RTC_SET_ALARM    0x13            /**< set alarm */
 
+#define RT_DEVICE_CTRL_WAIT_TX_DONE     0x15            /**< wait until data send over*/
+
 typedef struct rt_device* rt_device_t;
 
 #ifdef RT_USING_DEVICE_OPS

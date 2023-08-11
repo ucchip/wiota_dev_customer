@@ -66,6 +66,13 @@
 #include "uc_spi_flash_app.h"
 #endif
 
+#ifdef _SPIM_FLASH_APP_
+#include "uc_spim_flash_app.h"
+#endif
+
+#ifdef _RS485_APP_
+#include "uc_rs485_app.h"
+#endif
 
 extern void uc_wiota_static_data_init(void);
 
@@ -119,6 +126,10 @@ void app_test(void)
     spi_flash_app_sample();
 #endif
 
+#ifdef _SPIM_FLASH_APP_
+    spim_flash_app_sample();
+#endif
+
 #ifdef _RS485_APP_
     rs485_app_sample();
 #endif
@@ -150,13 +161,6 @@ int main(void)
 #endif
 #else
     app_task_init();
-#endif
-
-
-#ifdef AT_WIOTA_GATEWAY_API
-#ifndef AT_WIOTA_GATEWAY
-    app_wiota_gateway_api_demo();
-#endif
 #endif
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)

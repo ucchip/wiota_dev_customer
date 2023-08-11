@@ -47,7 +47,7 @@ static at_result_t at_wiota_gateway_api_init(const char *args)
     args = parse((char *)(++args), "d,s", &mode, AUTH_KEY_LEN, auth_key);
     if (!args)
     {
-        rt_kprintf("at_wiota_gateway_api_init error para.\n");
+        rt_kprintf("gw error para.\n");
         return AT_RESULT_PARSE_FAILE;
     }
 
@@ -69,7 +69,7 @@ static at_result_t at_wiota_gateway_api_init(const char *args)
     
     init_state = uc_wiota_gateway_start(mode, auth_key, list);
     
-    rt_kprintf("%s line %d init_state %d\n", __FUNCTION__, __LINE__, init_state);
+    //rt_kprintf("%s line %d init_state %d\n", __FUNCTION__, __LINE__, init_state);
     rt_thread_delay(2);
     if(UC_GATEWAY_OK == init_state)
     {
@@ -113,7 +113,7 @@ static at_result_t at_wiota_gateway_api_send_data(const char *args)
 
     if (buf_len > GATEWAY_SEND_MAX_LEN)
     {
-        rt_kprintf("buf_len %d error\n", buf_len);
+        rt_kprintf("len %d error\n", buf_len);
         return AT_RESULT_PARSE_FAILE;
     }
     

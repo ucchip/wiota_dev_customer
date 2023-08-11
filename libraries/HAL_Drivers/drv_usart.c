@@ -196,6 +196,10 @@ static rt_err_t usart_control(struct rt_serial_device* serial, int cmd, void* ar
             /* enable interrupt */
             IER |= uart->config->irq_type;
             break;
+		
+		case RT_DEVICE_CTRL_WAIT_TX_DONE:
+        	uc_uartx_wait_tx_done(uart->handle);
+			break;
     }
 
     return RT_EOK;

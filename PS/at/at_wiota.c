@@ -21,6 +21,8 @@
 #include "uc_adda.h"
 //#include "uc_boot_download.h"
 #include "at_wiota.h"
+#include "uc_uart.h"
+#include "at_wiota_gpio_report.h"
 
 const u16_t symLen_mcs_byte[4][8] = {{7, 9, 52, 66, 80, 0, 0, 0},
                                      {7, 15, 22, 52, 108, 157, 192, 0},
@@ -36,6 +38,8 @@ enum at_wiota_lpm
     AT_WIOTA_FREQ_DIV,  // 4
     AT_WIOTA_VOL_MODE,  // 5
     AT_WIOTA_SYNC_PAGING, // 6, sync paging, need sync ok, then enter
+    AT_WIOTA_PAGING_TIMINT, // 7, sync paging, need sync ok, then enter
+    AT_WIOTA_LPM_MAX,
 };
 
 enum at_wiota_log
@@ -201,6 +205,8 @@ typedef struct at_test_communication
 extern dtu_send_t g_dtu_send;
 extern at_server_t at_get_server(void);
 extern char *parse(char *b, char *f, ...);
+extern void reset_8288(void);
+extern void at_wiota_manager_suspend(void);
 static u8_t at_test_mode_wiota_recv_fun(uc_recv_back_p recv_data);
 
 static int wiota_state = AT_WIOTA_DEFAULT;
@@ -219,6 +225,34 @@ static rt_err_t get_char_timeout(rt_tick_t timeout, char *chr)
 {
     at_server_t at_server = at_get_server();
     return at_server->get_char(at_server, chr, timeout);
+}
+
+static at_result_t at_auto_connect_query(void)
+{
+    at_server_printfln("+AUTOCONNECT=%d", uc_wiota_get_auto_connect_flag());
+    return AT_RESULT_OK;
+}
+
+static at_result_t at_auto_connect_setup(const char *args)
+{
+    int value = 0;
+
+    args = parse((char *)(++args), "d", &value);
+
+    uc_wiota_set_auto_connect(value & 0x1);
+
+    at_wiota_manager_suspend();
+
+    if (uc_wiota_execute_state() == MODULE_STATE_RUN)
+        uc_wiota_exit();
+    else
+        uc_wiota_save_static_info();
+
+    at_server_printfln("OK");
+
+    reset_8288();
+
+    return AT_RESULT_OK;
 }
 
 static at_result_t at_wiota_version_query(void)
@@ -602,7 +636,7 @@ static at_result_t at_radio_query(void)
 
     if (AT_WIOTA_RUN != wiota_state)
     {
-        rt_kprintf("%s line %d wiota state error %d\n", __FUNCTION__, __LINE__, wiota_state);
+        rt_kprintf("wiota state error %d\n", wiota_state);
         return AT_RESULT_FAILE;
     }
 
@@ -729,7 +763,7 @@ static u8_t at_test_mode_wiota_recv_fun(uc_recv_back_p recv_data)
     //at_send_queue(g_test_data.test_queue, data,  2000);
     if (RT_EOK != re)
     {
-        rt_kprintf("%s line %d rt_mq_send error %d\n", __FUNCTION__, __LINE__, re);
+        rt_kprintf("rt_mq_send error %d\n", re);
         rt_free(copy_recv_data);
         rt_free(queue_data);
 
@@ -744,7 +778,11 @@ void wiota_recv_callback(uc_recv_back_p data)
 {
     // rt_kprintf("wiota_recv_callback result %d\n", data->result);
 
-    if (0 == data->result)
+    if (0 != data->result)
+    {
+        return;
+    }
+    if (WIOTA_MODE_OUT_UART == wiota_gpio_mode_get())
     {
         if (/*g_test_data.time > 0 && */ at_test_mode_wiota_recv_fun(data))
             return;
@@ -784,6 +822,11 @@ void wiota_recv_callback(uc_recv_back_p data)
             at_server_printfln("");
         }
         rt_free(data->data);
+
+    } // ~if (WIOTA_MODE_OUT_UART == wiota_gpio_mode_get())
+    else
+    {
+        wiota_data_insert(data);
     }
 }
 
@@ -847,9 +890,13 @@ static at_result_t at_connect_setup(const char *args)
     if (timeout)
         uc_wiota_set_active_time((unsigned int)timeout);
 
-    if (state)
+    if (1 == state)
     {
         uc_wiota_connect();
+    }
+    else if (2 == state)
+    {
+        uc_wiota_connect_quick();
     }
     else
     {
@@ -1375,13 +1422,15 @@ static at_result_t at_wiotalpm_setup(const char *args)
     case AT_WIOTA_SLEEP:
     {
         at_server_printfln("OK");
+        uart_wait_tx_done();
         uc_wiota_sleep_enter((unsigned char)value, (unsigned char)value2);
         break;
     }
     case AT_WIOTA_PAGING_RX:
     {
         at_server_printfln("OK");
-        uc_wiota_paging_rx_enter((unsigned char)value);
+        uart_wait_tx_done();
+        uc_wiota_paging_rx_enter((unsigned char)value, (unsigned int)value2);
         break;
     }
     case AT_WIOTA_CLOCK:
@@ -1407,7 +1456,17 @@ static at_result_t at_wiotalpm_setup(const char *args)
     case AT_WIOTA_SYNC_PAGING:
     {
         WIOTA_MUST_RUN(wiota_state)
-        uc_wiota_sync_paging_enter();
+        at_server_printfln("OK");
+        uart_wait_tx_done();
+        uc_wiota_sync_paging_enter(0, 0, (unsigned int)value, (unsigned int)value2);
+        break;
+    }
+    case AT_WIOTA_PAGING_TIMINT:
+    {
+        WIOTA_MUST_RUN(wiota_state)
+        at_server_printfln("OK");
+        uart_wait_tx_done();
+        uc_wiota_sync_paging_enter(1, (unsigned int)value, 0, (unsigned int)value2);
         break;
     }
     default:
@@ -1741,7 +1800,7 @@ static void at_test_mode_task_fun(void *parameter)
         if (RT_EOK == rt_mq_recv(test_data->test_queue, &queue_data_on, 4, 100)) // RT_WAITING_NO
         {
             recv_queue_data = (t_at_test_queue_data *)queue_data_on;
-            rt_kprintf("data->type = %d\n", recv_queue_data->type);
+            rt_kprintf("type = %d\n", recv_queue_data->type);
 
             switch ((int)recv_queue_data->type)
             {
@@ -1765,7 +1824,7 @@ static void at_test_mode_task_fun(void *parameter)
                         memcpy(communication, communication_data, communication_data->all_len);
                         if (RT_NULL == communication)
                         {
-                            rt_kprintf("at_test_mode_task_fun line %d rt_malloc error\n", __LINE__);
+                            rt_kprintf("rt_malloc error\n");
                             return;
                         }
                     }
@@ -1871,7 +1930,7 @@ static at_result_t at_test_mode_start_setup(const char *args)
 
     if (g_test_data.time > 0)
     {
-        rt_kprintf("%s line %d repeated use\n", __FUNCTION__, __LINE__);
+        rt_kprintf("repeated use\n");
         return AT_RESULT_PARSE_FAILE;
     }
 
@@ -1889,7 +1948,7 @@ static at_result_t at_test_mode_start_setup(const char *args)
 
         if (RT_NULL == g_test_data.test_mode_timer)
         {
-            rt_kprintf("%s line %d rt_timer_create error\n", __FUNCTION__, __LINE__);
+            rt_kprintf("rt_timer_create error\n");
             return AT_RESULT_PARSE_FAILE;
         }
     }
@@ -1912,7 +1971,7 @@ static at_result_t at_test_mode_start_setup(const char *args)
         g_test_data.test_queue = rt_mq_create("teMode", 4, 8, RT_IPC_FLAG_PRIO);
         if (RT_NULL == g_test_data.test_queue)
         {
-            rt_kprintf("%s line %d at_create_queue error\n", __FUNCTION__, __LINE__);
+            rt_kprintf("create_queue error\n");
             return AT_RESULT_PARSE_FAILE;
         }
 
@@ -1933,7 +1992,7 @@ static at_result_t at_test_mode_start_setup(const char *args)
                                                       3);
         if (RT_NULL == g_test_data.test_mode_task)
         {
-            rt_kprintf("%s line %d rt_thread_create error\n", __FUNCTION__, __LINE__);
+            rt_kprintf("thread_create error\n");
             return AT_RESULT_PARSE_FAILE;
         }
         rt_thread_startup(g_test_data.test_mode_task);
@@ -1965,7 +2024,7 @@ static at_result_t at_test_mode_stop_exec(void)
 
         if (g_test_data.time < 1)
         {
-            rt_kprintf("%s line %d no run\n", __FUNCTION__, __LINE__);
+            rt_kprintf("no run\n");
             return AT_RESULT_PARSE_FAILE;
         }
 
@@ -1975,7 +2034,7 @@ static at_result_t at_test_mode_stop_exec(void)
 
         if (RT_NULL == data)
         {
-            rt_kprintf("%s line %d rt_malloc error\n", __FUNCTION__, __LINE__);
+            rt_kprintf("malloc error\n");
             return AT_RESULT_PARSE_FAILE;
         }
         data->type = AT_TEST_MODE_QUEUE_EXIT;
@@ -1984,7 +2043,7 @@ static at_result_t at_test_mode_stop_exec(void)
         rt_err_t res = rt_mq_send_wait(g_test_data.test_queue, &send_data_address, 4, 1000);
         if (0 != res)
         {
-            rt_kprintf("%s line %d rt_mq_send_wait error\n", __FUNCTION__, __LINE__);
+            rt_kprintf("mq_send_wait error\n");
             rt_free(data);
             return AT_RESULT_PARSE_FAILE;
         }
@@ -1992,7 +2051,7 @@ static at_result_t at_test_mode_stop_exec(void)
         //wait  RT_WAITING_FOREVER
         if (RT_EOK != rt_sem_take(g_test_data.test_sem, RT_WAITING_FOREVER))
         {
-            rt_kprintf("%s line %d rt_sem_take error\n", __FUNCTION__, __LINE__);
+            rt_kprintf("sem_take error\n");
             return AT_RESULT_PARSE_FAILE;
         }
 
@@ -2100,7 +2159,7 @@ static at_result_t at_paging_rx_config_query(void)
                        config.freq, config.spectrum_idx, config.bandwidth,
                        config.symbol_length, config.awaken_id, config.detect_period,
                        config.lpm_nlen, config.lpm_utimes, config.threshold,
-                       config.extra_flag,  config.extra_period);
+                       config.extra_flag, config.extra_period);
 
     return AT_RESULT_OK;
 }
@@ -2110,7 +2169,7 @@ static at_result_t at_paging_rx_config_setup(const char *args)
     uc_lpm_rx_cfg_t config = {0};
     unsigned int temp[11];
 
-    WIOTA_MUST_ALREADY_INIT(wiota_state)
+    // WIOTA_MUST_ALREADY_INIT(wiota_state)
 
     args = parse((char *)(++args), "d,d,d,d,d,d,d,d,d,d,d",
                  &temp[0], &temp[1], &temp[2], &temp[3], &temp[4], &temp[5], &temp[6], &temp[7], &temp[8], &temp[9], &temp[10]);
@@ -2155,6 +2214,46 @@ static at_result_t at_wiotatxmode_setup(const char *args)
     return AT_RESULT_OK;
 }
 
+static at_result_t at_wiota_hard_switch_state_exec(void)
+{
+    uc_wiota_hard_switch_to_active();
+    return AT_RESULT_OK;
+}
+
+static at_result_t at_memory_query(void)
+{
+    unsigned int total = 0;
+    unsigned int used = 0;
+    unsigned int max_used = 0;
+#ifndef RT_USING_MEMHEAP_AS_HEAP
+#if defined(RT_USING_HEAP) && defined(RT_USING_SMALL_MEM)
+    rt_memory_info(&total, &used, &max_used);
+    rt_kprintf("total %d used %d maxused %d\n", total, used, max_used);
+#endif
+#endif
+
+    at_server_printfln("+MEMORY=%d,%d,%d", total, used, max_used);
+
+    return AT_RESULT_OK;
+}
+
+static at_result_t at_wiota32k_setup(const char *args)
+{
+    int mode = 0;
+
+    args = parse((char *)(++args), "d", &mode);
+
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    uc_wiota_set_outer_32K((unsigned char)mode);
+
+    return AT_RESULT_OK;
+}
+
+AT_CMD_EXPORT("AT+AUTOCONNECT", "<value>", RT_NULL, at_auto_connect_query, at_auto_connect_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAVERSION", RT_NULL, RT_NULL, at_wiota_version_query, RT_NULL, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_init_exec);
 AT_CMD_EXPORT("AT+WIOTALPM", "=<mode>,<value>,<value2>", RT_NULL, RT_NULL, at_wiotalpm_setup, RT_NULL);
@@ -2187,6 +2286,9 @@ AT_CMD_EXPORT("AT+WIOTABITSCB", "=<mode>", RT_NULL, RT_NULL, at_wiotabitscb_setu
 AT_CMD_EXPORT("AT+WIOTAMULTCAST", "=<multID0>,<multID1>,<multID2>", RT_NULL, RT_NULL, at_wiotamultcast_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAPAGINGRX", "=<freq>,<spec_idx>,<band>,<symbol>,<awaken_id>,<detect_period>,<nlen>,<utimes>,<thres>,<extra_flag>,<extra_period>",
               RT_NULL, at_paging_rx_config_query, at_paging_rx_config_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTAHARDSWITCH", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_hard_switch_state_exec);
+AT_CMD_EXPORT("AT+WIOTACKMEM", "=<total>,<used>,<maxused>", RT_NULL, at_memory_query, RT_NULL, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTAOUTERK", "=<mode>", RT_NULL, RT_NULL, at_wiota32k_setup, RT_NULL);
 
 #endif //UC8288_MODULE
 #endif // RT_USING_AT

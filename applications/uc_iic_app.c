@@ -2,6 +2,7 @@
 #ifdef _IIC_APP_
 #include <rtdevice.h>
 #include "uc_iic_app.h"
+#include "drivers/i2c.h"
 
 #define IIC_DEVICE_NAME    "hw_i2c"
 #define AT24C02_ADDR 0xA0

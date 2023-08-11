@@ -79,7 +79,7 @@ void FlashPageRead(uint32_t nAddr, uint8_t* pData, uint16_t usLen);
 uint32_t Flash_Read_SR();
 void Flash_Write_SR(uint8_t status);
 
-void FlashEraseSecurity(void);
+void FlashEraseSecurity(uint8_t mode);
 void FlashWriteSecurity(uint32_t rigister_num, uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
 void FlashProgramSecurity(uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
 void FlashReadSecurity(uint32_t rigister_num, uint32_t nAddr, uint8_t* pData, uint16_t usLen);

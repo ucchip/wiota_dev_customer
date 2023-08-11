@@ -10,15 +10,15 @@ if RT_USING_ADC
         default n
 endif
 
-if RT_USING_CAN
-    config _CAN_APP_
-        bool "open can, default close(_CAN_APP_)"
-        default n
-endif
-
 if RT_USING_DAC
     config _DAC_APP_
         bool "open dac, default close(_DAC_APP_)"
+        default n
+endif
+
+if RT_USING_CAN
+    config _CAN_APP_
+        bool "open can, default close(_CAN_APP_)"
         default n
 endif
 
@@ -62,9 +62,11 @@ if RT_USING_SPI
         default n
 endif
 
-config _RS485_APP_
-    bool "open rs485, default close(_RS485_APP_)"
-    default n
+if RT_USING_SERIAL
+    config _RS485_APP_
+        bool "open rs485, default close(_RS485_APP_)"
+        default n
+endif
 
 config _UART_APP_
     bool "open uart, default close(_UART_APP_)"

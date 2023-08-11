@@ -28,10 +28,10 @@
 
 
 /*------- spi master driver config -------*/
-//#define BSP_USING_SOFTWARE_SPIM
-//#define BSP_SPIM_MOSI_PIN    GET_PIN(A, 3)//"A3"
-//#define BSP_SPIM_MISO_PIN    GET_PIN(A, 2)//"A2"
-//#define BSP_SPIM_SCK_PIN     GET_PIN(A, 0)//"A0"
+// #define BSP_USING_SOFTWARE_SPIM
+// #define BSP_SPIM_MOSI_PIN    GET_PIN(A, 10)   //"A10"
+// #define BSP_SPIM_MISO_PIN    GET_PIN(A, 9)    //"A9"
+// #define BSP_SPIM_SCK_PIN     GET_PIN(A, 8)    //"A8"
 //#define BSP_SPIM_TX_USING_DMA
 //#define BSP_SPIM_RX_USING_DMA
 

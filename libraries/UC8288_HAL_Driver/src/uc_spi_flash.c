@@ -190,9 +190,14 @@ __critical void Flash_Write_SR(uint8_t status)
     WAIT_FOR_WR_DONE;
 }
 
-__critical void FlashEraseSecurity(void)
+__critical void FlashEraseSecurity(uint8_t mode)
 {
     uint32_t nBaseAddr = 0;
+
+    if (0 == mode)
+    {
+        return;
+    }
 
     WAIT_FOR_WR_DONE;
     //  Flash_Read_SR();

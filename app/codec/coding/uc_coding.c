@@ -4,19 +4,20 @@
 #include "fastlz.h"
 #include "uc_cbor.h"
 
+#if 0
 unsigned char app_packet_num(void)
 {
     static unsigned char packet_num = 0;
     return packet_num++;
 }
-
+#endif
 void app_set_header_property(header_property_e bit, unsigned char value, app_ps_property_t *ps_property)
 {
     unsigned char *property = (unsigned char *)ps_property;
 
     if (bit > PRO_SRC_ADDR)
     {
-        rt_kprintf("%s, %d bit error\n", __FUNCTION__, __LINE__);
+        rt_kprintf("bit error\n");
         return;
     }
 
@@ -51,7 +52,7 @@ int app_data_coding(app_ps_header_t *ps_header,
 
     if (ps_header == RT_NULL )
     {
-        rt_kprintf("%s, %d input_data error\n", __FUNCTION__, __LINE__);
+        //rt_kprintf("input_data error\n");
         return -1;
     }
 
@@ -59,7 +60,7 @@ int app_data_coding(app_ps_header_t *ps_header,
     buf = (unsigned char *)rt_malloc(buf_len + 4);
     if (RT_NULL == buf)
     {
-        rt_kprintf("%s, %d malloc fail\n", __FUNCTION__, __LINE__);
+        //rt_kprintf("app code malloc fail\n");
         return -2;
     }
     rt_memset(buf, 0, buf_len);
@@ -118,11 +119,11 @@ int app_data_coding(app_ps_header_t *ps_header,
         // handle data compress, output data and data len
         if (compress_flag == 1)
         {
-            rt_kprintf("data len before compression %d\n", input_data_len);
+            //rt_kprintf("data len before compression %d\n", input_data_len);
             comp_data = rt_malloc(APP_MAX_CODING_DATA_LEN);
             if (comp_data == RT_NULL)
             {
-                rt_kprintf("%s, %d malloc fail\n", __FUNCTION__, __LINE__);
+                //rt_kprintf("line %d malloc fail\n", __LINE__);
                 rt_free(buf);
                 buf = RT_NULL;
                 return -3;
@@ -130,7 +131,7 @@ int app_data_coding(app_ps_header_t *ps_header,
             rt_memset(comp_data, 0, APP_MAX_CODING_DATA_LEN);
 
             comp_data_len = fastlz_compress(input_data, input_data_len, comp_data);
-            rt_kprintf("data len after compression %d\n", comp_data_len);
+            rt_kprintf("data len before %d.after %d\n", input_data_len, comp_data_len);
             // copy data
             if (comp_data_len < input_data_len)
             {
@@ -139,7 +140,7 @@ int app_data_coding(app_ps_header_t *ps_header,
             }
             else
             {
-                rt_kprintf("compressed data is bigger, uncompress\n");
+                rt_kprintf("compressed data is bigger\n");
                 ps_header->property.compress_flag = 0;
                 rt_memcpy(buf, &ps_header->property, sizeof(app_ps_property_t));
                 rt_memcpy(buf + offset, input_data, input_data_len);
@@ -173,8 +174,6 @@ int app_data_decoding(unsigned char *input_data,
     unsigned char *buf = RT_NULL;
     unsigned int buf_len = 0;
     unsigned int offset = 0;
-    // unsigned int int_len = sizeof(unsigned int);
-    // unsigned char char_len = sizeof(unsigned char);
     unsigned char is_src_addr ;
     unsigned char is_dest_addr ;
     unsigned char is_packet_num;
@@ -183,7 +182,7 @@ int app_data_decoding(unsigned char *input_data,
 
     if (input_data == RT_NULL || input_data_len == 0 || input_data_len > APP_MAX_DECODING_DATA_LEN)
     {
-        rt_kprintf("%s, line %d input_data error.input_data_len %d\n", __FUNCTION__, __LINE__, input_data_len);
+        rt_kprintf("input_data error.len %d\n", input_data_len);
         return -1;
     }
 
@@ -243,17 +242,13 @@ int app_data_decoding(unsigned char *input_data,
 
     // malloc space to save data
     buf_len = input_data_len - offset;
-    rt_kprintf("buf_len=%d,offset=%d,total_num=0x%x,current_num=0x%x,cmd_type=0x%x\n", buf_len, offset,
-        ps_header->segment_info.total_num,
-        ps_header->segment_info.current_num,
-        ps_header->cmd_type);
 
     if (input_data_len > offset)
     {
         buf = (unsigned char *)rt_malloc(buf_len + 1);
         if (RT_NULL == buf)
         {
-            rt_kprintf("%s, %d malloc fail\n", __FUNCTION__, __LINE__);
+            rt_kprintf("line %d malloc fail\n", __LINE__);
             return -2;
         }
         //rt_memset(buf, 0, buf_len + 1);
@@ -275,9 +270,9 @@ int app_data_decoding(unsigned char *input_data,
             }
             rt_memset(decomp_data, 0, APP_MAX_DECODING_DATA_LEN);
 
-            rt_kprintf("data len before decompression %d\n", buf_len);
+            //rt_kprintf("data len before decompression %d\n", buf_len);
             decomp_data_len = fastlz_decompress(buf, buf_len, decomp_data, APP_MAX_DECODING_DATA_LEN);
-            rt_kprintf("data len after decompression %d\n", decomp_data_len);
+            rt_kprintf("decompression data len.before %d after %d\n", buf_len, decomp_data_len);
             *output_data = decomp_data;
             *output_data_len = decomp_data_len;
 
@@ -292,6 +287,7 @@ int app_data_decoding(unsigned char *input_data,
     }
     return 0;
 }
+#if 0
 
 static int app_cmd_auth_req_coding(unsigned char *input_cmd,
                                    unsigned char **output_data,
@@ -309,7 +305,7 @@ static int app_cmd_auth_req_coding(unsigned char *input_cmd,
 
     if (err.err != CN_CBOR_NO_ERROR)
     {
-        rt_kprintf("app_cmd_auth_req_coding line %d err %d\n", __LINE__, err.err);
+        rt_kprintf("coding err %d\n", err.err);
         cn_cbor_free(cb_map);
         cn_cbor_free(cb_data);
         return -1;
@@ -319,7 +315,7 @@ static int app_cmd_auth_req_coding(unsigned char *input_cmd,
 
     if (err.err != CN_CBOR_NO_ERROR)
     {
-        rt_kprintf("app_cmd_auth_req_coding line %d err %d\n", __LINE__, err.err);
+        rt_kprintf("cb err %d\n",  err.err);
         cn_cbor_free(cb_map);
         cn_cbor_free(cb_data);
         return -1;
@@ -330,7 +326,7 @@ static int app_cmd_auth_req_coding(unsigned char *input_cmd,
     if (RT_NULL == encoded_out)
     {
         cn_cbor_free(cb_map);
-        rt_kprintf("app_cmd_auth_req_coding line %d\n", __LINE__);
+        rt_kprintf("malloc err\n");
         return -1;
     }
 
@@ -348,7 +344,7 @@ static int app_cmd_auth_req_coding(unsigned char *input_cmd,
         rt_free(encoded_out);
         encoded_out = RT_NULL;
         cn_cbor_free(cb_map);
-        rt_kprintf("app_cmd_auth_req_coding line %d\n", __LINE__);
+        rt_kprintf("size_local err\n");
         return -1;
     }
 
@@ -359,7 +355,6 @@ static int app_cmd_auth_req_coding(unsigned char *input_cmd,
 
     return 0;
 }
-
 static int app_cmd_auth_req_decoding(unsigned char *input_data,
                                      unsigned int input_data_len,
                                      unsigned char **output_data)
@@ -374,7 +369,7 @@ static int app_cmd_auth_req_decoding(unsigned char *input_data,
 
     if (err.err != CN_CBOR_NO_ERROR)
     {
-        rt_kprintf("app_cmd_auth_req_decoding err %d\n", err.err);
+        rt_kprintf("auth decod err %d\n", err.err);
         return -1;
     }
     else
@@ -701,7 +696,6 @@ static int app_cmd_version_verify_decoding(unsigned char *input_data,
 
     return 0;
 }
-
 static int app_cmd_ota_upgrade_req_coding(unsigned char *input_cmd,
                                           unsigned char **output_data,
                                           unsigned int *output_data_len)
@@ -875,7 +869,6 @@ static int app_cmd_ota_upgrade_req_coding(unsigned char *input_cmd,
 
     return 0;
 }
-
 static int app_cmd_ota_upgrade_req_decoding(unsigned char *input_data,
                                             unsigned int input_data_len,
                                             unsigned char **output_data)
@@ -1815,4 +1808,5 @@ int app_cmd_decoding(app_ps_cmd_e input_cmd_type,
 
     return result;
 }
+#endif
 #endif

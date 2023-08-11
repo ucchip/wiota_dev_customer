@@ -25,7 +25,6 @@ int dac_app_init(void)
 
 int dac_app_set_value(rt_uint32_t value)
 {
-    rt_uint32_t value = 0;
     rt_err_t ret = RT_EOK;
     
     if (dac_dev == RT_NULL)

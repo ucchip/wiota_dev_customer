@@ -91,6 +91,7 @@ static void rs485_thread_entry(void *parameter)
             // rt_kprintf("[RS485]%s\n", rx_buf);
             RS485_TX();
             rt_device_write(serial, 0, rx_buf, data_len);
+            rt_device_control(serial, RT_DEVICE_CTRL_WAIT_TX_DONE, RT_NULL);
             RS485_RX();
         }
     }
@@ -145,6 +146,7 @@ int rs485_app_sample(void)
     RS485_TX();
     /* 发送字符串 */
     rt_device_write(serial, 0, str, rt_strlen(str));
+    rt_device_control(serial, RT_DEVICE_CTRL_WAIT_TX_DONE, RT_NULL);
     RS485_RX();
 
     /* 创建 serial 线程 */

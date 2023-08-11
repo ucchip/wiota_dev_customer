@@ -709,7 +709,7 @@ int at_server_init(void)
         struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT; /*init default parment*/
         RT_ASSERT(at_server_local->device->type == RT_Device_Class_Char);
         //config baud rate 115200
-        config.baud_rate = BAUD_RATE_115200;
+        config.baud_rate = uc_wiota_get_at_baud_rate(); //BAUD_RATE_115200;
         rt_device_control(at_server_local->device, RT_DEVICE_CTRL_CONFIG, &config);
         /* using DMA mode first */
         //open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_DMA_RX);

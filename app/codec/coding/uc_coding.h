@@ -168,7 +168,7 @@ typedef struct
     unsigned char max_mcs;
 } app_ps_iote_state_update_t, *app_ps_iote_state_update_p;
 
-unsigned char app_packet_num(void);
+//unsigned char app_packet_num(void);
 
 /*********************************************************************************
  This function is to set property of app ps header
@@ -236,10 +236,10 @@ int app_data_decoding(unsigned char *input_data,
  return:int.
 **********************************************************************************/
 
-int app_cmd_decoding(app_ps_cmd_e input_cmd_type,
-                     unsigned char *input_data,
-                     unsigned int input_data_len,
-                     unsigned char **output_data);
+//int app_cmd_decoding(app_ps_cmd_e input_cmd_type,
+//                     unsigned char *input_data,
+//                     unsigned int input_data_len,
+//                     unsigned char **output_data);
 
 /*********************************************************************************
  This function is coding data of cbor
@@ -252,9 +252,9 @@ int app_cmd_decoding(app_ps_cmd_e input_cmd_type,
  return:int.
 **********************************************************************************/
 
-int app_cmd_coding(app_ps_cmd_e input_cmd_type,
-                   unsigned char *input_cmd,
-                   unsigned char **output_data,
-                   unsigned int *output_data_len);
+//int app_cmd_coding(app_ps_cmd_e input_cmd_type,
+//                   unsigned char *input_cmd,
+//                   unsigned char **output_data,
+//                   unsigned int *output_data_len);
 
 #endif
