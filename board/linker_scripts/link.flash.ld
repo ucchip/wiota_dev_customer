@@ -83,7 +83,6 @@ SECTIONS
 		*dll*(.text*);
 		*uart_tool*(.text*);
 		*global_task*(.text*);
-		*wiota_static*(.text*);
 		. = LENGTH(protocal_stack ) -4;
 		LONG(0);
 	} > protocal_stack

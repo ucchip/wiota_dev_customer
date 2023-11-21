@@ -43,14 +43,15 @@ typedef enum
 
 typedef enum
 {
-    UC_RECV_MSG = 0,   // normal msg from ap
-    UC_RECV_BC,        // broadcast msg from ap
-    UC_RECV_OTA,       // ota msg from ap
-    UC_RECV_MULT0,     // multcast0 msg from ap
-    UC_RECV_MULT1,     // multcast1 msg from ap
-    UC_RECV_MULT2,     // multcast2 msg from ap
-    UC_RECV_SCAN_FREQ, // result of freq scan by riscv
-    UC_RECV_SYNC_LOST, // sync lost notify by riscv, need scan freq
+    UC_RECV_MSG = 0,   // UC_CALLBACK_NORAMAL_MSG, normal msg from ap
+    UC_RECV_BC,        // UC_CALLBACK_NORAMAL_MSG, broadcast msg from ap
+    UC_RECV_OTA,       // UC_CALLBACK_NORAMAL_MSG, ota msg from ap
+    UC_RECV_MULT0,     // UC_CALLBACK_NORAMAL_MSG, multcast0 msg from ap
+    UC_RECV_MULT1,     // UC_CALLBACK_NORAMAL_MSG, multcast1 msg from ap
+    UC_RECV_MULT2,     // UC_CALLBACK_NORAMAL_MSG, multcast2 msg from ap
+    UC_RECV_SCAN_FREQ, // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
+    UC_RECV_SYNC_LOST, // UC_CALLBACK_STATE_INFO, sync lost notify by riscv, need scan freq
+    UC_RECV_IDLE_PAGING, // UC_CALLBACK_STATE_INFO, when idle state, recv ap's paging signal
 } UC_RECV_DATA_TYPE;
 
 typedef enum
@@ -181,7 +182,7 @@ typedef struct
 
 typedef struct
 {
-    char ap_max_pow;             // 21, 30,
+    char ap_tx_power;             // 21, 30,
     unsigned char id_len;        // 0: 2, 1: 4, 2: 6, 3: 8
     unsigned char pp;            // 0: 1, 1: 2, 2: 4, 3: not use
     unsigned char symbol_length; //128,256,512,1024
@@ -302,7 +303,7 @@ void uc_wiota_exit(void);
 
 void uc_wiota_connect(void);
 
-void uc_wiota_connect_quick(void);
+void uc_wiota_connect_quick(u16_t is_force_active);
 
 void uc_wiota_disconnect(void);
 
@@ -315,6 +316,8 @@ UC_WIOTA_STATUS uc_wiota_get_state(void);
 int uc_wiota_wait_sync(int timeout);
 
 void uc_wiota_set_dcxo(unsigned int dcxo);
+
+u32_t uc_wiota_get_dcxo(void);
 
 void uc_wiota_set_freq_info(unsigned char freq_idx);
 
@@ -384,6 +387,8 @@ void uc_wiota_enable_rtc_interrupt(void);
 
 void uc_wiota_set_alarm_time(u32_t sec);
 
+void uc_wiota_set_is_ex_wk(boolean is_need_ex_wk);
+
 void uc_wiota_sleep_enter(unsigned char is_need_ex_wk, unsigned char is_need_32k_div);
 
 void uc_wiota_paging_rx_enter(unsigned char is_need_32k_div, unsigned int timeout_max);
@@ -400,15 +405,23 @@ void uc_wiota_set_outer_32K(boolean is_open);
 
 unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // UC_AWAKENED_CAUSE
 
-unsigned char uc_wiota_get_paging_awaken_cause(void); // UC_LPM_PAGING_WAKEN_CAUSE_E
+unsigned char uc_wiota_get_paging_awaken_cause(u32_t* detected_times); // UC_LPM_PAGING_WAKEN_CAUSE_E
 
 u32_t uc_wiota_get_curr_rf_cnt(void);
 
 void uc_wiota_set_tx_mode(u8_t mode);
 
+u8_t uc_wiota_get_tx_mode(void);
+
 void uc_wiota_hard_switch_to_active(void);
 
 void uc_wiota_get_userid_scb(u32_t *scb0, u32_t *scb1);
+
+void uc_wiota_get_adjust_result(u8_t mode, s8_t* temp, u8_t* dir, u32_t* offset);
+
+u8_t uc_wiota_get_sm_resend_times();
+
+void uc_wiota_set_sm_resend_times(u8_t resend_times);
 
 // below is for inter test !
 
@@ -419,6 +432,12 @@ void uc_wiota_test_lpm(unsigned char mode, unsigned char value);
 void uc_wiota_set_bc_mode(unsigned char mode);
 
 unsigned char uc_wiota_get_bc_mode(void);
+
+u32_t uc_wiota_get_frame_num(void);
+
+u8_t uc_wiota_get_is_frame_valid(void);
+
+void uc_wiota_set_is_frame_valid(u8_t isFrameValid);
 
 void get_uboot_version(unsigned char *version);
 

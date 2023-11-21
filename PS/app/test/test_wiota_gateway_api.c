@@ -444,10 +444,7 @@ static void gateway_send_data_test(void)
     test_gateway_send_allow = 0;
 
     uc_wiota_get_dev_serial(serial);
-    dev_addr = ((serial[4] & 0x7f)<< 24)\
-                                    | (serial[5] << 16)\
-                                    | (serial[6] << 8)\
-                                    |  serial[7];    
+    dev_addr = get_mac_addr();
     delay_time = ((serial[12] << 8) | serial[13]);
     
     uc_wiota_get_userid(userid, &userid_len);

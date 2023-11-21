@@ -180,26 +180,26 @@ int main(void)
     //     *((unsigned int*)(addr) + i) = 0;
     // }
 
-    // while(1)
-    // {
-    //     unsigned int total;
-    //     unsigned int used;
-    //     unsigned int max_used;
+    while(1)
+    {
+        unsigned int total;
+        unsigned int used;
+        unsigned int max_used;
 
 
-    //     rt_thread_delay(10000);
+        rt_thread_delay(1000);
 
-    //     // read write 8K
-    //     // for (i=0; i<2048; i++) {
-    //     //     value = *((unsigned int*)(addr) + i);
-    //     //     value++;
-    //     //     *((unsigned int*)(addr) + i) = value;
-    //     // }
+        // read write 8K
+        // for (i=0; i<2048; i++) {
+        //     value = *((unsigned int*)(addr) + i);
+        //     value++;
+        //     *((unsigned int*)(addr) + i) = value;
+        // }
 
-    //     rt_memory_info(&total,&used,&max_used);
-    //     rt_kprintf("total %d used %d maxused %d\n",total,used,max_used);
+        rt_memory_info(&total,&used,&max_used);
+        rt_kprintf("total %d used %d maxused %d\n",total,used,max_used);
 
-    // }
+    }
 
     //    init_statistical_task_info();
 

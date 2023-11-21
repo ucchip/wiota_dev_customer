@@ -161,6 +161,7 @@ void internal_temp_measure(ADDA_TypeDef *ADDA)
    //ADDA->ADC_CTRL0 = 0x80FF8E42;
     ADDA->ADC_CTRL0 = 0x80FF8E5A;
     ADDA->ADC_CTRL1 = 0xA0060000;
+    REG(0x1A10A02C) = (REG(0x1A10A02C) & (~(0x0F << 12))) | (0xC << 12);
 }
 
 void dc_off_control(int control)
@@ -181,29 +182,29 @@ void adc_fifo_clear(ADDA_TypeDef* ADDA)
 }
 
 
-unsigned int adc_temp_read_times(ADDA_TypeDef* ADDA) 
+unsigned int adc_temp_read_times(ADDA_TypeDef* ADDA)
 {
     adc_read(ADDA);
     return (unsigned int)adc_read(ADDA);
 }
 
 
-signed int adc_temperature_read(ADDA_TypeDef* ADDA) 
+signed int adc_temperature_read(ADDA_TypeDef* ADDA)
 {
     signed int adc_val;
     signed int adc_val1, adc_val2;
-    
+
     dc_off_control(1);
     adc_fifo_clear(ADDA);
     adc_wait_data_ready(ADDA);
     adc_wait_data_ready(ADDA);
     adc_val1 = adc_temp_read_times(ADDA);
-    
+
     dc_off_control(0);
     adc_fifo_clear(ADDA);
     adc_wait_data_ready(ADDA);
     adc_wait_data_ready(ADDA);
-    adc_val2 = adc_temp_read_times(ADDA); 
+    adc_val2 = adc_temp_read_times(ADDA);
 
     adc_val = (signed int)(adc_val2 - adc_val1);
 
@@ -252,7 +253,7 @@ float adc_read_temp_inb(ADDA_TypeDef* ADDA)
 //    val = (float)(1.42/4 + (delta_adc - 2048)* 1.42/2048/8);
 //    rt_kprintf("val = %f\n", rt_kprintf);
 //    }
-    
+
     return delta_adc;
 }
 

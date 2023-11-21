@@ -189,6 +189,7 @@ int uc_wiota_ota_check_flash_data(unsigned int flash_addr, unsigned int flash_si
 
     /* MD5 context setup */
     tiny_md5_starts(&ctx);
+    uc_wiota_suspend_connect();
     while (data_offset < flash_size)
     {
         unsigned int read_len = buf_len;
@@ -196,18 +197,18 @@ int uc_wiota_ota_check_flash_data(unsigned int flash_addr, unsigned int flash_si
         {
             read_len = flash_size - data_offset;
         }
-        uc_wiota_suspend_connect();
 
         if (uc_wiota_ota_flash_read(flash_addr + data_offset, buffer, read_len) != read_len)
         {
-            uc_wiota_recover_connect();
             rt_free(buffer);
+            uc_wiota_recover_connect();
             return 1;
         }
-        uc_wiota_recover_connect();
+
         tiny_md5_update(&ctx, buffer, read_len);
         data_offset += read_len;
     }
+    uc_wiota_recover_connect();
     /* MD5 final digest */
     tiny_md5_finish(&ctx, md5_value);
 
@@ -235,6 +236,7 @@ int uc_wiota_ota_check_flash_data(unsigned int flash_addr, unsigned int flash_si
 
 void uc_wiota_ota_jump_program(unsigned int file_size, unsigned char upgrade_type)
 {
+    uc_wiota_disconnect();
     uc_wiota_set_download_file_size(file_size);
     if (upgrade_type == 0)
     {
@@ -244,8 +246,8 @@ void uc_wiota_ota_jump_program(unsigned int file_size, unsigned char upgrade_typ
     {
         set_uboot_mode('b');
     }
-    uc_wiota_exit();
     rt_thread_mdelay(2000);
+    uc_wiota_exit();
     rt_hw_interrupt_disable();
     // rt_hw_cpu_reset();
     boot_riscv_reboot();

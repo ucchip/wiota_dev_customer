@@ -35,6 +35,18 @@
     *(volatile unsigned int*)(UART_REG_IER) = ((*(volatile unsigned int*)(UART_REG_IER)) & 0xF0) | 0x01; // set IER (interrupt enable register) on UART
 }
 
+void uart1_set_cfg(int parity, uint16_t clk_counter)
+{
+    CGREG |= (1 << CGUART);                          // don't clock gate UART
+    *(volatile unsigned int *)(UART1_REG_LCR) = 0x83; //sets 8N1 and set DLAB to 1
+    *(volatile unsigned int *)(UART1_REG_DLM) = (clk_counter >> 8) & 0xFF;
+    *(volatile unsigned int *)(UART1_REG_DLL) = clk_counter & 0xFF;
+    *(volatile unsigned int *)(UART1_REG_FCR) = 0x27; //enables 16byte FIFO and clear FIFOs
+    *(volatile unsigned int *)(UART1_REG_LCR) = 0x03; //sets 8N1 and set DLAB to 0
+
+    *(volatile unsigned int *)(UART1_REG_IER) = ((*(volatile unsigned int *)(UART1_REG_IER)) & 0xF0) | 0x01; // set IER (interrupt enable register) on UART
+}
+
 void uart_send(const char* str, unsigned int len)
 {
     unsigned int i;
@@ -214,7 +226,7 @@ void uc_uart_enable_intrx(UART_TYPE* uartx, uint8_t ctrl)
 
 void uc_uartx_wait_tx_done(UART_TYPE *uartx)
 {
-    while ((uartx->LSR & 0x40) == 0);    
+    while ((uartx->LSR & 0x40) == 0);
 }
 
 

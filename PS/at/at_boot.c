@@ -1,3 +1,5 @@
+#include <rtthread.h>
+#ifdef RT_USING_AT
 #include <at.h>
 #include <stdlib.h>
 #include <rthw.h>
@@ -125,3 +127,5 @@ AT_CMD_EXPORT("AT+UBOOTBAUDRATE","=<baudrate>",RT_NULL,at_uboot_baudrate_query,a
 AT_CMD_EXPORT("AT+UBOOTMODE","=<mode>",RT_NULL,at_uboot_mode_query,at_set_uboot_mode,RT_NULL);
 AT_CMD_EXPORT("AT+PARTITIONSIZE","=<bin_size>,<reserved_size>,<ota_size>",RT_NULL,at_partition_size_query,at_set_partition_size,RT_NULL);
 AT_CMD_EXPORT("AT+UBOOTLOG","=<uart_flag>,<log_flag>,<select_flag>",RT_NULL,at_uboot_log_query,at_set_uboot_log,RT_NULL);
+
+#endif

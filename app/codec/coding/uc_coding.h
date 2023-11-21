@@ -47,7 +47,7 @@ typedef struct
 } app_ps_header_t;
 
 #define APP_MAX_CODING_DATA_LEN (310 - sizeof(app_ps_header_t))
-#define APP_MAX_DECODING_DATA_LEN (1024 - sizeof(app_ps_header_t))
+#define APP_MAX_DECODING_DATA_LEN (1024)
 #define APP_MAX_FREQ_LIST_NUM 16
 #define APP_MAX_IOTE_UPGRADE_NUM 8
 #define APP_MAX_IOTE_UPGRADE_STOP_NUM 16
@@ -70,8 +70,8 @@ typedef enum
 
 typedef struct
 {
-    int auth_type;     // 0: identification fixed
-    char aut_code[16]; // key. max len 16.
+    int auth_type;                            // 0: identification fixed
+    char aut_code[16];                        // key. max len 16.
     unsigned char freq[APP_CONNECT_FREQ_NUM]; //freq list
 } app_ps_auth_req_t, *app_ps_auth_req_p;
 
@@ -96,7 +96,7 @@ typedef struct
     //e_auth_state
     unsigned char state;
     unsigned char freq;
-    unsigned char na1;
+    unsigned char time_slot_fn;
     unsigned char na2;
 } app_connect_res_t, *app_connect_res_p;
 
@@ -119,15 +119,17 @@ typedef struct
     int upgrade_type; // 0: full upgrade, 1: diff upgrade
     int upgrade_range;
     int iote_list[APP_MAX_IOTE_UPGRADE_NUM]; // if 0, means end
-    char new_version[16];                       // upgrade to which version
-    char old_version[16];                       // which version who need upgrade
+    char new_version[16];                    // upgrade to which version
+    char old_version[16];                    // which version who need upgrade
     char md5[36];
     int file_size;
     int upgrade_time;
     char device_type[12];
     int data_offset;
     int data_length;
-    unsigned char data[940]; // do not cbor coding this data ? // ?? 
+    unsigned short mcs_len;
+    unsigned short upgrade_num;
+    unsigned char data[940]; // do not cbor coding this data ?
 } app_ps_ota_upgrade_req_t, *app_ps_ota_upgrade_req_p;
 
 typedef struct
@@ -137,7 +139,7 @@ typedef struct
 
 typedef struct
 {
-    int upgrade_type;  // 0: full upgrade, 1: diff upgrade
+    int upgrade_type;     // 0: full upgrade, 1: diff upgrade
     char new_version[16]; // upgrade to which version
     char old_version[16]; // which version who need upgrade
     char device_type[12];
@@ -149,8 +151,8 @@ typedef struct
     char device_type[12];
     char new_version[16]; // upgrade to which version
     char old_version[16]; // which version who need upgrade
-    int upgrade_type;  // 0: full upgrade, 1: diff upgrade
-    int miss_data_num; // number of missing data blocks, not trans this value
+    int upgrade_type;     // 0: full upgrade, 1: diff upgrade
+    int miss_data_num;    // number of missing data blocks, not trans this value
     int miss_data_offset[APP_MAX_MISSING_DATA_BLOCK_NUM];
     int miss_data_length[APP_MAX_MISSING_DATA_BLOCK_NUM];
 } app_ps_iote_missing_data_req_t, *app_ps_iote_missing_data_req_p;

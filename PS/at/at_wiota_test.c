@@ -214,7 +214,7 @@ static at_result_t at_test_setup(const char* args)
 
         case AT_TEST_SET_AP_POW:
             value = at_test_str_to_dec(sendbuffer,recv_bytes);
-            l1_config_set_apmax_power((u8_t)value);
+            l1_config_set_ap_tx_power((u8_t)value);
             at_server_printfln("DO SUCC");
             break;
 

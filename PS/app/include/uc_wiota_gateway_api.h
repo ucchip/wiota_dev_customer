@@ -48,6 +48,9 @@ extern int uc_wiota_gateway_ota_req(void);
 extern int uc_wiota_gateway_set_ota_period(unsigned int p_tick);
 extern int uc_wiota_gateway_end(void);
 extern uc_gateway_state_t uc_wiota_gateway_get_state(void);
+extern int uc_gateway_get_random(void);
+unsigned int uc_wiota_gateway_get_dev_address(void);
+unsigned char uc_wiota_gateway_get_time_slot_fn(void);
 
 #endif
 #endif
