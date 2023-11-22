@@ -14,9 +14,9 @@
 #define BSP_USING_UART1
 
 /*------- i2c driver config -------*/
-//#define BSP_USING_I2C1
-//#define BSP_I2C1_SCL_PIN    GET_PIN(A, 5)//"A5"
-//#define BSP_I2C1_SDA_PIN    GET_PIN(A, 6)//"A6"
+#define BSP_USING_I2C1
+#define BSP_I2C1_SCL_PIN    GET_PIN(A, 2)//"A2"
+#define BSP_I2C1_SDA_PIN    GET_PIN(A, 3)//"A3"
 
 //#define BSP_USING_HW_I2C1
 //#define BSP_HW_I2C1_SCL_PIN    GET_PIN(A, 5)

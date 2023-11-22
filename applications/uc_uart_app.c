@@ -7,7 +7,7 @@
 
 //#define USE_UART_RINGBUFF
 
-#define UART_NAME "uart0"
+#define UART_NAME "uart1"
 #define UART_PIN 17
 #define UART_BAUD_RATE 9600
 #define UART_BUFFER_SIZE 4096
@@ -135,10 +135,8 @@ int uart_app_sample(void)
     /* 设置接收回调函数 */
     rt_device_set_rx_indicate(serial, uart_input);
 
-    UART_TX();
     /* 发送字符串 */
     rt_device_write(serial, 0, str, rt_strlen(str));
-    UART_RX();
 
     /* 创建 serial 线程 */
     rt_thread_t thread = rt_thread_create("serial", 

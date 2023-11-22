@@ -126,7 +126,8 @@ typedef struct
     int upgrade_time;
     char device_type[12];
     int data_offset;
-    int data_length;
+    unsigned short data_length;
+    unsigned short packet_type; // 0:upgrade packet, 1:miss data packet
     unsigned short mcs_len;
     unsigned short upgrade_num;
     unsigned char data[940]; // do not cbor coding this data ?

@@ -55,16 +55,16 @@ static rt_err_t set_rtc_time_stamp(time_t time_stamp)
     rtc_time.day = p_tm->tm_mday;
     rtc_time.mon = p_tm->tm_mon + 1;
     rtc_time.year = p_tm->tm_year + 1900;
-    rtc_time.week = p_tm->tm_wday + 1;
+
+    /* struct tm.tm_wday 0 is Sunday */
+    if (p_tm->tm_wday == 0)
+        rtc_time.week = RTC_WDAY_SUN;
+    else
+        rtc_time.week = p_tm->tm_wday;
+
     rtc_set_time(UC_RTC, &rtc_time);
 
     return RT_EOK;
-}
-
-static void rt_rtc_init(void)
-{
-    rtc_calibrate();
-    rtc_init(UC_RTC);
 }
 
 static rt_err_t rt_rtc_config(struct rt_device* dev)
@@ -80,18 +80,42 @@ static rt_err_t rt_rtc_config(struct rt_device* dev)
         || (rtc_time.min > 59)
         || (rtc_time.sec > 59))
     {
-        rtc_time.sec = 0x0;
-        rtc_time.min = 0x0;
-        rtc_time.hour = 0x0c;
-        rtc_time.day = 0x01;
-        rtc_time.mon = 0x06;
-        rtc_time.year = 0x7e4;
-        rtc_time.week = 0x01;
+        rtc_time.sec = 0;
+        rtc_time.min = 0;
+        rtc_time.hour = 12;
+        rtc_time.day = 1;
+        rtc_time.mon = 6;
+        rtc_time.year = 2020;
+        rtc_time.week = 1;      // Monday
         rtc_set_time(UC_RTC, &rtc_time);
         LOG_D("rt_rtc_config set timestamp");
     }
 
     return RT_EOK;
+}
+
+static rt_err_t rt_rtc_init(rt_device_t dev)
+{
+    /* calibrate */
+    rtc_calibrate();
+
+    rtc_init(UC_RTC);
+    if (rt_rtc_config(&rtc) != RT_EOK)
+    {
+        return -RT_ERROR;
+    }
+
+    return RT_EOK;
+}
+
+void (*rtc_alarm_irq_user_handler) (void *arg);
+
+void *rtc_alarm_irq_user_arg;
+
+void rtc_handler(void)
+{
+    if(rtc_alarm_irq_user_handler)
+        rtc_alarm_irq_user_handler(rtc_alarm_irq_user_arg);
 }
 
 static rt_err_t rt_rtc_control(rt_device_t dev, int cmd, void* args)
@@ -120,7 +144,16 @@ static rt_err_t rt_rtc_control(rt_device_t dev, int cmd, void* args)
             break;
         case RT_DEVICE_CTRL_RTC_SET_ALARM:
             rtc_time = *((rtc_alarm_t*)args);
+
+            // record call_back
+            if (rtc_time.call_back) {
+                rtc_alarm_irq_user_handler = rtc_time.call_back;
+                rtc_alarm_irq_user_arg = rtc_time.call_back_arg;
+            }
+            
+            /* set alarm time */
             rtc_set_alarm(UC_RTC,&rtc_time);
+
             LOG_D("RTC: set rtc_alarm\n");
             break;
     }
@@ -131,7 +164,7 @@ static rt_err_t rt_rtc_control(rt_device_t dev, int cmd, void* args)
 #ifdef RT_USING_DEVICE_OPS
 const static struct rt_device_ops rtc_ops =
 {
-    RT_NULL,
+    rt_rtc_init,
     RT_NULL,
     RT_NULL,
     RT_NULL,
@@ -144,15 +177,15 @@ static rt_err_t rt_hw_rtc_register(rt_device_t device, const char* name, rt_uint
 {
     RT_ASSERT(device != RT_NULL);
 
-    rt_rtc_init();
+    /* rt_rtc_init(UC_RTC);
     if (rt_rtc_config(device) != RT_EOK)
     {
         return -RT_ERROR;
-    }
+    } */
 #ifdef RT_USING_DEVICE_OPS
     device->ops         = &rtc_ops;
 #else
-    device->init        = RT_NULL;
+    device->init        = rt_rtc_init;
     device->open        = RT_NULL;
     device->close       = RT_NULL;
     device->read        = RT_NULL;
@@ -171,6 +204,7 @@ static rt_err_t rt_hw_rtc_register(rt_device_t device, const char* name, rt_uint
 int rt_hw_rtc_init(void)
 {
     rt_err_t result;
+
     result = rt_hw_rtc_register(&rtc, "rtc", RT_DEVICE_FLAG_RDWR);
     if (result != RT_EOK)
     {

@@ -27,10 +27,10 @@ int pin_app_init(void)
     rt_pin_write(LED1_PIN_NUM, PIN_LOW);
     rt_pin_write(LED2_PIN_NUM, PIN_LOW);
     
-    rt_pin_mode(IRQ1_PIN_NUM, PIN_MODE_INPUT_PULLDOWN);
+    rt_pin_mode(IRQ1_PIN_NUM, PIN_MODE_INPUT_PULLUP);
     rt_pin_attach_irq(IRQ1_PIN_NUM, PIN_IRQ_MODE_RISING, led2_on, RT_NULL);
     
-    rt_pin_mode(IRQ2_PIN_NUM, PIN_MODE_INPUT_PULLDOWN);
+    rt_pin_mode(IRQ2_PIN_NUM, PIN_MODE_INPUT_PULLUP);
     rt_pin_attach_irq(IRQ2_PIN_NUM, PIN_IRQ_MODE_RISING, led2_off, RT_NULL);
     
     return ret;
@@ -45,7 +45,7 @@ void pin_app_sample(void)
     ret = pin_app_init();
     if(ret != RT_EOK)
     {
-        printf("pin test error.\r\n");
+        rt_kprintf("pin test error.\r\n");
     }
     
     rt_pin_write(LED1_PIN_NUM, PIN_HIGH);

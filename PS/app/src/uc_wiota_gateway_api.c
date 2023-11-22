@@ -580,15 +580,15 @@ static boolean uc_wiota_gateway_check_if_upgrade_required(app_ps_ota_upgrade_req
         if (0 == rt_strncmp((char *)version, ota_upgrade_req->old_version, rt_strlen(ota_upgrade_req->old_version)) &&
             0 == rt_strncmp(gateway_mode.device_type, ota_upgrade_req->device_type, rt_strlen(ota_upgrade_req->device_type)))
         {
-            if (gateway_mode.ota_state == GATEWAY_OTA_DEFAULT)
+            if (GATEWAY_OTA_DEFAULT == gateway_mode.ota_state)
             {
-                if (gateway_mode.upgrade_num == 0)
+                if (0 == gateway_mode.upgrade_num && 0 == ota_upgrade_req->packet_type)
                 {
                     is_required = TRUE;
                     gateway_mode.upgrade_num = ota_upgrade_req->upgrade_num;
                 }
             }
-            else if (gateway_mode.ota_state == GATEWAY_OTA_DOWNLOAD)
+            else if (GATEWAY_OTA_DOWNLOAD == gateway_mode.ota_state)
             {
                 if (gateway_mode.upgrade_num != ota_upgrade_req->upgrade_num)
                 {
@@ -601,9 +601,10 @@ static boolean uc_wiota_gateway_check_if_upgrade_required(app_ps_ota_upgrade_req
         }
     }
 
-    rt_kprintf("is_req %d, cur_v %s, old_v %s, new_v %s, is_range %d, upd_rang %d, upgrade_num %d/%d\n",
+    rt_kprintf("is_req %d, cur_v %s, old_v %s, new_v %s, is_range %d, upd_rang %d, upgrade_num %d/%d, packet_type %d\n",
                is_required, version, ota_upgrade_req->old_version, ota_upgrade_req->new_version,
-               is_upgrade_range, ota_upgrade_req->upgrade_range, ota_upgrade_req->upgrade_num, gateway_mode.upgrade_num);
+               is_upgrade_range, ota_upgrade_req->upgrade_range, ota_upgrade_req->upgrade_num,
+               gateway_mode.upgrade_num, ota_upgrade_req->packet_type);
 
     return is_required;
 }

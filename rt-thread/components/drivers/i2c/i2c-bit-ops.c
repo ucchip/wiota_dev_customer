@@ -8,6 +8,7 @@
  * 2012-04-25     weety         first version
  */
 
+#include <rthw.h>
 #include <rtdevice.h>
 
 #define DBG_TAG               "I2C"
@@ -377,6 +378,7 @@ static rt_size_t i2c_bit_xfer(struct rt_i2c_bus_device* bus,
     struct rt_i2c_bit_ops* ops = (struct rt_i2c_bit_ops*)bus->priv;
     rt_int32_t i, ret;
     rt_uint16_t ignore_nack;
+    rt_uint32_t level;
 
     if (num == 0)
     {
@@ -387,6 +389,9 @@ static rt_size_t i2c_bit_xfer(struct rt_i2c_bus_device* bus,
     {
         msg = &msgs[i];
         ignore_nack = msg->flags & RT_I2C_IGNORE_NACK;
+
+        level = rt_hw_interrupt_disable();
+
         if (!(msg->flags & RT_I2C_NO_START))
         {
             if (i)
@@ -403,7 +408,7 @@ static rt_size_t i2c_bit_xfer(struct rt_i2c_bus_device* bus,
             {
                 LOG_D("receive NACK from device addr 0x%02x msg %d",
                       msgs[i].addr, i);
-                goto out;
+                goto early_out;
             }
         }
         if (msg->flags & RT_I2C_RD)
@@ -415,7 +420,7 @@ static rt_size_t i2c_bit_xfer(struct rt_i2c_bus_device* bus,
             {
                 if (ret >= 0)
                 { ret = -RT_EIO; }
-                goto out;
+                goto early_out;
             }
         }
         else
@@ -427,12 +432,18 @@ static rt_size_t i2c_bit_xfer(struct rt_i2c_bus_device* bus,
             {
                 if (ret >= 0)
                 { ret = -RT_ERROR; }
-                goto out;
+                goto early_out;
             }
         }
+
+        rt_hw_interrupt_enable(level);
     }
     ret = i;
+    goto out;
+    
 
+early_out:
+    rt_hw_interrupt_enable(level);
 out:
     if (!(msg->flags & RT_I2C_NO_STOP))
     {

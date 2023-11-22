@@ -435,8 +435,12 @@ void rtc_init(RTC_TypeDef *RTCx)
 {
     CHECK_PARAM(PARAM_RTC_ADDR(RTCx));
 
-    RTCx->CTRL &= ~(1U << 0); //enable rtc
+    RTCx->ACTRL = 0;            // clear alarm control reg
+    RTCx->CTRL &= ~(1U << 0);   // enable rtc
 
+
+    /* do not reset rtc time value */
+    /* 
     RTCx->TS0 = RTC_MAKE_HMS(0, 0, 0);                            //00:00:00
     RTCx->TS1 = RTC_MAKE_YMDW(RTC_YEAR_BASE, 1, 1, RTC_WDAY_SAT); //from 'RTC_YEAR_BASE'.01.01
 
@@ -445,6 +449,7 @@ void rtc_init(RTC_TypeDef *RTCx)
     {
         asm("nop");
     }
+    */
 }
 
 void rtc_enable(RTC_TypeDef *RTCx)
