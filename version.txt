@@ -1,5 +1,5 @@
-sync v2.7
-S-v2.7
+sync v2.8
+S-v2.8
 
 	1. 新增idle paging消息上报
 	2. 系统配置中ap_tx_power名字更新

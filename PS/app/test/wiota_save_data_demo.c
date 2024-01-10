@@ -2,78 +2,20 @@
 #include <rtdevice.h>
 #include <board.h>
 
-// #define WIOTA_SAVE_DATA_DEMO
 #ifdef WIOTA_SAVE_DATA_DEMO
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
 
 #define WIOTA_SCAN_TIMEOUT      (40000)
 #define WIOTA_TEST_SEND_TIMEOUT (60000)
-#define WIOTA_TEST_WRITE_ADDR   (0x7D000)
 
-static int wiota_get_static_freq(char *list)
-{
-    int num;
-    // read static data 
-    uc_wiota_get_freq_list((unsigned char *)list);
-
-    for (num = 0; num < 16; num++)
-    {
-        rt_kprintf("static freq *(list+%d) %d\n", num, *(list+num));
-        if (*(list + num) == 0xFF)
-            break;
-    }
-    return num;
-}
-
-static int wiota_scan_freq(unsigned char *sync_freq)
-{
-    uc_recv_back_t result;
-    u8_t freq_list[16] = {0xFF};
-    char freq_list_len = 0;
-    int sync_freq_num = 0;
-
-    // init wiota stack.
-    uc_wiota_init();
-    
-    // execute wiota protocol stack.
-    uc_wiota_run();
-
-    // read the freq index list from flash.
-    freq_list_len = wiota_get_static_freq((char *)freq_list);
-
-    // wiota sweep freq according to the default configation.
-    uc_wiota_scan_freq(freq_list, freq_list_len, 0, WIOTA_SCAN_TIMEOUT, RT_NULL, &result);
-
-    // frequency sweep successfull.
-    if (UC_OP_SUCC == result.result)
-    {
-        // a list of freq point in result.
-        uc_freq_scan_result_p freq_list = (uc_freq_scan_result_p)result.data;
-        
-        // the number of freq points as a result.
-        int freq_num = result.data_len / sizeof(uc_freq_scan_result_t);
-
-        for (int i = 0; i < freq_num; i++)
-        {
-            // the freq point at which the syncromization is success.
-            if (freq_list->is_synced )
-            {
-                // record frequency point results.
-                // result of rssi from high to low.
-                sync_freq[sync_freq_num ++] = freq_list->freq_idx;
-            }
-            freq_list++;
-        }
-        // resources must be free.
-        rt_free(result.data);
-    }
-    
-    // release all resource of the wiota protocol
-    uc_wiota_exit();
-
-    return sync_freq_num;
-}
+/******************************************************************************
+*  8288 static data occupies 8k, with a starting address of 504k and an ending address of 512k. 
+*  To prevent errors from occurring, the testing address range for this demo is: 
+*  the first 4k space of the starting address where static data is stored is used for testing, 
+*  which is the starting address of 500k (0x7D000) and the ending address of 504k
+******************************************************************************/
+#define WIOTA_TEST_WRITE_ADDR   (0x7D000) // 500 * 1024
 
 void wiota_recv_cb(uc_recv_back_p data)
 {
@@ -97,10 +39,23 @@ static void wiota_save_data_to_static(unsigned char *user_info_p,
 
 static void wiota_save_data_to_custom_addr(int addr, unsigned char *data_p, int data_size)
 {
+    /*
+    The set addr=500k=0x7D000, with a maximum data size of 4k. 
+    If it is greater than 4k, it will cause other errors. 
+    Therefore, when (addr+data_size) is greater than 0x7E000 (504k), it will return.
+    */
     if (((addr + data_size) > 0x7E000) || (RT_NULL == data_p) || (data_p <= 0))
     {
+        rt_kprintf("data size out of range!!!\n");
         return;
     }
+
+    /*
+    When performing a write operation, 
+    first suspend synchronization with the AP, 
+    then erase the 4k flash and write in flash, 
+    and finally recover synchronization with the AP.
+    */
     uc_wiota_suspend_connect();
     uc_wiota_flash_erase_4K(addr);
     uc_wiota_flash_write(data_p, addr, data_size);
@@ -109,6 +64,12 @@ static void wiota_save_data_to_custom_addr(int addr, unsigned char *data_p, int 
 
 static void wiota_read_data_from_custom_addr(int addr, unsigned char *data_p, int data_size)
 {
+    /*
+    Like write operations, when performing a read operation, 
+    first suspend synchronization with the AP, 
+    then read the flash, 
+    and finally recover synchronization with the AP.
+    */
     uc_wiota_suspend_connect();
     uc_wiota_flash_read(data_p, addr, data_size);
     uc_wiota_recover_connect();
@@ -134,6 +95,7 @@ static void wiota_test_data(void)
         uc_wiota_get_all_stats(&stats_info);
         // save stats to static data area
         wiota_save_data_to_static(user_info_p, &stats_info, sizeof(uc_stats_info_t));
+
         // save stats to custom address
         wiota_save_data_to_custom_addr(WIOTA_TEST_WRITE_ADDR, &stats_info, sizeof(uc_stats_info_t));
         // read data from given address
@@ -155,10 +117,13 @@ static void wiota_test_data(void)
 
         // send test data.
          send_result = uc_wiota_send_data(sendbuffer, rt_strlen(sendbuffer),  WIOTA_TEST_SEND_TIMEOUT, RT_NULL);
-        // send data fail.
+        
          if (UC_OP_SUCC != send_result)
          {
             rt_kprintf("uc_wiota_send_data send fail %d\n", send_result);
+         }else
+         {
+            rt_kprintf("uc_wiota_send_data send success %d\n", send_result);
          }
          
         rt_thread_mdelay(5000);
@@ -171,7 +136,7 @@ void wiota_save_data_demo(void)
     uc_wiota_init();
 
     // set trial freq index
-    uc_wiota_set_freq_info(93);
+    uc_wiota_set_freq_info(25);
     
     // execute wiota protocol stack.
     uc_wiota_run();
@@ -198,5 +163,4 @@ void wiota_save_data_demo(void)
     uc_wiota_exit();
     
 }
-
-#endif
+#endif // WIOTA_SAVE_DATA_DEMO

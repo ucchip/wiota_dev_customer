@@ -54,6 +54,10 @@
 #include "uc_pin_app.h"
 #endif
 
+#ifdef _BUTTON_APP_
+#include "uc_button_app.h"
+#endif
+
 #ifdef _PWM_APP_
 #include "uc_pwm_app.h"
 #endif
@@ -115,6 +119,10 @@ void app_test(void)
 
 #ifdef _PIN_APP_
     pin_app_sample();
+#endif
+
+#ifdef _BUTTON_APP_
+    button_app_sample();
 #endif
 
 #ifdef _PWM_APP_

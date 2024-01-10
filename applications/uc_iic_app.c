@@ -144,18 +144,18 @@ rt_err_t mpu6050_init()
     uint8_t reset_value = 0x04U | 0x02U | 0x01U; // Resets gyro, accelerometer and temperature sensor signal paths
     transfer_succeeded &= mpu6050_register_write(ADDRESS_SIGNAL_PATH_RESET, reset_value);
 
-    // ÉèÖÃGYRO
-    mpu6050_register_write(0x19, inData[0]); // ÉèÖÃ²ÉÑùÂÊ    -- SMPLRT_DIV = 0  Sample Rate = Gyroscope Output Rate / (1 + SMPLRT_DIV)
-    mpu6050_register_write(0x1A, inData[1]); // CONFIG        -- EXT_SYNC_SET 0 (½ûÓÃ¾§ÕñÊäÈë½Å) ; default DLPF_CFG = 0 => (µÍÍ¨ÂË²¨)ACC bandwidth = 260Hz  GYRO bandwidth = 256Hz)
+    // è®¾ç½®GYRO
+    mpu6050_register_write(0x19, inData[0]); // è®¾ç½®é‡‡æ ·ç‡    -- SMPLRT_DIV = 0  Sample Rate = Gyroscope Output Rate / (1 + SMPLRT_DIV)
+    mpu6050_register_write(0x1A, inData[1]); // CONFIG        -- EXT_SYNC_SET 0 (ç¦ç”¨æ™¶æŒ¯è¾“å…¥è„š) ; default DLPF_CFG = 0 => (ä½é€šæ»¤æ³¢)ACC bandwidth = 260Hz  GYRO bandwidth = 256Hz)
     mpu6050_register_write(0x6B, inData[2]); // PWR_MGMT_1    -- SLEEP 0; CYCLE 0; TEMP_DIS 0; CLKSEL 3 (PLL with Z Gyro reference)
-    mpu6050_register_write(0x1B, inData[3]); // gyroÅäÖÃ Á¿³Ì  0-1000¶ÈÃ¿Ãë
-    mpu6050_register_write(0x6A, inData[4]); // 0x6AµÄ I2C_MST_EN  ÉèÖÃ³É0  Ä¬ÈÏÎª0 6050  Ê¹ÄÜÖ÷IIC
-    // 0x37µÄ ÍÆÍìÊä³ö£¬¸ßµçÆ½ÖĞ¶Ï£¬Ò»Ö±Êä³ö¸ßµçÆ½Ö±µ½ÖĞ¶ÏÇå³ı£¬ÈÎºÎ¶ÁÈ¡²Ù×÷¶¼Çå³ıÖĞ¶Ï Ê¹ÄÜ pass through ¹¦ÄÜ Ö±½ÓÔÚ6050 ¶ÁÈ¡5883Êı¾İ
+    mpu6050_register_write(0x1B, inData[3]); // gyroé…ç½® é‡ç¨‹  0-1000åº¦æ¯ç§’
+    mpu6050_register_write(0x6A, inData[4]); // 0x6Açš„ I2C_MST_EN  è®¾ç½®æˆ0  é»˜è®¤ä¸º0 6050  ä½¿èƒ½ä¸»IIC
+    // 0x37çš„ æ¨æŒ½è¾“å‡ºï¼Œé«˜ç”µå¹³ä¸­æ–­ï¼Œä¸€ç›´è¾“å‡ºé«˜ç”µå¹³ç›´åˆ°ä¸­æ–­æ¸…é™¤ï¼Œä»»ä½•è¯»å–æ“ä½œéƒ½æ¸…é™¤ä¸­æ–­ ä½¿èƒ½ pass through åŠŸèƒ½ ç›´æ¥åœ¨6050 è¯»å–5883æ•°æ®
     mpu6050_register_write(0x37, inData[5]);
-    mpu6050_register_write(0x38, inData[6]); // Ê¹ÄÜdata ready Òı½Å
+    mpu6050_register_write(0x38, inData[6]); // ä½¿èƒ½data ready å¼•è„š
 
-    // ÉèÖÃ ACC
-    mpu6050_register_write(0x1C, acc); // ACCÉèÖÃ  Á¿³Ì +-2G s
+    // è®¾ç½® ACC
+    mpu6050_register_write(0x1C, acc); // ACCè®¾ç½®  é‡ç¨‹ +-2G s
 
     // Read and verify product ID
     transfer_succeeded &= mpu6050_verify_product_id();

@@ -12,20 +12,15 @@
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
 #include "test_wiota_api.h"
-#ifdef _LINUX_
-#include <stdlib.h>
-#include <string.h>
-#else
 #include "uc_string_lib.h"
 #include "uc_gpio.h"
-#endif
 
 #include "uc_pin_app.h"
 
 #define MAX_CONN_COUNT 4
 #define MAX_SEND_COUNT 4
 
-#define MAX_SEND_BYTE 310
+#define MAX_SEND_BYTE 20
 
 unsigned int recv_count = 0;
 unsigned int remenber_recv_count = 0;
@@ -95,8 +90,7 @@ static void wiota_test_send_data_task(void* parameter)
     uc_stats_info_t stats_info;
     UC_OP_RESULT send_result;
     char sendbuffer[MAX_SEND_BYTE]; //= {"Hello WIoTa AP"};
-    // unsigned int user_id[2] = {0xabe44fcb, 0x0};
-    unsigned int user_id2[2] = {0xabe44fcd, 0x0};
+    unsigned int user_id = 0xabe44fca;
 
     while (1)
     {
@@ -122,8 +116,7 @@ static void wiota_test_send_data_task(void* parameter)
         uc_wiota_register_recv_data_callback(wiota_recv_cb, UC_CALLBACK_STATE_INFO);
 
         //set user id
-        uc_wiota_set_userid(user_id2, 4);
-
+        uc_wiota_set_userid(&user_id, 4);
         for (i = 0; i < MAX_CONN_COUNT; i++)
         {
             // wiota connect ap
@@ -172,6 +165,7 @@ static void wiota_test_send_data_task(void* parameter)
 
             //Random string
             data_len = rand() % MAX_SEND_BYTE;
+            data_len = (data_len == 0)? 1 : data_len;
             rt_kprintf("send_data info: ");
             for (i = 0; i < data_len; i++)
             {

@@ -32,6 +32,10 @@ if RT_USING_PIN
     config _PIN_APP_
         bool "open pin, default close(_PIN_APP_)"
         default n
+
+    config _BUTTON_APP_
+        bool "open button, default close(_BUTTON_APP_)"
+        default n 
 endif
 
 if RT_USING_WDT
