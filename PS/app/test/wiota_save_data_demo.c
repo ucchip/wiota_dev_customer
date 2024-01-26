@@ -78,7 +78,7 @@ static void wiota_read_data_from_custom_addr(int addr, unsigned char *data_p, in
 static void wiota_test_data(void)
 {
     uc_stats_info_t stats_info;
-    UC_OP_RESULT send_result;
+    uc_op_result_e send_result;
     char sendbuffer[] = {"123456789"};
 
     // clean up all wiota record status.
@@ -89,7 +89,7 @@ static void wiota_test_data(void)
     while (1)
     {
         // get wiota connect state
-        UC_WIOTA_STATUS connect_state = uc_wiota_get_state();
+        uc_wiota_status_e connect_state = uc_wiota_get_state();
 
         // get wiota receive send data record.
         uc_wiota_get_all_stats(&stats_info);

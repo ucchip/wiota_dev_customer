@@ -453,7 +453,7 @@ static void gateway_send_data_test(void)
     
     while (1)
     {
-        UC_WIOTA_STATUS connect_state = uc_wiota_get_state();
+        uc_wiota_status_e connect_state = uc_wiota_get_state();
         uc_wiota_get_all_stats(&stats_info_ptr);
 
         if ((stats_info_ptr.ul_sm_succ * 5 < stats_info_ptr.ul_sm_total && stats_info_ptr.ul_sm_total > 20) ||
@@ -463,21 +463,21 @@ static void gateway_send_data_test(void)
                        __FUNCTION__, __LINE__, stats_info_ptr.ul_sm_succ, stats_info_ptr.ul_sm_total, connect_state);
             return;
         }
-        
+
         uc_wiota_gateway_state_update_info_msg();
 
-        rt_sprintf(test_gateway_send_buf , "dev:0x%x,userid:0x%x(%u),freq:%d,delay time:%d,send all:%d,send succ:%d,send fail rate:%d,recvcount:%d,rach_fail:%d,active_fail:%d,ul_succ:%d,dl_fail:%d,dl_succ:%d,bc_fail:%d,bc_succ:%d,ul_sm_succ:%d,ul_sm_total:%d", 
+        rt_sprintf(test_gateway_send_buf , "dev:0x%x,userid:0x%x(%u),freq:%d,delay time:%d,send all:%d,send succ:%d,send fail rate:%d,recvcount:%d,rach_fail:%d,active_fail:%d,ul_succ:%d,dl_fail:%d,dl_succ:%d,bc_fail:%d,bc_succ:%d,ul_sm_succ:%d,ul_sm_total:%d",
             dev_addr, userid[0], userid[0], uc_wiota_get_freq_info(), delay_time, count, send_succe_count, ((count - send_succe_count) * 100)/count, gateway_recv_count,
             stats_info_ptr.rach_fail, stats_info_ptr.active_fail, stats_info_ptr.ul_succ, stats_info_ptr.dl_fail, stats_info_ptr.dl_succ, stats_info_ptr.bc_fail, stats_info_ptr.bc_succ,
             stats_info_ptr.ul_sm_succ, stats_info_ptr.ul_sm_total);
-        
+
         count++;
         if (count > 0x1FFFFFFF)
         {
             count = 1;
             send_succe_count = 1;
          }
-        
+
         if (uc_wiota_gateway_send_data(test_gateway_send_buf, rt_strlen(test_gateway_send_buf), 10000) == 0)
         { // fail
             rt_kprintf("uc_wiota_gateway_api_handle send data fail.\n");
@@ -544,7 +544,7 @@ static void wiota_gateway_api_test_task(void *para)
     uc_wiota_log_switch(UC_LOG_UART, 1);
 
     uc_wiota_get_dev_serial(serial);
-    
+
     network_state = LEN_TW;
 
     while (1)
@@ -585,10 +585,10 @@ static void wiota_gateway_api_test_task(void *para)
 
         network_state = LED_ON;
         gatway_led_state = LEN_TW;
-        
+
         result = uc_wiota_gateway_start(
-            0 == serial[14] ? UC_GATEWAY_MODE: UC_TRANSMISSION_MODE, 
-            "123456", 
+            0 == serial[14] ? UC_GATEWAY_MODE: UC_TRANSMISSION_MODE,
+            "123456",
             available_freq_list);
         rt_kprintf("%s line %d result %d\n", __FUNCTION__, __LINE__, result);
         switch (result)

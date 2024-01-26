@@ -1,3 +1,20 @@
+sync v2.9
+S-v2.9
+
+	1. subsys id 的高12bit，测试版本默认固定为0x214, 32bit的整体默认值仍为0x21456981
+	2. 规范c标准变量类型及命名
+	3. 超低功耗唤醒支持同时检测第二个唤醒id，更新结构体 uc_lpm_rx_cfg_t
+	4. 增加 wiota init/run/exit 接口的中间态 SWITCHING
+	5. 增加获取模组ID的接口
+	6. 获取唤醒原因接口中，增加唤醒id的idx
+	7. 优化了sync paging和paging的虚警率和漏检率
+	8. 更新了功率ramp爬坡曲线，优化了射频谐波
+	9. 重发次数可配置为0，uc_wiota_set_sm_resend_times
+	10. sync paging模式更新，增加了睡前上行ctrl消息，可精确到特定帧唤醒
+	11. 全扫频超时bug修复 
+	12. 更新外设demo
+	13. buliding.py更新，代码编译排版固定化
+
 sync v2.8
 S-v2.8
 

@@ -295,7 +295,7 @@ static at_result_t at_factory_setup(const char *args)
     case FACTORY_WIOTA:
     {
 #ifdef _L1_FACTORY_FUNC_
-        if (!factory_msg_handler(data, data1))
+        if (!uc_factory_msg_handler(data, data1))
         {
             return AT_RESULT_FAILE;
         }

@@ -40,15 +40,14 @@ typedef void(*uc_wiota_gateway_user_recv_cb)(void *data, unsigned int len, unsig
 typedef void(*uc_wiota_gateway_exception_report_cb)(unsigned char exception_type);
 
 // user api
-extern  int uc_wiota_gateway_start(uc_gatway_mode_e mode, char *auth_key, unsigned char freq_list[APP_CONNECT_FREQ_NUM]);
-extern int uc_wiota_gateway_send_data(void *data, unsigned int data_len, unsigned int timeout);
-extern int uc_wiota_gateway_state_update_info_msg(void);
-extern int uc_wiota_gateway_register_user_recv_cb(uc_wiota_gateway_user_recv_cb user_recv_cb, uc_wiota_gateway_exception_report_cb user_get_exc_report_cb);
-extern int uc_wiota_gateway_ota_req(void);
-extern int uc_wiota_gateway_set_ota_period(unsigned int p_tick);
-extern int uc_wiota_gateway_end(void);
-extern uc_gateway_state_t uc_wiota_gateway_get_state(void);
-extern int uc_gateway_get_random(void);
+int uc_wiota_gateway_start(uc_gatway_mode_e mode, char *auth_key, unsigned char freq_list[APP_CONNECT_FREQ_NUM]);
+int uc_wiota_gateway_send_data(void *data, unsigned int data_len, unsigned int timeout);
+int uc_wiota_gateway_state_update_info_msg(void);
+int uc_wiota_gateway_register_user_recv_cb(uc_wiota_gateway_user_recv_cb user_recv_cb, uc_wiota_gateway_exception_report_cb user_get_exc_report_cb);
+int uc_wiota_gateway_ota_req(void);
+int uc_wiota_gateway_end(void);
+uc_gateway_state_t uc_wiota_gateway_get_state(void);
+int uc_gateway_get_random(void);
 unsigned int uc_wiota_gateway_get_dev_address(void);
 unsigned char uc_wiota_gateway_get_time_slot_fn(void);
 

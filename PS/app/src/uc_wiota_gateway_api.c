@@ -44,8 +44,8 @@ extern void wiota_recv_callback(uc_recv_back_p data);
 void uc_wiota_gateway_api_handle(void *para);
 // before scantf freq.
 static uc_gateway_state_t uc_gateway_state = GATEWAY_DEFAULT;
-static boolean wiota_gateway_mode_flag = RT_FALSE;
-static boolean wiota_gateway_run_flag = RT_FALSE;
+static unsigned char wiota_gateway_mode_flag = RT_FALSE;
+static unsigned char wiota_gateway_run_flag = RT_FALSE;
 
 static void uc_gateway_clean_data(void);
 
@@ -74,8 +74,8 @@ typedef struct uc_wiota_gateway_api_mode
     rt_mq_t gateway_mq;
     // rt_timer_t heart_timer;
 
-    boolean gateway_mode;
-    boolean allow_run_flag;
+    unsigned char gateway_mode;
+    unsigned char allow_run_flag;
     e_auth_state auth_state;
     char auth_code[16];
     char device_type[16];
@@ -103,18 +103,18 @@ typedef struct uc_wiota_gateway_api_mode
 static uc_wiota_gateway_api_mode_t gateway_mode = {0};
 unsigned char gw_freq_list[APP_CONNECT_FREQ_NUM] = {0};
 
-void uc_wiota_gateway_set_run_flag(boolean run_flag);
+void uc_wiota_gateway_set_run_flag(unsigned char run_flag);
 unsigned int uc_wiota_gateway_get_wiota_id(void);
-//boolean uc_wiota_gateway_get_reboot_flag(void);
+//unsigned char uc_wiota_gateway_get_reboot_flag(void);
 static void uc_wiota_gateway_send_miss_data_req_to_queue(void);
 static unsigned char g_time_slot_fn = 0;
 
-boolean uc_wiota_gateway_get_run_flag(void)
+unsigned char uc_wiota_gateway_get_run_flag(void)
 {
     return wiota_gateway_run_flag;
 }
 
-void uc_wiota_gateway_set_run_flag(boolean run_flag)
+void uc_wiota_gateway_set_run_flag(unsigned char run_flag)
 {
     wiota_gateway_run_flag = run_flag;
 }
@@ -214,12 +214,12 @@ unsigned int uc_wiota_gateway_get_dev_address(void)
     return (((serial[4] & 0x7f) << 24) | (serial[5] << 16) | (serial[6] << 8) | serial[7]);
 }
 
-boolean uc_wiota_gateway_get_allow_run_flag(void)
+unsigned char uc_wiota_gateway_get_allow_run_flag(void)
 {
     return gateway_mode.allow_run_flag;
 }
 
-void uc_wiota_gateway_set_allow_run_flag(boolean flag)
+void uc_wiota_gateway_set_allow_run_flag(unsigned char flag)
 {
     gateway_mode.allow_run_flag = flag;
 }
@@ -371,7 +371,7 @@ static int uc_wiota_gateway_send_ps_cmd_data(unsigned char *data,
     unsigned int cmd_coding_len = len;
     unsigned char *data_coding = RT_NULL;
     unsigned int data_coding_len = 0;
-    UC_OP_RESULT send_result = 0;
+    uc_op_result_e send_result = 0;
 
     ret = app_data_coding(ps_header, cmd_coding, cmd_coding_len, &data_coding, &data_coding_len);
     if (0 != ret)
@@ -545,12 +545,12 @@ static void uc_wiota_gateway_auth_res_msg(unsigned char *data, unsigned int data
     //rt_free(cmd_decoding);
 }
 
-static boolean uc_wiota_gateway_check_if_upgrade_required(app_ps_ota_upgrade_req_t *ota_upgrade_req)
+static unsigned char uc_wiota_gateway_check_if_upgrade_required(app_ps_ota_upgrade_req_t *ota_upgrade_req)
 {
-    boolean is_upgrade_range = FALSE;
-    boolean is_required = FALSE;
+    unsigned char is_upgrade_range = FALSE;
+    unsigned char is_required = FALSE;
     unsigned int dev_address = uc_wiota_gateway_get_dev_address();
-    u8_t version[16] = {0};
+    unsigned char version[16] = {0};
 
     uc_wiota_get_version(version, RT_NULL, RT_NULL, RT_NULL);
 
@@ -609,7 +609,7 @@ static boolean uc_wiota_gateway_check_if_upgrade_required(app_ps_ota_upgrade_req
     return is_required;
 }
 
-static boolean uc_wiota_gateway_whether_the_ota_upgrade_data_is_recved(void)
+static unsigned char uc_wiota_gateway_whether_the_ota_upgrade_data_is_recved(void)
 {
     unsigned int offset = 0;
     unsigned int block_count = 0;
@@ -745,7 +745,7 @@ static void uc_wiota_gateway_ota_upgrade_state_msg(unsigned char *data, unsigned
 {
     //unsigned char *cmd_decoding = RT_NULL;
     app_ps_ota_upgrade_state_t *ota_upgrade_state = (app_ps_ota_upgrade_state_t *)data;
-    u8_t version[16] = {0};
+    unsigned char version[16] = {0};
 
     uc_wiota_get_version(version, RT_NULL, RT_NULL, RT_NULL);
 
@@ -834,7 +834,7 @@ static int uc_wiota_gateway_send_ota_req_msg(void)
 {
     app_ps_version_verify_t version_verify = {0};
     app_ps_header_t ps_header = {0};
-    u8_t version[16] = {0};
+    unsigned char version[16] = {0};
 
     if (wiota_gateway_mode_flag)
     {
@@ -861,7 +861,7 @@ static void uc_wiota_gateway_ota_miss_data_req_msg(void)
 {
     app_ps_header_t ps_header = {0};
     app_ps_iote_missing_data_req_t miss_data_req = {0};
-    u8_t version[16] = {0};
+    unsigned char version[16] = {0};
     static unsigned char miss_data_continue_couter = 0;
 
     if (gateway_mode.miss_data_invalid_req < 8)
@@ -1302,7 +1302,7 @@ int uc_wiota_gateway_send_data(void *data, unsigned int data_len, unsigned int t
     unsigned char *data_coding = RT_NULL;
     unsigned int data_coding_len = 0;
     app_ps_header_t ps_header = {0};
-    UC_OP_RESULT send_result = UC_OP_FAIL;
+    uc_op_result_e send_result = UC_OP_FAIL;
 
     if (data_len > GATEWAY_SEND_MAX_LEN)
     {
@@ -1498,7 +1498,7 @@ void uc_wiota_gateway_api_handle(void *para)
                                                       (void **)&recv_data,
                                                       GATEWAY_WAIT_QUEUE_TIMEOUT))
             {
-                UC_WIOTA_STATUS connect_state = uc_wiota_get_state();
+                uc_wiota_status_e connect_state = uc_wiota_get_state();
 
                 if (UC_STATUS_SYNC_LOST == connect_state ||
                     UC_STATUS_ERROR == connect_state)

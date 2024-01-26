@@ -30,7 +30,7 @@
 //AT_CMD_EXPORT("AT+YMODEM", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_ymodem_exec);
 static  at_result_t at_uboot_version_query(void)
 {
-	u8_t version[8] = {0};
+	unsigned char version[8] = {0};
 	get_uboot_version(version);
 	at_server_printfln("+UBOOTVERSION:%s", version);
 	return AT_RESULT_OK;
@@ -58,7 +58,7 @@ static at_result_t at_set_uboot_baudrate(const char *args)
 
 static at_result_t at_uboot_mode_query(void)
 {
-	u8_t mode = 0;
+	unsigned char mode = 0;
 	get_uboot_mode(&mode);
 	at_server_printfln("+UBOOTMODE:%c", mode);
 	return AT_RESULT_OK;
@@ -66,7 +66,7 @@ static at_result_t at_uboot_mode_query(void)
 
 static at_result_t at_set_uboot_mode(const char *args)
 {
-	u8_t mode = 0;
+	unsigned char mode = 0;
 	args = parse((char *)(++args), "s",1, &mode);
     if (!args)
     {
@@ -102,7 +102,7 @@ static at_result_t at_set_partition_size(const char *args)
 
 static at_result_t at_uboot_log_query(void)
 {
-	u8_t uart_flag,log_flag,select_flag;
+	unsigned char uart_flag,log_flag,select_flag;
 	get_uboot_log_set(&uart_flag,&log_flag,&select_flag);
 	at_server_printfln("+UARTFLAG:%d",uart_flag);
 	at_server_printfln("+LOGFLAG:%d",log_flag);
@@ -112,7 +112,7 @@ static at_result_t at_uboot_log_query(void)
 
 static at_result_t at_set_uboot_log(const char *args)
 {
-	u8_t uart_flag,log_flag,select_flag;
+	unsigned char uart_flag,log_flag,select_flag;
 	args = parse((char *)(++args), "d,d,d",&uart_flag,&log_flag,&select_flag);
 	if(!args)
 	{

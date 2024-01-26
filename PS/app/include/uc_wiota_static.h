@@ -150,7 +150,7 @@ unsigned char uc_wiota_get_auto_connect_flag(void);
  * @param  auto_connect theauto_connect flag
  */
 
-void uc_wiota_set_auto_connect(u8_t auto_connect);
+void uc_wiota_set_auto_connect(unsigned char auto_connect);
 
 /**
  * @brief  get DTU config

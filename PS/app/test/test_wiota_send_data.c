@@ -88,7 +88,7 @@ static void wiota_test_send_data_task(void* parameter)
     unsigned int data_len;
     rt_err_t ret = RT_EOK;
     uc_stats_info_t stats_info;
-    UC_OP_RESULT send_result;
+    uc_op_result_e send_result;
     char sendbuffer[MAX_SEND_BYTE]; //= {"Hello WIoTa AP"};
     unsigned int user_id = 0xabe44fca;
 
@@ -146,7 +146,7 @@ static void wiota_test_send_data_task(void* parameter)
         {
 
             // get wiota connect state
-            UC_WIOTA_STATUS connect_state = uc_wiota_get_state();
+            uc_wiota_status_e connect_state = uc_wiota_get_state();
             rt_kprintf("curr connect_state =  %d\n", connect_state);
             // get wiota receive send data record.
             uc_wiota_get_all_stats(&stats_info);

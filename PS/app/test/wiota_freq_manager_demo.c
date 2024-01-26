@@ -12,7 +12,7 @@
 static int wiota_get_static_freq(char *list)
 {
     int num;
-    // read static data 
+    // read static data
     uc_wiota_get_freq_list((unsigned char *)list);
 
     for (num = 0; num < 16; num++)
@@ -33,7 +33,7 @@ static int wiota_scan_freq(unsigned char *sync_freq)
 
     // init wiota stack.
     uc_wiota_init();
-    
+
     // execute wiota protocol stack.
     uc_wiota_run();
 
@@ -48,7 +48,7 @@ static int wiota_scan_freq(unsigned char *sync_freq)
     {
         // a list of freq point in result.
         uc_freq_scan_result_p freq_list = (uc_freq_scan_result_p)result.data;
-        
+
         // the number of freq points as a result.
         int freq_num = result.data_len / sizeof(uc_freq_scan_result_t);
 
@@ -66,7 +66,7 @@ static int wiota_scan_freq(unsigned char *sync_freq)
         // resources must be free.
         rt_free(result.data);
     }
-    
+
     // release all resource of the wiota protocol
     uc_wiota_exit();
 
@@ -79,7 +79,7 @@ void wiota_recv_cb(uc_recv_back_p data)
     if (0 == data->result)
     {
         rt_kprintf("wiota_recv_callback result %d, data:%s\n", data->result, data->data);
-        
+
         // must free data.
         rt_free(data->data);
     }
@@ -88,16 +88,16 @@ void wiota_recv_cb(uc_recv_back_p data)
 static void wiota_test_data(void)
 {
     uc_stats_info_t stats_info;
-    UC_OP_RESULT send_result;
+    uc_op_result_e send_result;
     char sendbuffer[] = {"123456789"};
 
     // clean up all wiota record status.
     uc_wiota_reset_stats(UC_STATS_TYPE_ALL);
-    
+
     while (1)
     {
         // get wiota connect state
-        UC_WIOTA_STATUS connect_state = uc_wiota_get_state();
+        uc_wiota_status_e connect_state = uc_wiota_get_state();
 
         // get wiota receive send data record.
         uc_wiota_get_all_stats(&stats_info);
@@ -109,7 +109,7 @@ static void wiota_test_data(void)
         {
             rt_kprintf("%s line %d sm_succ %d sm_total %d connect state %d\n",
                        __FUNCTION__, __LINE__, stats_info.ul_sm_succ, stats_info.ul_sm_total, connect_state);
-            
+
             return;
         }
 
@@ -123,7 +123,7 @@ static void wiota_test_data(void)
          {
             rt_kprintf("uc_wiota_send_data send fail %d\n", send_result);
          }
-         
+
         rt_thread_mdelay(5000);
     }
 }
@@ -132,7 +132,7 @@ static int wiota_wait_connect(void)
 {
     // wait 4s.
     signed char num = 40;
-    
+
     // number of success are monitored continue.
     unsigned char counter = 0;
 
@@ -146,7 +146,7 @@ static int wiota_wait_connect(void)
             // 4 consecutive success detect.
             if (counter > 4)
                 break;
-            
+
             counter++;
         }
         else // sync faild
@@ -159,13 +159,13 @@ static int wiota_wait_connect(void)
 #endif
 
 static int wiota_run_test(unsigned char freq)
-{   
+{
     // init wiota stack.
     uc_wiota_init();
 
     // set trial freq index
     uc_wiota_set_freq_info(freq);
-    
+
     // execute wiota protocol stack.
     uc_wiota_run();
 
@@ -189,7 +189,7 @@ static int wiota_run_test(unsigned char freq)
 
     // release all resource of the wiota protocol
     uc_wiota_exit();
-    
+
 }
 
 void wiota_scan_freq_demo(void)
@@ -197,7 +197,7 @@ void wiota_scan_freq_demo(void)
     unsigned char sync_freq[16] = {0xFF};
     int sync_freq_num = 0;
 
-    // wiota configure the frequency sweep according 
+    // wiota configure the frequency sweep according
     // to the frequency point list.
     sync_freq_num = wiota_scan_freq(sync_freq);
     if (!sync_freq_num)

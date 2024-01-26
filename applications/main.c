@@ -21,8 +21,6 @@
 #ifdef RT_USING_AT
 #include "at.h"
 #endif
-#else
-#include "test_wiota_api.h"
 #endif
 
 
