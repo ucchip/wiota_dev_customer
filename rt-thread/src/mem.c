@@ -553,7 +553,9 @@ RTM_EXPORT(rt_calloc);
  * @param rmem the address of memory which will be released
  */
 #ifdef RT_USING_FINSH
+#ifdef RT_USING_MEMTRACE
 extern int memtrace(int argc, char** argv);
+#endif
 #endif
 void rt_free(void* rmem)
 {
@@ -596,7 +598,9 @@ void rt_free(void* rmem)
         rt_kprintf("to free a bad data block:\n");
         rt_kprintf("mem: 0x%08x, used flag: %d, magic code: 0x%04x\n", mem, mem->used, mem->magic);
 #ifdef RT_USING_FINSH
+#ifdef RT_USING_MEMTRACE
         memtrace(0,NULL);
+#endif
 #endif
     }
     RT_ASSERT(mem->used);

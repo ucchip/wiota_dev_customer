@@ -21,6 +21,8 @@
 #ifdef RT_USING_AT
 #include "at.h"
 #endif
+#else
+#include "test_wiota_api.h"
 #endif
 
 
@@ -81,6 +83,8 @@
 #endif
 
 extern void uc_wiota_static_data_init(void);
+extern int at_wiota_gpio_report_init(void);
+extern int wake_out_pulse_init(void);
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
 extern void at_handle_log_uart(int uart_number);
@@ -171,6 +175,9 @@ int main(void)
 #else
     app_task_init();
 #endif
+
+    at_wiota_gpio_report_init();
+    wake_out_pulse_init();
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
 //    at_handle_log_uart(0);

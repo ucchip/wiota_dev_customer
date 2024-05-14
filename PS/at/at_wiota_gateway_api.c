@@ -167,11 +167,42 @@ static at_result_t at_wiota_gateway_api_report_state(void)
     return AT_RESULT_FAILE;
 }
 
+static void at_get_rtc_callbcak(unsigned int fmt, time_t time)
+{
+    if (fmt == 0)
+    {
+        at_server_printfln("+GATEWAYRTC:%u", time);
+    }
+    else
+    {
+        at_server_printfln("+GATEWAYRTC:%s", ctime((const time_t *)&time));
+    }
+}
+
+static at_result_t at_wiota_gateway_api_get_rtc(const char *args)
+{
+    unsigned int fmt = 0;
+
+    args = parse((char *)(++args), "d", &fmt);
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    if (0 != uc_wiota_gateway_get_rtc(fmt, at_get_rtc_callbcak))
+    {
+        return AT_RESULT_FAILE;
+    }
+
+    return AT_RESULT_OK;
+}
+
 AT_CMD_EXPORT("AT+GATEWAYINIT", "=<mode>,<auth_key>", RT_NULL, RT_NULL, at_wiota_gateway_api_init, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYDEINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_deinit);
 AT_CMD_EXPORT("AT+GATEWAYSEND", "=<timeout>,<len>", RT_NULL, RT_NULL, at_wiota_gateway_api_send_data, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYOTAREQ", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_ota_req);
 AT_CMD_EXPORT("AT+GATEWAYSTATE", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_report_state);
+AT_CMD_EXPORT("AT+GATEWAYRTC", "=<fmt>", RT_NULL, RT_NULL, at_wiota_gateway_api_get_rtc, RT_NULL);
 
 #endif
 #endif

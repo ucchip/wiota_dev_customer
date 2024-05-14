@@ -10,8 +10,8 @@ MEMORY
 {
 	uboot       : ORIGIN = 0x00000000, LENGTH = 0X7000  /* 28K uboot length*/
 	uc_rom      : ORIGIN = 0x00007000, LENGTH = 0x3000  /* 12K uncompressed code sys data, NO RODATA!!!!*/
-	protocal_stack   : ORIGIN = 0x0000A000, LENGTH = 0x12000  /*72K*/
-	instrram    : ORIGIN = 0x0001C000, LENGTH = 0x12000 /* 72K actually rom... */
+	protocal_stack   : ORIGIN = 0x0000A000, LENGTH = 0x13000  /*72K*/
+	instrram    : ORIGIN = 0x0001D000, LENGTH = 0x12000 /* 72K actually rom... */
 	datarom     : ORIGIN = 0x00200000, LENGTH = 0x4FC00 /* 84K data rom*/
 	dataram     : ORIGIN = 0x00308000, LENGTH = 0x7B00  /* 30K byte board.h also need change!!! */
 	traceram    : ORIGIN = 0x0030FB00, LENGTH = 0x400   /* 1 KB */

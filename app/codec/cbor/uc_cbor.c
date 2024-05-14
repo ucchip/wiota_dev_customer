@@ -365,4 +365,4 @@ cn_cbor *cn_cbor_decode(const unsigned char *buf, size_t len CBOR_CONTEXT, cn_cb
     }
     return ret;
 }
-#endif /* GATEWAY_MODE_SUPPORT */
+#endif /* AT_WIOTA_GATEWAY_API */

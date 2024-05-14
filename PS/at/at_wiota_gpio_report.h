@@ -11,5 +11,8 @@ int wiota_gpio_mode_get(void);
 void wiota_gpio_mode_set(int mode);
 void wiota_data_insert(uc_recv_back_t *data);
 
+int at_wiota_gpio_report_init(void);
+int wake_out_pulse_init(void);
+
 #endif // ~#ifndef _AT_WIOTA_GPIO_REPORT_H
 

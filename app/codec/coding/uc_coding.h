@@ -64,7 +64,10 @@ typedef enum
     OTA_UPGRADE_STATE = 13,
     IOTE_MISSING_DATA_REQ = 14,
     IOTE_STATE_UPDATE = 20,
+    IOTE_GET_RTC = 21,
     IOTE_USER_DATA = 100,
+    IOTE_VERSION_REQ = 150,
+    IOTE_VERSION_RES = 151,
     IOTE_RESPON_STATE = 0xFFFFFFFF,
 } app_ps_cmd_e;
 
@@ -161,6 +164,7 @@ typedef struct
 typedef struct
 {
     char device_type[12];
+    char cur_version[16];
     unsigned char freq;
     unsigned char rssi;
     signed char snr;
@@ -170,6 +174,12 @@ typedef struct
     unsigned char cur_mcs;
     unsigned char max_mcs;
 } app_ps_iote_state_update_t, *app_ps_iote_state_update_p;
+
+typedef struct
+{
+    unsigned int dev_id;
+    unsigned char version[16];
+} app_ps_iote_version_t;
 
 //unsigned char app_packet_num(void);
 

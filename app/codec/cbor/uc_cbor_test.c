@@ -168,4 +168,4 @@ void codec_test_main(void)
 
 }
 
-#endif // GATEWAY_MODE_SUPPORT
+#endif // AT_WIOTA_GATEWAY_API

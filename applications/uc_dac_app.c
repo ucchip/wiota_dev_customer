@@ -19,41 +19,41 @@ int dac_app_init(void)
         rt_kprintf("find %s failed!\n", DAC_DEVICE_NAME);
         return RT_EEMPTY;
     }
-    
+
     return ret;
 }
 
 int dac_app_set_value(rt_uint32_t value)
 {
     rt_err_t ret = RT_EOK;
-    
+
     if (dac_dev == RT_NULL)
     {
         rt_kprintf("find %s failed!\n", DAC_DEVICE_NAME);
         return RT_EEMPTY;
     }
-    
+
     rt_dac_enable(dac_dev, DAC_DEV_CHANNEL);
     rt_dac_write(dac_dev, DAC_DEV_CHANNEL, value);
     rt_dac_disable(dac_dev, DAC_DEV_CHANNEL);
-    
+
     return ret;
 }
 
 void dac_app_sample(void)
 {
     int ret = 0;
-    
+
     rt_kprintf("dac test demo.\r\n");
-    
+
     ret = dac_app_init();
     if(ret != RT_EOK)
     {
         rt_kprintf("init adc device failed!\n");
         return;
     }
-    
-    ret = dac_app_set_value(3000);
+
+    ret = dac_app_set_value(1023); // 10bit, 0~1023
     if(ret != RT_EOK)
     {
         rt_kprintf("dac test failed!\n");

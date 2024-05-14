@@ -18,14 +18,20 @@
 //0 - 200
 #define WIOTA_FREQUENCE_INDEX(freq, base_freq) ((freq - base_freq) / WIOTA_FREQUENCE_STEP)
 
+#define CRC8_LEN 1
 #define CRC16_LEN 2
+#define CRC32_LEN 4
 
 #define UC_DATA_LENGTH_LIMIT 310 // do not change
 
+#define UC_ALGO_MULTIPLIER 0x15a4e35
+#define UC_ALGO_INCREMENT 0x1
+
 typedef enum
 {
-    UC_CALLBACK_NORAMAL_MSG = 0, // normal msg from ap
-    UC_CALLBACK_STATE_INFO,      // state info
+    UC_CALLBACK_NORAMAL_MSG = 0,   // normal msg from ap
+    UC_CALLBACK_STATE_INFO,        // state info
+    UC_CALLBACK_INTERRUPT_HANDLER, // when rf interrupt come, will check app handler
 } uc_callback_data_type_e;
 
 typedef enum
@@ -39,6 +45,7 @@ typedef enum
     UC_RECV_SCAN_FREQ = 6,   // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
     UC_RECV_SYNC_LOST = 7,   // UC_CALLBACK_STATE_INFO, sync lost notify by riscv, need scan freq
     UC_RECV_IDLE_PAGING = 8, // UC_CALLBACK_STATE_INFO, when idle state, recv ap's paging signal
+    UC_RECV_VOICE = 9,       // UC_CALLBACK_NORAMAL_MSG, voice msg from ap
 } uc_recv_data_type_e;
 
 typedef enum
@@ -71,9 +78,19 @@ typedef enum
 
 typedef enum
 {
+    SUBFRAME_MODE_CLOSE = 0,
+    SUBFRAME_MODE_ONE = 1,
+    SUBFRAME_MODE_TWO = 2,
+} uc_subframe_mode_e;
+
+typedef enum
+{
     UC_RATE_NORMAL = 0,
     UC_RATE_MID,
     UC_RATE_HIGH,
+    UC_RATE_CRC_TYPE, // 0, normal mode, 1, only one byte crc
+    UC_RATE_SUBFRAME, // subframe mode
+    UC_RATE_DISCARD_SUBF, // if need discard subframe data when send normal data
 } uc_data_rate_mode_e;
 
 typedef enum
@@ -158,7 +175,7 @@ typedef enum
 typedef struct
 {
     unsigned char rssi; // absolute value, 0~150, always negative
-    unsigned char ber;
+    unsigned char ramp_type;
     signed char snr;
     signed char cur_power;
     signed char min_power;
@@ -264,6 +281,17 @@ typedef struct
     unsigned char spectrum_idx;
     unsigned char bandwidth;
     unsigned char symbol_length;
+    unsigned short awaken_id; // indicate which id should send
+    unsigned short reserved;
+    unsigned int send_time; // ms, at least rx detect period
+} uc_lpm_tx_cfg_t, *uc_lpm_tx_cfg_p;
+
+typedef struct
+{
+    unsigned char freq;
+    unsigned char spectrum_idx;
+    unsigned char bandwidth;
+    unsigned char symbol_length;
     unsigned char lpm_nlen;   // 1,2,3,4, default 4
     unsigned char lpm_utimes; // 1,2,3, default 2
     unsigned char threshold;  // detect threshold, 1~15, default 10
@@ -276,6 +304,23 @@ typedef struct
     unsigned char period_multiple;    // the multiples of detect_period using awaken_id_ano, if 0, no need
     unsigned short awaken_id_another; // another awaken_id
 } uc_lpm_rx_cfg_t, *uc_lpm_rx_cfg_p;
+
+typedef struct
+{
+    unsigned short data_len;
+    unsigned char is_right; // for recv data, not use now
+    unsigned char reserved;
+    unsigned char *data;
+} uc_subf_data_t, *uc_subf_data_p;
+
+typedef struct
+{
+    unsigned char is_valid;
+    unsigned char reserved0;
+    unsigned short reserved1;
+    unsigned int frame_head;
+    unsigned int frame_mid;
+} uc_frame_head_t, *uc_frame_head_p;
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
@@ -338,6 +383,8 @@ void uc_wiota_set_gating_event(unsigned char action, unsigned char event_id);
 
 void uc_wiota_set_data_rate(unsigned char rate_mode, unsigned short rate_value);
 
+void uc_wiota_set_ramp_type(unsigned char ramp_type);
+
 void uc_wiota_set_cur_power(signed char power);
 
 void uc_wiota_set_max_power(signed char power);
@@ -384,9 +431,15 @@ void uc_wiota_sleep_enter(unsigned char is_need_ex_wk, unsigned char is_need_32k
 
 void uc_wiota_paging_rx_enter(unsigned char is_need_32k_div, unsigned int timeout_max);
 
-void uc_wiota_set_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
+unsigned char uc_wiota_set_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
 
 void uc_wiota_get_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
+
+void uc_wiota_paging_tx_start(void);
+
+unsigned char uc_wiota_set_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
+
+void uc_wiota_get_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
 
 unsigned short uc_wiota_get_awaken_id_limit(unsigned char symbol_len);
 
@@ -399,6 +452,8 @@ unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // uc_
 unsigned char uc_wiota_get_paging_awaken_cause(unsigned int *detected_times, unsigned char *detect_idx); // uc_lpm_paging_waken_cause_e
 
 unsigned int uc_wiota_get_curr_rf_cnt(void);
+
+void uc_wiota_get_frame_head_rf_cnt(uc_frame_head_p frame_head_info);
 
 void uc_wiota_set_tx_mode(unsigned char mode);
 
@@ -416,6 +471,32 @@ void uc_wiota_set_sm_resend_times(unsigned char resend_times);
 
 void uc_wiota_get_module_id(unsigned char *module_id);
 
+unsigned char uc_wiota_add_subframe_data(uc_subf_data_p subf_data);
+
+unsigned int uc_wiota_get_subframe_data_num(void);
+
+void uc_wiota_set_subframe_data_limit(unsigned int num_limit);
+
+void uc_wiota_algo_srand(unsigned int seedSet);
+
+unsigned int uc_wiota_algo_rand(void);
+
+void uc_wiota_set_is_use_temp(unsigned char is_use_temp);
+
+unsigned char uc_wiota_get_is_use_temp(void);
+
+unsigned int uc_wiota_get_frame_num(void);
+
+unsigned char uc_wiota_get_is_frame_valid(void);
+
+void uc_wiota_set_is_frame_valid(unsigned char isFrameValid);
+
+unsigned char uc_wiota_crc8_calc(unsigned char *data, unsigned int data_len);
+
+unsigned short uc_wiota_crc16_calc(unsigned char *data, unsigned int data_len);
+
+unsigned int uc_wiota_crc32_calc(unsigned char *data, unsigned int data_len);
+
 // below is for inter test !
 
 void uc_wiota_test_loop(unsigned char mode);
@@ -426,11 +507,11 @@ void uc_wiota_set_bc_mode(unsigned char mode);
 
 unsigned char uc_wiota_get_bc_mode(void);
 
-unsigned int uc_wiota_get_frame_num(void);
+void uc_wiota_set_subframe_test(unsigned char mode);
 
-unsigned char uc_wiota_get_is_frame_valid(void);
+unsigned int uc_wiota_get_subframe_test(unsigned char mode);
 
-void uc_wiota_set_is_frame_valid(unsigned char isFrameValid);
+// below is about uboot !
 
 void get_uboot_version(unsigned char *version);
 
@@ -441,6 +522,10 @@ void set_uboot_baud_rate(int baud_rate);
 void get_uboot_mode(unsigned char *mode);
 
 void set_uboot_mode(unsigned char mode);
+
+void set_uboot_wait_sec(unsigned char wait_sec);
+
+unsigned char get_uboot_wait_sec();
 
 void set_partition_size(int bin_size, int reserverd_size, int ota_size);
 

@@ -306,7 +306,6 @@ static int at_wiota_manager_scan(void)
 {
     sub_system_config_t config;
     uc_recv_back_t result;
-    unsigned char serial[16] = {0};
     t_at_wiota_manager *manager = &g_wiota_manager;
     unsigned int subsystem_id_list[8] = {0};
     unsigned char freq_list[16] = {0};
@@ -318,11 +317,7 @@ static int at_wiota_manager_scan(void)
     uc_wiota_init();
 
 #ifdef AT_WIOTA_GATEWAY_API
-    uc_wiota_get_dev_serial(serial);
-    unsigned int userid = ((serial[4] & 0x7f)<< 24)\
-                        | (serial[5] << 16)\
-                        | (serial[6] << 8)\
-                        |  serial[7];
+    unsigned int userid = uc_wiota_gateway_get_dev_address();
     uc_wiota_set_userid( &userid , 4);
 #endif
 
@@ -539,7 +534,6 @@ static void at_wiota_manager_task(void *parameter)
         }
         case AT_WIOTA_MANAGER_PROCESS_INIT:
         {
-	        unsigned char serial[16] = {0};
             if (at_wiota_choose_freq())
             {
                 SET_MANAGER_PROCESS(AT_WIOTA_MANAGER_PROCESS_SCAN);
@@ -552,11 +546,7 @@ static void at_wiota_manager_task(void *parameter)
 
             uc_wiota_init();
 #ifdef AT_WIOTA_GATEWAY_API
-            uc_wiota_get_dev_serial(serial);
-            unsigned int userid = ((serial[4] & 0x7f)<< 24)\
-                                | (serial[5] << 16)\
-                                | (serial[6] << 8)\
-                                |  serial[7];
+            unsigned int userid = uc_wiota_gateway_get_dev_address();
 
             // rt_kprintf("%s line %d\n", __FUNCTION__, __LINE__);
 

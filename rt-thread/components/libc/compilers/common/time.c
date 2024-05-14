@@ -119,8 +119,8 @@ struct tm* localtime_r(const time_t* t, struct tm* r)
 {
     time_t local_tz;
     int utc_plus;
-
-    utc_plus = 0; /* GTM: UTC+0 */
+#define RT_LIBC_DEFAULT_TIMEZONE 8
+    utc_plus = RT_LIBC_DEFAULT_TIMEZONE; /* GTM: UTC+0 */
     local_tz = *t + utc_plus * 3600;
     return gmtime_r(&local_tz, r);
 }
