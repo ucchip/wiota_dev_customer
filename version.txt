@@ -1,3 +1,22 @@
+sync v3.1
+S-v3.1
+
+	1. 超低功耗唤醒扩展ID模式，uc_lpm_tx_cfg_t和uc_lpm_rx_cfg_t结构体中增加mode
+	2. 新增强制协议栈退回到IDLE状态的接口
+	3. 新增是否需要退出协议栈时保存静态数据的开关
+	4. paging tx发送完成回复tx done状态通知消息
+	5. 增加从OTP中读取功率曲线的功能，功率曲线不会被烧写时擦除
+	6. 反向超低功耗唤醒功能，iote唤醒ap
+	7. 新增网关相关代码
+	8. 新增世界时间同步功能，可通过at/api获取世界时间，依赖AP授时功能
+	9. 增加模组ID获取的at
+	10. 新增获取当前rf cnt的api
+	11. 增加获取当前帧头rf cnt的api
+	扩展ID模式使用重点：
+		1. 第二个唤醒ID仅支持与第一个唤醒ID相同周期
+		2. 进休眠不能32K时钟降频
+		3. paging tx的send time必须与paging rx的detect time相同
+	
 sync v3.0
 S-v3.0
 

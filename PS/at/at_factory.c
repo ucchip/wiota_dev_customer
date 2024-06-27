@@ -392,7 +392,7 @@ static at_result_t at_factory_setup(const char *args)
     return AT_RESULT_OK;
 }
 
-AT_CMD_EXPORT("AT+FACTORY", "=<type>,<data>,<data1>", RT_NULL, RT_NULL, at_factory_setup, RT_NULL);
+AT_CMD_EXPORT("AT+FACTORY", "=<type>,<d0>,<d1>", RT_NULL, RT_NULL, at_factory_setup, RT_NULL);
 
 #endif
 #endif

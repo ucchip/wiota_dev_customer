@@ -35,7 +35,7 @@ if RT_USING_PIN
 
     config _BUTTON_APP_
         bool "open button, default close(_BUTTON_APP_)"
-        default n 
+        default n
 endif
 
 if RT_USING_WDT
@@ -58,6 +58,10 @@ endif
 
 config _SPI_FLASH_APP_
     bool "open spi, default close(_SPI_FLASH_APP_)"
+    default n
+
+config UC_SPIM_SUPPORT
+    bool "spim demo, default close(UC_SPIM_SUPPORT)"
     default n
 
 if RT_USING_SPI

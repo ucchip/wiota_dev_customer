@@ -208,6 +208,19 @@ void uc_wiota_set_auto_connect(unsigned char auto_connect);
 void uc_wiota_get_dtu_config(dtu_info_t *cfg);
 
 /**
+ * @brief  get gateway id, gateway mode used
+ *
+ * @return gw_id
+ */
+unsigned int uc_wiota_get_gateway_id(void);
+/**
+ * @brief set gateway id, gateway mode used
+ *
+ * @param  gw_id gateway device id, auth response carry
+ */
+void uc_wiota_set_gateway_id(unsigned int gw_id);
+
+/**
  * @brief  set frequency point list
  *
  * @param  freq_list the frequency point list

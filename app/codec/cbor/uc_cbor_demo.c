@@ -36,7 +36,7 @@ unsigned char *codec_demo_encode(int *size_out, unsigned short list_num_in, code
     int size_local;
     unsigned char *encoded_out = rt_malloc(ENCODED_SIZE);
 
-    rt_kprintf("codec_demo_encode start\n");
+    rt_kprintf("codec start\n");
 
     for (unsigned short i = 0; i < list_num_in; i++)
     {

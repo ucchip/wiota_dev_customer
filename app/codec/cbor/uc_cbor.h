@@ -22,14 +22,14 @@
 
 #define CBOR_NO_FLOAT
 
-#define CBOR_ASSERT(arg)                               \
-    if ((arg) == 0)                                    \
-    {                                                  \
-        rt_kprintf("have a assert failed: %s %s %d\n", \
-                   __FILE__, __FUNCTION__, __LINE__);  \
-        while (1)                                      \
-        {                                              \
-        }                                              \
+#define CBOR_ASSERT(arg)                              \
+    if ((arg) == 0)                                   \
+    {                                                 \
+        rt_kprintf("assert fail: %s %s %d\n",         \
+                   __FILE__, __FUNCTION__, __LINE__); \
+        while (1)                                     \
+        {                                             \
+        }                                             \
     }
 
 /* The 8 major types */
@@ -129,12 +129,12 @@
 #define CN_CBOR_FREE_CONTEXT(p) CN_FREE(p)
 
 #ifndef CN_CALLOC
-//#define CN_CALLOC calloc(1, sizeof(cn_cbor))
+// #define CN_CALLOC calloc(1, sizeof(cn_cbor))
 #define CN_CALLOC rt_calloc(1, sizeof(cn_cbor))
 #endif
 
 #ifndef CN_FREE
-//#define CN_FREE free
+// #define CN_FREE free
 #define CN_FREE rt_free
 #endif
 
@@ -203,8 +203,8 @@ typedef enum cn_cbor_flags
 typedef struct codec_data_list_t
 {
     unsigned int length;
-    unsigned char* data_ptr;
-//    struct codec_data_list_t* next;  /** The sibling after this one, or NULL if this is the last */
+    unsigned char *data_ptr;
+    //    struct codec_data_list_t* next;  /** The sibling after this one, or NULL if this is the last */
 } codec_data_list_t;
 
 /**
@@ -228,17 +228,17 @@ typedef struct cn_cbor
         long sint;
         /** CN_CBOR_UINT */
         unsigned long uint;
-        //#ifndef CBOR_NO_FLOAT
+        // #ifndef CBOR_NO_FLOAT
         /** CN_CBOR_DOUBLE */
         double dbl;
         /** CN_CBOR_FLOAT */
         float f;
-        //#endif
+        // #endif
         /** for use during parsing */
         unsigned long count;
     } v; /* TBD: optimize immediate */
     /** Number of children.
-      * @note: for maps, this is 2x the number of entries */
+     * @note: for maps, this is 2x the number of entries */
     int length;
     /** The first child value */
     struct cn_cbor *first_child;
@@ -337,15 +337,15 @@ typedef struct cn_cbor_context
     /** The pool `free` routine.  Often a no-op, but required. */
     cn_free_func free_func;
     /** Typically, the pool object, to be used when calling `calloc_func`
-      * and `free_func` */
+     * and `free_func` */
     void *context;
 } cn_cbor_context;
 
 /** When USE_CBOR_CONTEXT is defined, many functions take an extra `context`
-  * parameter */
+ * parameter */
 #define CBOR_CONTEXT , cn_cbor_context *context
 /** When USE_CBOR_CONTEXT is defined, some functions take an extra `context`
-  * parameter at the beginning */
+ * parameter at the beginning */
 #define CBOR_CONTEXT_COMMA cn_cbor_context *context,
 
 #else
@@ -563,8 +563,8 @@ unsigned char cn_cbor_array_append(cn_cbor *cb_array,
                                    cn_cbor *cb_value,
                                    cn_cbor_errback *errp);
 
-unsigned char* codec_demo_encode(int* size_out, unsigned short list_num_in, codec_data_list_t* data_in);
+unsigned char *codec_demo_encode(int *size_out, unsigned short list_num_in, codec_data_list_t *data_in);
 
-codec_data_list_t* codec_demo_decode(unsigned char* encoded_in, unsigned short len, unsigned short* list_num_out);
+codec_data_list_t *codec_demo_decode(unsigned char *encoded_in, unsigned short len, unsigned short *list_num_out);
 
 #endif /* UC_CBOR_H */

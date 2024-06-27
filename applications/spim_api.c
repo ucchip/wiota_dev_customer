@@ -30,42 +30,42 @@
 
 typedef enum _flash_cmd
 {
-    CMD_WR_ENABLE           = 0x06,
-    CMD_WR_DISABLE          = 0x04,
-    CMD_RD_STATUS           = 0x05,
-    CMD_WR_STATUS           = 0x01,
-    CMD_READ                = 0x03, ///< no Dummy
-    CMD_READ_FAST           = 0x0B, ///< 1B Dummy
-    CMD_WR_PAGE             = 0x02, ///< Write 1 page(256B)
+    CMD_WR_ENABLE = 0x06,
+    CMD_WR_DISABLE = 0x04,
+    CMD_RD_STATUS = 0x05,
+    CMD_WR_STATUS = 0x01,
+    CMD_READ = 0x03,      ///< no Dummy
+    CMD_READ_FAST = 0x0B, ///< 1B Dummy
+    CMD_WR_PAGE = 0x02,   ///< Write 1 page(256B)
 
-    CMD_ERASE_SECTOR_4KB    = 0x20,
-    CMD_ERASE_BLOCK_32KB    = 0x52,
-    CMD_ERASE_BLOCK_64KB    = 0xD8,
-    CMD_ERASE_CHIP          = 0x60, ///< or 0xC7
+    CMD_ERASE_SECTOR_4KB = 0x20,
+    CMD_ERASE_BLOCK_32KB = 0x52,
+    CMD_ERASE_BLOCK_64KB = 0xD8,
+    CMD_ERASE_CHIP = 0x60, ///< or 0xC7
 
-    CMD_READ_DEV_ID         = 0x90, ///< 3B 3Byte Address
-    CMD_READ_ID             = 0x9F, ///< 3B
-    CMD_READ_UID            = 0x4B, ///< 4B Dummy 16B
+    CMD_READ_DEV_ID = 0x90, ///< 3B 3Byte Address
+    CMD_READ_ID = 0x9F,     ///< 3B
+    CMD_READ_UID = 0x4B,    ///< 4B Dummy 16B
 
-}FLASH_CMD;
+} FLASH_CMD;
 
 typedef enum _flash_write_state
 {
-    WRITE_STATE_WIP     = 1,
-    WRITE_STATE_WEL     = 2,
-    WRITE_STATE_BP0     = 4,
-    WRITE_STATE_BP1     = 8,
-    WRITE_STATE_BP2     = 16,
-    WRITE_STATE_S5      = 32,
-    WRITE_STATE_LB      = 64,
-    WRITE_STATE_SRP0    = 128
+    WRITE_STATE_WIP = 1,
+    WRITE_STATE_WEL = 2,
+    WRITE_STATE_BP0 = 4,
+    WRITE_STATE_BP1 = 8,
+    WRITE_STATE_BP2 = 16,
+    WRITE_STATE_S5 = 32,
+    WRITE_STATE_LB = 64,
+    WRITE_STATE_SRP0 = 128
 } FLASH_WRITE_STATE;
 
 typedef union _spi_cmd_addr
 {
     uint32_t u32Val[2];
-    uint8_t  u8Val[8];
-}spi_cmd_addr;
+    uint8_t u8Val[8];
+} spi_cmd_addr;
 
 static spi_cmd_addr s_cmdAddr;
 static uint32_t s_nData;
@@ -74,13 +74,13 @@ static uint32_t s_nData;
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-struct rt_spi_device* spim_api_init(char *name, int gpio_pin, unsigned int clk)
+struct rt_spi_device *spim_api_init(char *name, int gpio_pin, unsigned int clk)
 {
     rt_hw_spi_device_attach("spim", "spim0", NULL, gpio_pin);
-    struct rt_spi_device* spi_dev = (struct rt_spi_device*)rt_device_find("spim0");
+    struct rt_spi_device *spi_dev = (struct rt_spi_device *)rt_device_find("spim0");
     if (spi_dev == RT_NULL)
     {
-        rt_kprintf("can't find %s device!", "spim0");
+        rt_kprintf("can't find %s dev", "spim0");
         return RT_NULL;
     }
     else
@@ -90,17 +90,16 @@ struct rt_spi_device* spim_api_init(char *name, int gpio_pin, unsigned int clk)
         cfg.data_width = 8;
         cfg.mode = RT_SPI_MASTER | RT_SPI_MODE_0 | RT_SPI_MSB;
         // 6M can catch by logic analyzer. Maybe can set up to 20M, should be test in future.
-        cfg.max_hz = clk;       
+        cfg.max_hz = clk;
         rt_err_t err = rt_spi_configure(spi_dev, &cfg);
         if (err != RT_EOK)
         {
-            rt_kprintf("rt_err_t == %d\n", err);
+            rt_kprintf("rt_err_t %d\n", err);
         }
         // demo
         // uint32_t nFlashId = get_flash_id(spi_dev);
         // uint32_t nId = get_cpu_id(spi_dev);
         // rt_kprintf("cpu id = 0x%08X\tflash id = 0x%08X\n", nId, nFlashId);
-
     }
     return spi_dev;
 }
@@ -131,7 +130,7 @@ void flash_erase(struct rt_spi_device *dev, int nStartAddr, int nEraseSize)
 {
     const int STEP_64KB = 64 * 1024;
     const int STEP_32KB = 32 * 1024;
-    const int STEP_4KB  =  4 * 1024;
+    const int STEP_4KB = 4 * 1024;
     int nWrCnt = 0;
     int nCmd = 0;
     if (0 == nEraseSize)
@@ -150,7 +149,7 @@ void flash_erase(struct rt_spi_device *dev, int nStartAddr, int nEraseSize)
     {
         nEraseSize = RT_ALIGN(nEraseSize, FLASH_SECTOR_SIZE);
         nStartAddr = ((nStartAddr >> 12) << 12);
-        
+
         while (nWrCnt < nEraseSize)
         {
             if ((nEraseSize - nWrCnt) < STEP_32KB)
@@ -159,8 +158,7 @@ void flash_erase(struct rt_spi_device *dev, int nStartAddr, int nEraseSize)
             }
             else
             {
-                if (((nEraseSize - nWrCnt) >= STEP_64KB)
-                        && (((nStartAddr + nWrCnt) & (STEP_64KB - 1)) == 0))
+                if (((nEraseSize - nWrCnt) >= STEP_64KB) && (((nStartAddr + nWrCnt) & (STEP_64KB - 1)) == 0))
                 {
                     nCmd = CMD_ERASE_BLOCK_64KB;
                 }
@@ -175,7 +173,8 @@ void flash_erase(struct rt_spi_device *dev, int nStartAddr, int nEraseSize)
             }
             flash_write(dev, nCmd, nStartAddr + nWrCnt, 3, RT_NULL, 0);
 
-            switch (nCmd) {
+            switch (nCmd)
+            {
             case CMD_ERASE_BLOCK_64KB:
                 nWrCnt += STEP_64KB;
                 break;
@@ -226,8 +225,7 @@ void flash_page_program(struct rt_spi_device *dev,
                     wData + i,
                     nWrSize);
         i += nWrSize;
-        nWrSize = ((nDataSize - i) >= FLASH_PAGE_SIZE) ?
-                    FLASH_PAGE_SIZE : (nDataSize - i);
+        nWrSize = ((nDataSize - i) >= FLASH_PAGE_SIZE) ? FLASH_PAGE_SIZE : (nDataSize - i);
     }
     if (SPIM_BIG != nEndian)
     {
@@ -258,8 +256,7 @@ void flash_page_read(struct rt_spi_device *dev,
     {
         flash_read(dev, dataOut + i, nRdSize, CMD_READ, nStartAddr + i, 3);
         i += nRdSize;
-        nRdSize = ((nLenOut - i) >= FLASH_PAGE_SIZE) ?
-                    FLASH_PAGE_SIZE : (nLenOut - i);
+        nRdSize = ((nLenOut - i) >= FLASH_PAGE_SIZE) ? FLASH_PAGE_SIZE : (nLenOut - i);
     }
     if (SPIM_BIG != nEndian)
     {
@@ -289,10 +286,10 @@ struct rt_spi_message *flash_write(struct rt_spi_device *dev,
 }
 
 struct rt_spi_message *flash_read(struct rt_spi_device *dev,
-                                  void *dataOut, 
-                                  int nLenOut, 
-                                  uint8_t nCmd, 
-                                  int nAddr, 
+                                  void *dataOut,
+                                  int nLenOut,
+                                  uint8_t nCmd,
+                                  int nAddr,
                                   int nAddrLen)
 {
     struct rt_spi_message *res = spim_api_read(dev, dataOut, nLenOut, nCmd, nAddr, nAddrLen);
@@ -305,11 +302,12 @@ uint8_t flash_running(struct rt_spi_device *dev, uint8_t nWrStateBit)
     uint8_t nRet = true;
     int nCnt = 0;
     uint8_t data = 0;
-    do {
+    do
+    {
         spim_api_read(dev, &data, 1, CMD_RD_STATUS, 0, 0);
         nRet = (data & nWrStateBit);
         nCnt++;
-    } while(nRet && (nCnt <= 2000));
+    } while (nRet && (nCnt <= 2000));
     return nRet;
 }
 
@@ -385,7 +383,7 @@ struct rt_spi_message *spim_api_mem_read(struct rt_spi_device *dev, void *dataOu
 
     s_cmdAddr.u32Val[0] = ((SPIM_OP_MEM_READ << 24) | ((nAddr >> 8) & 0x00FFFFFF));
     s_cmdAddr.u8Val[7] = nAddr & 0xFF;
-    
+
     // send
     msgMOSI.send_buf = &s_cmdAddr;
     msgMOSI.recv_buf = RT_NULL;
@@ -434,10 +432,10 @@ int spim_api_set_mode(struct rt_spi_device *dev, int nMode)
     {
         spim_api_write(dev, 0xFF, nMode, 4, RT_NULL, 0);
         nCnt++;
-    } 
+    }
     if (nCnt > 1000)
     {
-        rt_kprintf("spim_set_mode() error\n");
+        rt_kprintf("spim_set_mode err\n");
         return nRet;
     }
     else
@@ -459,7 +457,7 @@ int spim_api_get_mode(struct rt_spi_device *dev)
 {
     int nMode = 0;
     spim_api_read(dev, &nMode, 1, 0xFE, 0, 4);
-    rt_kprintf("spim_api_get_mode() = 0x%08X\n", nMode);
+    rt_kprintf("spim_api_get_mode 0x%08X\n", nMode);
     return (nMode & 0xFF);
 }
 
@@ -525,7 +523,7 @@ struct rt_spi_message *spim_api_write(struct rt_spi_device *dev, uint8_t nCmd, i
 
     rt_set_errno(RT_EOK);
     struct rt_spi_message *res = rt_spi_transfer_message(dev, &msgCmdAddr);
-    
+
     return res;
 }
 
@@ -539,7 +537,7 @@ struct rt_spi_message *spim_api_read(struct rt_spi_device *dev, void *dataOut, i
     }
 
     struct rt_spi_message msgMOSI, msgMISO;
-    
+
     rt_memset(&s_cmdAddr, 0, sizeof(spi_cmd_addr));
 
     switch (nAddrLen)
@@ -598,13 +596,13 @@ static void EndianSwap(uint8_t *pData, int startIndex, int length)
 {
     int cnt = length >> 1; ///< 除以2
     int start = startIndex;
-    int end  = startIndex + length - 1;
+    int end = startIndex + length - 1;
     uint8_t tmp = 0;
     for (int i = 0; i < cnt; i++)
     {
-        tmp            = pData[start+i];
-        pData[start+i] = pData[end-i];
-        pData[end-i]   = tmp;
+        tmp = pData[start + i];
+        pData[start + i] = pData[end - i];
+        pData[end - i] = tmp;
     }
 }
 

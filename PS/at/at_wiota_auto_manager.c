@@ -8,7 +8,7 @@
 #include "ati_prs.h"
 #include "uc_string_lib.h"
 #include "uc_adda.h"
-//#include "uc_boot_download.h"
+// #include "uc_boot_download.h"
 #include "at_wiota.h"
 #include "uc_wiota_gateway_api.h"
 
@@ -91,7 +91,7 @@ static int at_wiota_get_static_freq(char *list)
 
     for (num = 0; num < 16; num++)
     {
-        rt_kprintf("static freq *(list+%d) %d\n", num, *(list+num));
+        rt_kprintf("static freq *(list+%d) %d\n", num, *(list + num));
         if (*(list + num) == 0xFF)
             break;
     }
@@ -108,7 +108,7 @@ static int at_wiota_get_subsystem_id_list(unsigned int *list)
 
     for (num = 0; num < sizeof(config.subsystemid_list); num++)
     {
-        rt_kprintf("static subsystem_id *(list+%d) %d\n", num, *(list+num));
+        rt_kprintf("subsystem_id *(list+%d) %d\n", num, *(list + num));
         if (*(list + num) == (~0) || *(list + num) == 0)
             break;
     }
@@ -117,7 +117,7 @@ static int at_wiota_get_subsystem_id_list(unsigned int *list)
     {
         *list = config.subsystemid;
 
-         if (*(list + num) != (~0) && *(list + num) != 0)
+        if (*(list + num) != (~0) && *(list + num) != 0)
             num = 1;
     }
 
@@ -126,7 +126,7 @@ static int at_wiota_get_subsystem_id_list(unsigned int *list)
 
 static void at_wiota_init_freq_list(void)
 {
-    //rt_memset(&g_wiota_manager, 0, sizeof(g_wiota_manager));
+    // rt_memset(&g_wiota_manager, 0, sizeof(g_wiota_manager));
     rt_list_init(&g_wiota_manager.freq_list.node);
 }
 static void at_wiota_print_freq_list(void)
@@ -135,7 +135,7 @@ static void at_wiota_print_freq_list(void)
 
     rt_list_for_each_entry(temp_node, &g_wiota_manager.freq_list.node, node)
     {
-        rt_kprintf("address 0x%x freq %d snr %d rssi %d is_synced %d\n",
+        rt_kprintf("addr 0x%x freq %d snr %d rssi %d is_sync %d\n",
                    temp_node, temp_node->data.freq, temp_node->data.snr, temp_node->data.rssi, temp_node->data.is_synced);
     }
 }
@@ -170,15 +170,15 @@ static void at_wiota_add_freq_list(unsigned int subsystem_id, uc_freq_scan_resul
         t_freq_list_manager *new_node = rt_malloc(sizeof(t_freq_list_manager));
         if (new_node == RT_NULL)
         {
-            rt_kprintf("%s line %d malloc error\n", __FUNCTION__, __LINE__);
+            rt_kprintf("freq_list malloc err\n");
             return;
         }
-        //rt_kprintf("%s line %d malloc new_node 0x%x id 0x%x freq %d\n", __FUNCTION__, __LINE__, new_node, subsystem_id, node->freq_idx);
+        // rt_kprintf("%s line %d malloc new_node 0x%x id 0x%x freq %d\n", __FUNCTION__, __LINE__, new_node, subsystem_id, node->freq_idx);
         new_node->data.subsystem_id = subsystem_id;
         new_node->data.freq = node->freq_idx;
         new_node->data.is_synced = node->is_synced;
         new_node->data.rssi = node->rssi;
-        new_node->data.snr =  node->snr;
+        new_node->data.snr = node->snr;
         new_node->data.send_cucess_rate = 0;
 
         t_freq_list_manager *temp_node;
@@ -210,18 +210,17 @@ static void manager_wiota_remove_freq_list(uc_freq_scan_result_p node)
 static void at_wiota_clean_freq_list(void)
 {
     rt_list_t *next_node = g_wiota_manager.freq_list.node.next;
-   while (next_node != &g_wiota_manager.freq_list.node)
+    while (next_node != &g_wiota_manager.freq_list.node)
 
-     {
+    {
         t_freq_list_manager *temp_node = rt_list_entry(next_node, t_freq_list_manager, node);
-        //rt_kprintf("at_wiota_clean_freq_list temp_node 0x%x\n", temp_node);
-         rt_free(temp_node);
+        // rt_kprintf("at_wiota_clean_freq_list temp_node 0x%x\n", temp_node);
+        rt_free(temp_node);
         temp_node = RT_NULL;
         next_node = next_node->next;
-     }
+    }
 
-
-    rt_kprintf("at_wiota_clean_freq_list finish\n");
+    rt_kprintf("at cleanfreq_list finish\n");
     g_wiota_manager.current_freq_node = RT_NULL;
     at_wiota_init_freq_list();
 }
@@ -229,13 +228,11 @@ static void at_wiota_clean_freq_list(void)
 static int at_wiota_choose_freq(void)
 {
     t_freq_list_manager *temp_node;
-    rt_list_t *the_node = (g_wiota_manager.current_freq_node == RT_NULL)?
-        (&g_wiota_manager.freq_list.node) :
-        (&g_wiota_manager.current_freq_node->node);
+    rt_list_t *the_node = (g_wiota_manager.current_freq_node == RT_NULL) ? (&g_wiota_manager.freq_list.node) : (&g_wiota_manager.current_freq_node->node);
 
-    if(rt_list_isempty(&g_wiota_manager.freq_list.node))
+    if (rt_list_isempty(&g_wiota_manager.freq_list.node))
     {
-        rt_kprintf("at_wiota_choose_freq freq_list is epty\n");
+        rt_kprintf("at choose_freq epty\n");
         return 1;
     }
 
@@ -247,12 +244,12 @@ static int at_wiota_choose_freq(void)
 
     if (g_wiota_manager.current_freq_node == (&g_wiota_manager.freq_list))
     {
-        rt_kprintf("at_wiota_choose_freq no entry\n");
+        rt_kprintf("at choose_freq no entry\n");
         return 2;
     }
 
-    //rt_kprintf("at_wiota_choose_freq current_freq_node 0x%x id 0x%x freq %d\n",
-     //   g_wiota_manager.current_freq_node, g_wiota_manager.current_freq_node->data.subsystem_id, g_wiota_manager.current_freq_node->data.freq);
+    // rt_kprintf("at_wiota_choose_freq current_freq_node 0x%x id 0x%x freq %d\n",
+    //    g_wiota_manager.current_freq_node, g_wiota_manager.current_freq_node->data.subsystem_id, g_wiota_manager.current_freq_node->data.freq);
 
     return 0;
 }
@@ -279,15 +276,15 @@ static int at_wiota_freq_manager(unsigned int subsystem_id, uc_recv_back_t resul
         for (i = 0; i < freq_num; i++)
         {
             // rt_kprintf("%s line %d freq_num %d i %d index %d is_synced %d snr %d\n", __FUNCTION__, __LINE__, freq_num, i, freq_list->freq_idx, freq_list->is_synced, freq_list->snr);
-            if (freq_list->is_synced )
+            if (freq_list->is_synced)
             {
                 at_wiota_add_freq_list(subsystem_id, freq_list);
                 re = 0;
             }
-            //else
+            // else
             //{
-            //    manager_wiota_remove_freq_list(freq_list);
-            //}
+            //     manager_wiota_remove_freq_list(freq_list);
+            // }
             freq_list++;
         }
 
@@ -318,14 +315,14 @@ static int at_wiota_manager_scan(void)
 
 #ifdef AT_WIOTA_GATEWAY_API
     unsigned int userid = uc_wiota_gateway_get_dev_address();
-    uc_wiota_set_userid( &userid , 4);
+    uc_wiota_set_userid(&userid, 4);
 #endif
 
     at_wiota_set_state(AT_WIOTA_INIT);
 
     uc_wiota_get_system_config(&config);
 
-    //uc_wiota_set_dcxo(0x22000);
+    // uc_wiota_set_dcxo(0x22000);
     uc_wiota_run();
     uc_wiota_register_recv_data_callback(wiota_recv_callback, UC_CALLBACK_NORAMAL_MSG);
 
@@ -346,11 +343,11 @@ static int at_wiota_manager_scan(void)
     case 0:
     {
         uc_wiota_scan_freq(RT_NULL, 0, 0, AT_WIOTA_FULL_SCAN_TIMEOUT, RT_NULL, &result);
-        rt_kprintf("uc_wiota_scan_freq result %d\n", result.result);
-        //if (manager->continue_scan_fail < AT_WIOTA_CONTINE_SCAN_FAIL_MAX)
-            res = at_wiota_freq_manager(config.subsystemid, result);
-        //else
-         //   res = at_wiota_freq_manager(result, 1);
+        rt_kprintf("uc scan_freq res %d\n", result.result);
+        // if (manager->continue_scan_fail < AT_WIOTA_CONTINE_SCAN_FAIL_MAX)
+        res = at_wiota_freq_manager(config.subsystemid, result);
+        // else
+        //    res = at_wiota_freq_manager(result, 1);
         if (res)
             manager->continue_scan_fail++;
         break;
@@ -361,7 +358,7 @@ static int at_wiota_manager_scan(void)
         if (manager->continue_scan_fail > 2 &&
             manager->continue_scan_fail % 2 == 0)
             res = 1; // return fail. enter sleep.
-        rt_kprintf("res = %d fail counter %d\n",  res, manager->continue_scan_fail);
+        rt_kprintf("res %d fail cnt %d\n", res, manager->continue_scan_fail);
         manager->continue_scan_fail++;
 
         break;
@@ -374,25 +371,25 @@ static int at_wiota_manager_scan(void)
 
         uc_wiota_get_userid(&id, &i);
 
-        for (i = (id%subsystem_id_len); i < subsystem_id_len + (id % subsystem_id_len); i ++)
+        for (i = (id % subsystem_id_len); i < subsystem_id_len + (id % subsystem_id_len); i++)
         {
             config.subsystemid = subsystem_id_list[i % subsystem_id_len];
             uc_wiota_set_system_config(&config);
 
             uc_wiota_scan_freq(freq_list, freq_list_len, 0, AT_WIOTA_SCAN_TIMEOUT, RT_NULL, &result);
 
-            rt_kprintf("uc_wiota_scan_freq result %d subsystemid 0x%x timeout %d\n",
-                    result.result, config.subsystemid, AT_WIOTA_SCAN_TIMEOUT);
+            rt_kprintf("uc scan_freq res %d subsystemid 0x%x timeout %d\n",
+                       result.result, config.subsystemid, AT_WIOTA_SCAN_TIMEOUT);
 
             res = at_wiota_freq_manager(config.subsystemid, result);
             if (res)
-                flag ++;
+                flag++;
         }
 
         if (flag)
             manager->continue_scan_fail++;
 
-        res = (flag == subsystem_id_len ? 1: 0);
+        res = (flag == subsystem_id_len ? 1 : 0);
 
         break;
     }
@@ -425,19 +422,18 @@ static void at_wiota_manager_startegy(void)
         uc_wiota_get_all_stats(&stats_info_ptr);
 
         if ((stats_info_ptr.ul_sm_succ * 5 < stats_info_ptr.ul_sm_total && stats_info_ptr.ul_sm_total > 20) ||
-            UC_STATUS_SYNC_LOST == connect_state || UC_STATUS_ERROR == connect_state
-        )
+            UC_STATUS_SYNC_LOST == connect_state || UC_STATUS_ERROR == connect_state)
         {
-            rt_kprintf("startegy smSucc %d smTotal %d connectState %d\n",
-                    stats_info_ptr.ul_sm_succ, stats_info_ptr.ul_sm_total, connect_state);
+            rt_kprintf("startegy smSucc %d smTotal %d connState %d\n",
+                       stats_info_ptr.ul_sm_succ, stats_info_ptr.ul_sm_total, connect_state);
             return;
         }
 
         uc_wiota_reset_stats(UC_STATS_TYPE_ALL);
-        //rt_thread_mdelay(5000);
-        while((counter ++) < 1000)
+        // rt_thread_mdelay(5000);
+        while ((counter++) < 1000)
         {
-            if(uc_wiota_gateway_get_allow_run_flag())
+            if (uc_wiota_gateway_get_allow_run_flag())
             {
                 uc_wiota_gateway_api_handle(RT_NULL);
                 break;
@@ -445,7 +441,6 @@ static void at_wiota_manager_startegy(void)
             else
                 rt_thread_mdelay(5);
         }
-
     }
 }
 
@@ -459,7 +454,7 @@ static void at_wiota_set_config(unsigned int subsystem_id)
 
 static void at_wiota_auto_report_state(int type)
 {
-    //rt_kprintf("at_wiota_auto_report_state type = %d\n", type);
+    // rt_kprintf("at_wiota_auto_report_state type = %d\n", type);
     switch (type)
     {
     case AT_WIOTA_MANAGER_REPORT_FREQ_SUC:
@@ -479,13 +474,13 @@ static void at_wiota_auto_report_state(int type)
     }
     case AT_WIOTA_MANAGER_USER_FREQ:
     {
-        //rt_kprintf("%s line %d current_freq_node 0x%x\n", __FUNCTION__, __LINE__, g_wiota_manager.current_freq_node);
+        // rt_kprintf("%s line %d current_freq_node 0x%x\n", __FUNCTION__, __LINE__, g_wiota_manager.current_freq_node);
         if (g_wiota_manager.current_freq_node != RT_NULL)
         {
             at_server_printfln("+WIOTAFREQ:0x%x,%d,%d",
-                            g_wiota_manager.current_freq_node->data.subsystem_id,
-                            g_wiota_manager.current_freq_node->data.freq,
-                            g_wiota_manager.current_freq_node->data.snr);
+                               g_wiota_manager.current_freq_node->data.subsystem_id,
+                               g_wiota_manager.current_freq_node->data.freq,
+                               g_wiota_manager.current_freq_node->data.snr);
         }
         break;
     }
@@ -521,7 +516,7 @@ static void at_wiota_manager_task(void *parameter)
             if (at_wiota_manager_scan())
             {
                 at_wiota_auto_report_state(AT_WIOTA_MANAGER_REPORT_FREQ_FAIL);
-                rt_kprintf("scantf fail.delay %d s\n", g_wiota_manager.continue_scan_fail);
+                rt_kprintf("scantf fail.delay %d\n", g_wiota_manager.continue_scan_fail);
                 rt_thread_mdelay(1000 * g_wiota_manager.continue_scan_fail);
             }
             else
@@ -542,7 +537,7 @@ static void at_wiota_manager_task(void *parameter)
 
             at_wiota_auto_report_state(AT_WIOTA_MANAGER_USER_FREQ);
             rt_kprintf("%d id 0x%x freq %d\n",
-                g_wiota_manager.current_freq_node->data.subsystem_id, g_wiota_manager.current_freq_node->data.freq);
+                       g_wiota_manager.current_freq_node->data.subsystem_id, g_wiota_manager.current_freq_node->data.freq);
 
             uc_wiota_init();
 #ifdef AT_WIOTA_GATEWAY_API
@@ -550,12 +545,12 @@ static void at_wiota_manager_task(void *parameter)
 
             // rt_kprintf("%s line %d\n", __FUNCTION__, __LINE__);
 
-            //if (uc_wiota_gateway_get_reboot_flag())
+            // if (uc_wiota_gateway_get_reboot_flag())
             //{
-            //    userid = uc_wiota_gateway_get_wiota_id();
-            //}
+            //     userid = uc_wiota_gateway_get_wiota_id();
+            // }
 
-            uc_wiota_set_userid( &userid , 4);
+            uc_wiota_set_userid(&userid, 4);
 #endif
 
             at_wiota_set_config(g_wiota_manager.current_freq_node->data.subsystem_id);
@@ -605,19 +600,18 @@ void at_wiota_get_avail_freq_list(unsigned char *output_list, unsigned char list
     unsigned char index = 0;
     unsigned char used_freq = uc_wiota_get_freq_info();
 
-    if(g_wiota_manager.current_freq_node != RT_NULL)
+    if (g_wiota_manager.current_freq_node != RT_NULL)
     {
         rt_list_for_each_entry(temp_node, &g_wiota_manager.freq_list.node, node)
         {
-            if(temp_node->data.freq != used_freq)
+            if (temp_node->data.freq != used_freq)
             {
                 output_list[index++] = temp_node->data.freq;
-                if(index >= list_len)
+                if (index >= list_len)
                 {
                     break;
                 }
             }
-
         }
     }
 }
@@ -637,12 +631,12 @@ void at_wiota_manager(void)
         g_wiota_manager.task_handle = rt_thread_create("auMana",
                                                        at_wiota_manager_task,
                                                        RT_NULL,
-                                                       1024,
+                                                       1524,
                                                        RT_THREAD_PRIORITY_MAX / 3 - 1,
                                                        3);
         if (RT_NULL == g_wiota_manager.task_handle)
         {
-            rt_kprintf("create auMana error\n");
+            rt_kprintf("create auMana err\n");
             return;
         }
         rt_thread_startup(g_wiota_manager.task_handle);

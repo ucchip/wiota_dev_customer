@@ -82,10 +82,18 @@ static void wiota_gpio_timer_cb(void* ptr)
 
 int at_wiota_gpio_report_init(void)
 {
-    s_store_pin = uc_wiota_get_store_pin();
-    s_store_width = uc_wiota_get_store_width();
-    rt_pin_mode(s_store_pin, PIN_MODE_OUTPUT);
-    rt_pin_write(s_store_pin, WIOTA_NO_DATA);
+    int pin = uc_wiota_get_store_pin();
+    int width = uc_wiota_get_store_width();
+    if ((pin >= 0) && (pin <= 18))
+    {
+        s_store_pin = pin;
+    }
+    if ((width >= 1) && (width <= 255))
+    {
+        s_store_width = width;
+        rt_pin_mode(s_store_pin, PIN_MODE_OUTPUT);
+        rt_pin_write(s_store_pin, WIOTA_NO_DATA);
+    }    
 
     wiota_gpio_mode = WIOTA_MODE_OUT_UART;
     wiota_gpio_state = WIOTA_NO_DATA;
@@ -146,8 +154,16 @@ static void wake_out_timer_cb(void *ptr)
 
 int wake_out_pulse_init(void)
 {
-    s_wake_out_pin   = uc_wiota_get_wake_out_pin();
-    s_wake_out_width = uc_wiota_get_wake_out_width();
+    int pin = uc_wiota_get_wake_out_pin();
+    int width = uc_wiota_get_wake_out_width();
+    if ((pin >= 0) && (pin <= 18))
+    {
+        s_wake_out_pin = pin;
+    }
+    if ((width >= 1) && (width <= 255))
+    {
+        s_wake_out_width = width;
+    }
     s_wake_out_timer = rt_timer_create("wake_o", wake_out_timer_cb, 
                                        &s_wake_out_pin, 
                                        s_wake_out_width, 
@@ -156,9 +172,12 @@ int wake_out_pulse_init(void)
     {
         return -1;
     }
-    rt_pin_mode(s_wake_out_pin, PIN_MODE_OUTPUT);
-    rt_pin_write(s_wake_out_pin, PIN_HIGH);
-    rt_timer_start(s_wake_out_timer);
+    if (width)
+    {
+        rt_pin_mode(s_wake_out_pin, PIN_MODE_OUTPUT);
+        rt_pin_write(s_wake_out_pin, PIN_HIGH);
+        rt_timer_start(s_wake_out_timer);
+    }
     return 0;
 }
 
@@ -177,6 +196,10 @@ static at_result_t at_pulse_setup(const char *args)
         {
             break;
         }
+        if (0 == value)
+        {
+            return AT_RESULT_OK;
+        }
         if ((value < WIOTA_DATA_NUM) || (value > 255) || (RT_NULL == wiota_gpio_timer))
         {
             break;
@@ -186,17 +209,14 @@ static at_result_t at_pulse_setup(const char *args)
 
     if (AT_RESULT_OK == ret)
     {
-        if (s_store_pin != pin)
-        {
-            uc_wiota_set_store_pin(pin);
-            s_store_pin = pin;
-        }
-        if (s_store_width != value)
-        {
-            s_store_width = value;
-            uc_wiota_set_store_width(s_store_width);
-            rt_timer_control(wiota_gpio_timer, RT_TIMER_CTRL_SET_TIME, &s_store_width);
-        }
+        rt_pin_mode(s_store_pin, PIN_MODE_INPUT);
+        uc_wiota_set_store_pin(pin);
+        s_store_pin = pin;
+        rt_pin_mode(s_store_pin, PIN_MODE_OUTPUT);
+
+        s_store_width = value;
+        uc_wiota_set_store_width(s_store_width);
+        rt_timer_control(wiota_gpio_timer, RT_TIMER_CTRL_SET_TIME, &s_store_width);
     }
     return ret;
 }
@@ -235,6 +255,7 @@ static at_result_t at_wake_out_pin_setup(const char *args)
 {
     int pin = -1;
     int width = -1;
+    int state = 0;
     at_result_t ret = AT_RESULT_FAILE;
     
     args = parse((char *)(++args), "d,d", &pin, &width);
@@ -243,6 +264,11 @@ static at_result_t at_wake_out_pin_setup(const char *args)
         if ((pin < 0) || (pin > 18))
         {
             break;
+        }
+        if (!width)
+        {
+            rt_timer_stop(s_wake_out_timer);
+            return AT_RESULT_OK;
         }
         if ((width < 1) || (width > 255))
         {
@@ -262,6 +288,11 @@ static at_result_t at_wake_out_pin_setup(const char *args)
         {
             s_wake_out_width = width;
             uc_wiota_set_wake_out_width(width);
+            rt_timer_control(s_wake_out_timer, RT_TIMER_CTRL_GET_STATE, &state);
+            if (RT_TIMER_FLAG_DEACTIVATED == state)
+            {
+                rt_timer_start(s_wake_out_timer);
+            }
         }
     }
     return ret;

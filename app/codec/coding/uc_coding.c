@@ -17,7 +17,7 @@ void app_set_header_property(header_property_e bit, unsigned char value, app_ps_
 
     if (bit > PRO_SRC_ADDR)
     {
-        rt_kprintf("bit error\n");
+        rt_kprintf("bit err\n");
         return;
     }
 
@@ -50,9 +50,9 @@ int app_data_coding(app_ps_header_t *ps_header,
     unsigned int comp_data_len = 0;
     unsigned char *comp_data = RT_NULL;
 
-    if (ps_header == RT_NULL )
+    if (ps_header == RT_NULL)
     {
-        //rt_kprintf("input_data error\n");
+        // rt_kprintf("input_data error\n");
         return -1;
     }
 
@@ -60,22 +60,22 @@ int app_data_coding(app_ps_header_t *ps_header,
     buf = (unsigned char *)rt_malloc(buf_len + 4);
     if (RT_NULL == buf)
     {
-        //rt_kprintf("app code malloc fail\n");
+        // rt_kprintf("app code malloc fail\n");
         return -2;
     }
     rt_memset(buf, 0, buf_len);
 
     // copy property
-    //rt_memcpy(buf + offset, &ps_header->property, sizeof(app_ps_property_t));
-    //offset += sizeof(app_ps_property_t);
+    // rt_memcpy(buf + offset, &ps_header->property, sizeof(app_ps_property_t));
+    // offset += sizeof(app_ps_property_t);
     *((app_ps_property_t *)buf) = ps_header->property;
-    offset ++;
+    offset++;
 
     // copy src_addr
     if (is_src_addr == 1)
     {
-        //rt_memcpy(buf + offset, &ps_header->addr.src_addr, int_len);
-        //offset += int_len;
+        // rt_memcpy(buf + offset, &ps_header->addr.src_addr, int_len);
+        // offset += int_len;
         *((unsigned int *)(buf + offset)) = ps_header->addr.src_addr;
         offset += 4;
     }
@@ -83,8 +83,8 @@ int app_data_coding(app_ps_header_t *ps_header,
     // copy dest_addr
     if (is_dest_addr == 1)
     {
-        //rt_memcpy(buf + offset, &ps_header->addr.dest_addr, int_len);
-        //offset += int_len;
+        // rt_memcpy(buf + offset, &ps_header->addr.dest_addr, int_len);
+        // offset += int_len;
         *((unsigned int *)(buf + offset)) = ps_header->addr.dest_addr;
         offset += 4;
     }
@@ -92,38 +92,38 @@ int app_data_coding(app_ps_header_t *ps_header,
     // copy packet_num
     if (is_packet_num == 1)
     {
-        //rt_memcpy(buf + offset, &ps_header->packet_num, char_len);
-        //offset += char_len;
+        // rt_memcpy(buf + offset, &ps_header->packet_num, char_len);
+        // offset += char_len;
         *(buf + offset) = ps_header->packet_num;
-        offset ++;
+        offset++;
     }
 
     // copy segment_info
     if (segment_flag == 1)
     {
-        //rt_memcpy(buf + offset, &ps_header->segment_info, (char_len * 2));
-        //offset += (char_len * 2);
+        // rt_memcpy(buf + offset, &ps_header->segment_info, (char_len * 2));
+        // offset += (char_len * 2);
         ((app_ps_segment_info_t *)(buf + offset))->total_num = ps_header->segment_info.total_num;
         ((app_ps_segment_info_t *)(buf + offset))->current_num = ps_header->segment_info.current_num;
         offset += 2;
     }
 
     // copy cmd_type
-    //rt_memcpy(buf + offset, &ps_header->cmd_type, char_len);
-    //offset += char_len;
+    // rt_memcpy(buf + offset, &ps_header->cmd_type, char_len);
+    // offset += char_len;
     *(buf + offset) = ps_header->cmd_type;
-    offset ++;
+    offset++;
 
     if (input_data != RT_NULL && input_data_len != 0)
     {
         // handle data compress, output data and data len
         if (compress_flag == 1)
         {
-            //rt_kprintf("data len before compression %d\n", input_data_len);
+            // rt_kprintf("data len before compression %d\n", input_data_len);
             comp_data = rt_malloc(APP_MAX_CODING_DATA_LEN);
             if (comp_data == RT_NULL)
             {
-                //rt_kprintf("line %d malloc fail\n", __LINE__);
+                // rt_kprintf("line %d malloc fail\n", __LINE__);
                 rt_free(buf);
                 buf = RT_NULL;
                 return -3;
@@ -140,7 +140,7 @@ int app_data_coding(app_ps_header_t *ps_header,
             }
             else
             {
-                rt_kprintf("compressed data is bigger\n");
+                rt_kprintf("compress data is bigger\n");
                 ps_header->property.compress_flag = 0;
                 rt_memcpy(buf, &ps_header->property, sizeof(app_ps_property_t));
                 rt_memcpy(buf + offset, input_data, input_data_len);
@@ -174,22 +174,22 @@ int app_data_decoding(unsigned char *input_data,
     unsigned char *buf = RT_NULL;
     unsigned int buf_len = 0;
     unsigned int offset = 0;
-    unsigned char is_src_addr ;
-    unsigned char is_dest_addr ;
+    unsigned char is_src_addr;
+    unsigned char is_dest_addr;
     unsigned char is_packet_num;
     unsigned char segment_flag;
     unsigned char compress_flag;
 
     if (input_data == RT_NULL || input_data_len == 0 || input_data_len > APP_MAX_DECODING_DATA_LEN)
     {
-        rt_kprintf("input_data error.len %d\n", input_data_len);
+        rt_kprintf("input_data err.len %d\n", input_data_len);
         return -1;
     }
 
     // parse property
-    //rt_memcpy(&ps_header->property, input_data + offset, sizeof(app_ps_property_t));
+    // rt_memcpy(&ps_header->property, input_data + offset, sizeof(app_ps_property_t));
     ps_header->property = *((app_ps_property_t *)input_data);
-    offset ++;
+    offset++;
 
     is_src_addr = ps_header->property.is_src_addr;
     is_dest_addr = ps_header->property.is_dest_addr;
@@ -198,12 +198,12 @@ int app_data_decoding(unsigned char *input_data,
     compress_flag = ps_header->property.compress_flag;
 
     // rt_kprintf("is_src_addr=%d,is_dest_addr=%d, is_packet_num=%d,segment_flag=%d,compress_flag=%d\n", is_src_addr, is_dest_addr, is_packet_num, segment_flag, compress_flag);
-    //offset += sizeof(app_ps_property_t);
+    // offset += sizeof(app_ps_property_t);
 
     // parse src_addr
     if (is_src_addr == 1)
     {
-        //rt_memcpy(&ps_header->addr.src_addr, input_data + offset, int_len);
+        // rt_memcpy(&ps_header->addr.src_addr, input_data + offset, int_len);
         ps_header->addr.src_addr = *((unsigned int *)(input_data + offset));
         offset += 4;
     }
@@ -211,7 +211,7 @@ int app_data_decoding(unsigned char *input_data,
     // parse dest_addr
     if (is_dest_addr == 1)
     {
-        //rt_memcpy(&ps_header->addr.dest_addr, input_data + offset, int_len);
+        // rt_memcpy(&ps_header->addr.dest_addr, input_data + offset, int_len);
         ps_header->addr.dest_addr = *((unsigned int *)(input_data + offset));
         offset += 4;
     }
@@ -219,24 +219,24 @@ int app_data_decoding(unsigned char *input_data,
     // parse packet_num
     if (is_packet_num == 1)
     {
-        //rt_memcpy(&ps_header->packet_num, input_data + offset, char_len);
-        ps_header->packet_num = *( input_data + offset);
-        offset ++;
+        // rt_memcpy(&ps_header->packet_num, input_data + offset, char_len);
+        ps_header->packet_num = *(input_data + offset);
+        offset++;
     }
 
     // parse segment_info
     if (segment_flag == 1)
     {
-        //rt_memcpy(&ps_header->segment_info, input_data + offset, (char_len * 2));
-        //offset += (char_len * 2);
-        // ps_header->segment_info = *((app_ps_segment_info_t *)(input_data + offset));
+        // rt_memcpy(&ps_header->segment_info, input_data + offset, (char_len * 2));
+        // offset += (char_len * 2);
+        //  ps_header->segment_info = *((app_ps_segment_info_t *)(input_data + offset));
         ps_header->segment_info.total_num = ((app_ps_segment_info_t *)(input_data + offset))->total_num;
         ps_header->segment_info.current_num = ((app_ps_segment_info_t *)(input_data + offset))->current_num;
         offset += 2;
     }
 
     // parse cmd_type
-    //rt_memcpy(&ps_header->cmd_type, input_data + offset, char_len);
+    // rt_memcpy(&ps_header->cmd_type, input_data + offset, char_len);
     ps_header->cmd_type = *(input_data + offset);
     offset++;
 
@@ -248,10 +248,10 @@ int app_data_decoding(unsigned char *input_data,
         buf = (unsigned char *)rt_malloc(buf_len + 1);
         if (RT_NULL == buf)
         {
-            rt_kprintf("line %d malloc fail\n", __LINE__);
+            rt_kprintf("decod malloc fail\n");
             return -2;
         }
-        //rt_memset(buf, 0, buf_len + 1);
+        // rt_memset(buf, 0, buf_len + 1);
 
         // parse data
         rt_memcpy(buf, input_data + offset, buf_len);
@@ -263,14 +263,14 @@ int app_data_decoding(unsigned char *input_data,
             decomp_data = (unsigned char *)rt_malloc(APP_MAX_DECODING_DATA_LEN);
             if (RT_NULL == decomp_data)
             {
-                rt_kprintf("%s line %d malloc fail. len %d\n", __FUNCTION__, __LINE__, APP_MAX_DECODING_DATA_LEN);
+                rt_kprintf("decod malloc fail. len %d\n", APP_MAX_DECODING_DATA_LEN);
                 rt_free(buf);
                 buf = RT_NULL;
                 return -3;
             }
             rt_memset(decomp_data, 0, APP_MAX_DECODING_DATA_LEN);
 
-            //rt_kprintf("data len before decompression %d\n", buf_len);
+            // rt_kprintf("data len before decompression %d\n", buf_len);
             decomp_data_len = fastlz_decompress(buf, buf_len, decomp_data, APP_MAX_DECODING_DATA_LEN);
             rt_kprintf("decompression data len.before %d after %d\n", buf_len, decomp_data_len);
             *output_data = decomp_data;

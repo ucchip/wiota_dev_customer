@@ -8,6 +8,7 @@
  * 2020-11-26     RT-Thread    first version
  */
 #include <rtthread.h>
+#include "uc_wiota_api.h"
 #ifdef _RT_THREAD_
 #include <rtdevice.h>
 #endif
@@ -82,6 +83,10 @@
 #include "uc_rs485_app.h"
 #endif
 
+#ifdef UC_SPIM_SUPPORT
+#include "uc_spim_api.h"
+#endif
+
 extern void uc_wiota_static_data_init(void);
 extern int at_wiota_gpio_report_init(void);
 extern int wake_out_pulse_init(void);
@@ -150,15 +155,39 @@ void app_test(void)
 #ifdef _UART_APP_
     uart_app_sample();
 #endif
+
+#ifdef UC_SPIM_SUPPORT
+    spim_wr_sample();
+#endif
 }
 
 int main(void)
 {
+    int bin_size;
+    int reserved_size;
+    int ota_size;
+
 #ifdef _ROMFUNC_
     dll_open();
 #endif
 
     uc_wiota_static_data_init();
+
+    /*
+    compatible with versions earliner than v3.1(SYNC WIOTA V3.1).
+    Now rt_thread.bin size 308676.
+    Whole flash 512K.Tail has 8K static config data.
+    config parament relationship:
+        (bin_part + reserved_part + ota_package) == (512K - 8K)
+        bin_part max size 311296(rt_thread.bin)
+        reserved_part max size 147456.It is not allowed to reduce value.
+        ota_package max size 57344
+     */
+    get_partition_size(&bin_size, &reserved_size, &ota_size);
+    if (bin_size < 0x4c000)
+    {
+        set_partition_size(0x4c000, 0x24000, 0xe000);
+    }
 
 #ifdef _WATCHDOG_APP_
     if (!watchdog_app_init())
@@ -172,8 +201,6 @@ int main(void)
     at_server_init();
     at_wiota_manager();
 #endif
-#else
-    app_task_init();
 #endif
 
     at_wiota_gpio_report_init();
@@ -182,8 +209,6 @@ int main(void)
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
 //    at_handle_log_uart(0);
 #endif
-
-    // app_task_init();
 
     //    uc_wiota_light_func_enable(0);
 

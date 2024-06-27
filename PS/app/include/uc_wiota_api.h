@@ -46,6 +46,8 @@ typedef enum
     UC_RECV_SYNC_LOST = 7,   // UC_CALLBACK_STATE_INFO, sync lost notify by riscv, need scan freq
     UC_RECV_IDLE_PAGING = 8, // UC_CALLBACK_STATE_INFO, when idle state, recv ap's paging signal
     UC_RECV_VOICE = 9,       // UC_CALLBACK_NORAMAL_MSG, voice msg from ap
+    UC_RECV_PG_TX_DONE = 10, // UC_CALLBACK_STATE_INFO, when pg tx end, tell app
+    UC_RECV_MAX_TYPE,
 } uc_recv_data_type_e;
 
 typedef enum
@@ -88,9 +90,10 @@ typedef enum
     UC_RATE_NORMAL = 0,
     UC_RATE_MID,
     UC_RATE_HIGH,
-    UC_RATE_CRC_TYPE, // 0, normal mode, 1, only one byte crc
-    UC_RATE_SUBFRAME, // subframe mode
-    UC_RATE_DISCARD_SUBF, // if need discard subframe data when send normal data
+    UC_RATE_CRC_TYPE,     // 0, normal mode, 1, only one byte crc
+    UC_RATE_SUBFRAME,     // subframe mode
+    UC_RATE_DISCARD_SUBF, // 1, need discard subframe data when send normal data
+    UC_RATE_SUBF_ADV,     // 0, sm is sent in advance, 1, subf voice data is sent in advance
 } uc_data_rate_mode_e;
 
 typedef enum
@@ -282,8 +285,9 @@ typedef struct
     unsigned char bandwidth;
     unsigned char symbol_length;
     unsigned short awaken_id; // indicate which id should send
-    unsigned short reserved;
-    unsigned int send_time; // ms, at least rx detect period
+    unsigned char mode;       // 0: old id range(narrow), 1: extend id range(wide)
+    unsigned char reserved;   // re
+    unsigned int send_time;   // ms, at least rx detect period
 } uc_lpm_tx_cfg_t, *uc_lpm_tx_cfg_p;
 
 typedef struct
@@ -298,9 +302,9 @@ typedef struct
     unsigned char extra_flag; // defalut, if set 1, last period will use extra_period, then wake up
     unsigned short awaken_id; // indicate which id should detect
     unsigned short reserved;
-    unsigned int detect_period; // ms, like 1000 ms
-    unsigned int extra_period;  // ms, extra new period before wake up
-    unsigned char reserved1;
+    unsigned int detect_period;       // ms, like 1000 ms
+    unsigned int extra_period;        // ms, extra new period before wake up
+    unsigned char mode;               // 0: old id range(narrow), 1: extend id range(wide)
     unsigned char period_multiple;    // the multiples of detect_period using awaken_id_ano, if 0, no need
     unsigned short awaken_id_another; // another awaken_id
 } uc_lpm_rx_cfg_t, *uc_lpm_rx_cfg_p;
@@ -321,6 +325,17 @@ typedef struct
     unsigned int frame_head;
     unsigned int frame_mid;
 } uc_frame_head_t, *uc_frame_head_p;
+
+typedef struct
+{
+    unsigned char is_valid;   // if info valid
+    unsigned char reserved0;  // re
+    unsigned short reserved1; // re1
+    unsigned int gps_time_us; // gps time us remainder of second, 0~999999 us
+    unsigned int gps_time_s;  // gps time second
+    unsigned int rf_cnt_us;   // frame head
+    unsigned int rf_cnt_curr; // curr dfe
+} uc_gps_time_t, *uc_gps_time_p;
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
@@ -455,6 +470,8 @@ unsigned int uc_wiota_get_curr_rf_cnt(void);
 
 void uc_wiota_get_frame_head_rf_cnt(uc_frame_head_p frame_head_info);
 
+void uc_wiota_get_gps_info(uc_gps_time_p gps_info);
+
 void uc_wiota_set_tx_mode(unsigned char mode);
 
 unsigned char uc_wiota_get_tx_mode(void);
@@ -491,11 +508,15 @@ unsigned char uc_wiota_get_is_frame_valid(void);
 
 void uc_wiota_set_is_frame_valid(unsigned char isFrameValid);
 
-unsigned char uc_wiota_crc8_calc(unsigned char *data, unsigned int data_len);
+unsigned char uc_wiota_crc8_calc(unsigned char *data, unsigned int data_len); // can't change polynomial
 
-unsigned short uc_wiota_crc16_calc(unsigned char *data, unsigned int data_len);
+unsigned short uc_wiota_crc16_calc(unsigned char *data, unsigned int data_len); // can't change polynomial
 
-unsigned int uc_wiota_crc32_calc(unsigned char *data, unsigned int data_len);
+unsigned int uc_wiota_crc32_calc(unsigned char *data, unsigned int data_len); // can't change polynomial
+
+void uc_wiota_back_to_idle(void);
+
+void uc_wiota_set_exit_save_static(unsigned char is_save);
 
 // below is for inter test !
 

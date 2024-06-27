@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#if  defined(AT_WIOTA_GATEWAY_API)
+#if defined(AT_WIOTA_GATEWAY_API)
 #include <rtdevice.h>
 #include <rthw.h>
 #include "uc_wiota_api.h"
@@ -22,7 +22,7 @@ int uc_wiota_ota_flash_read(unsigned int offset, unsigned char *buf, unsigned in
         unsigned int read_data = 0;
         unsigned char order_len = 0;
         unsigned char addr_offset = 0;
-        //rt_base_t level;
+        // rt_base_t level;
         unsigned char *read_buf = RT_NULL;
 
         read_buf = (unsigned char *)&read_data;
@@ -68,7 +68,7 @@ static int ota_flash_write(unsigned int offset, const unsigned char *buf, unsign
     if (size < 1)
     {
         return -RT_EINVAL;
-        //return size;
+        // return size;
     }
 
     while (index < size)
@@ -77,7 +77,7 @@ static int ota_flash_write(unsigned int offset, const unsigned char *buf, unsign
         unsigned int write_data = 0;
         unsigned char order_len = 0;
         unsigned char addr_offset = 0;
-        //rt_base_t level;
+        // rt_base_t level;
         unsigned char *write_buf = RT_NULL;
 
         write_buf = (unsigned char *)&write_data;
@@ -150,7 +150,7 @@ void uc_wiota_ota_flash_erase(unsigned int start_addr, unsigned int erase_size)
 
     if (erase_size == 0)
     {
-        rt_kprintf("%s line %d para error\n", __FUNCTION__, __LINE__);
+        rt_kprintf("flash_erase size err\n");
         return;
     }
 
@@ -190,6 +190,7 @@ int uc_wiota_ota_check_flash_data(unsigned int flash_addr, unsigned int flash_si
     /* MD5 context setup */
     tiny_md5_starts(&ctx);
     uc_wiota_suspend_connect();
+    rt_thread_mdelay(uc_wiota_get_frame_len() / 1000 + 2);
     while (data_offset < flash_size)
     {
         unsigned int read_len = buf_len;
@@ -222,7 +223,7 @@ int uc_wiota_ota_check_flash_data(unsigned int flash_addr, unsigned int flash_si
     rt_kprintf("calc_md5 %s, md5 %s\n", calc_md5, md5);
     if (0 != rt_memcmp(calc_md5, md5, 32))
     {
-        rt_kprintf("error calc_md5:%s\n", calc_md5);
+        rt_kprintf("err calc_md5:%s\n", calc_md5);
         rc = 2;
     }
 
@@ -236,7 +237,9 @@ int uc_wiota_ota_check_flash_data(unsigned int flash_addr, unsigned int flash_si
 
 void uc_wiota_ota_jump_program(unsigned int file_size, unsigned char upgrade_type)
 {
-    uc_wiota_disconnect();
+    // uc_wiota_disconnect();
+    uc_wiota_suspend_connect();
+    rt_thread_mdelay(uc_wiota_get_frame_len());
     uc_wiota_set_download_file_size(file_size);
     if (upgrade_type == 0)
     {
@@ -250,6 +253,8 @@ void uc_wiota_ota_jump_program(unsigned int file_size, unsigned char upgrade_typ
     uc_wiota_exit();
     rt_hw_interrupt_disable();
     // rt_hw_cpu_reset();
-    boot_riscv_reboot();
+    // boot_riscv_reboot();
+    extern void reset_8288(void);
+    reset_8288();
 }
 #endif

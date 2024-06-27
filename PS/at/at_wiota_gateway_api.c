@@ -11,6 +11,7 @@
 #include "at.h"
 #include "uc_wiota_api.h"
 #include "uc_wiota_gateway_api.h"
+#include "uc_ota_flash.h"
 
 #define AUTH_KEY_LEN 18
 #define WIOTA_GATEWAY_WAIT_DATA_TIMEOUT 10000
@@ -36,6 +37,11 @@ static void user_get_exception_state(unsigned char exception_type)
     at_server_printfln("+GATEWAYSTATE:%s", exception_string[exception_type]);
 }
 
+static void extern_mcu_cb(unsigned int start_addr, unsigned int len, char *md5)
+{
+    at_server_printfln("+EXMCUOTA:0x%x,%u,%s", start_addr, len, md5);
+}
+
 static at_result_t at_wiota_gateway_api_init(const char *args)
 {
     char auth_key[AUTH_KEY_LEN] = {0xFF};
@@ -47,7 +53,7 @@ static at_result_t at_wiota_gateway_api_init(const char *args)
     args = parse((char *)(++args), "d,s", &mode, AUTH_KEY_LEN, auth_key);
     if (!args)
     {
-        rt_kprintf("gw error para.\n");
+        rt_kprintf("gw error para\n");
         return AT_RESULT_PARSE_FAILE;
     }
 
@@ -61,14 +67,15 @@ static at_result_t at_wiota_gateway_api_init(const char *args)
     auth_key[auth_key_len - 1] = '\0';
 
     uc_wiota_gateway_register_user_recv_cb(user_recv_data, user_get_exception_state);
-//uc_wiota_get_freq_list(list);
+    uc_wiota_gateway_register_ex_mcu_cb(extern_mcu_cb);
+// uc_wiota_get_freq_list(list);
 #ifdef RT_USING_AT
     at_wiota_get_avail_freq_list(list, APP_CONNECT_FREQ_NUM);
 #endif
 
     init_state = uc_wiota_gateway_start(mode, auth_key, list);
 
-    //rt_kprintf("%s line %d init_state %d\n", __FUNCTION__, __LINE__, init_state);
+    // rt_kprintf("%s line %d init_state %d\n", __FUNCTION__, __LINE__, init_state);
     rt_thread_delay(2);
     if (UC_GATEWAY_OK == init_state)
     {
@@ -111,7 +118,7 @@ static at_result_t at_wiota_gateway_api_send_data(const char *args)
 
     if (buf_len > GATEWAY_SEND_MAX_LEN)
     {
-        rt_kprintf("len %d error\n", buf_len);
+        rt_kprintf("len %d err\n", buf_len);
         return AT_RESULT_PARSE_FAILE;
     }
 
@@ -197,12 +204,67 @@ static at_result_t at_wiota_gateway_api_get_rtc(const char *args)
     return AT_RESULT_OK;
 }
 
+static at_result_t at_wiota_gateway_verity_setup(const char *args)
+{
+    unsigned int is_open = 0;
+
+    args = parse((char *)(++args), "d", &is_open);
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    uc_wiota_gateway_set_verity(is_open);
+
+    return AT_RESULT_OK;
+}
+
+static at_result_t at_wiota_gateway_ex_mcu_read(const char *args)
+{
+    unsigned int read_addr = 0;
+    unsigned int read_len = 0;
+    unsigned char *buffer = RT_NULL;
+
+    args = parse((char *)(++args), "y,d", &read_addr, &read_len);
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    if (read_len > 512 || uc_wiota_gateway_is_ex_mcu_read() == 0)
+    {
+        return AT_RESULT_FAILE;
+    }
+
+    buffer = rt_malloc(read_len);
+    RT_ASSERT(buffer);
+
+    uc_wiota_suspend_connect();
+    if (uc_wiota_ota_flash_read(read_addr, buffer, read_len) != read_len)
+    {
+        rt_free(buffer);
+        uc_wiota_recover_connect();
+        return AT_RESULT_FAILE;
+    }
+    uc_wiota_recover_connect();
+
+    at_server_printfln("+GATEWAYEXMCU:%d", read_len);
+    at_send_data(buffer, read_len);
+    at_server_printfln("");
+
+    rt_free(buffer);
+
+    return AT_RESULT_OK;
+}
+
 AT_CMD_EXPORT("AT+GATEWAYINIT", "=<mode>,<auth_key>", RT_NULL, RT_NULL, at_wiota_gateway_api_init, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYDEINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_deinit);
 AT_CMD_EXPORT("AT+GATEWAYSEND", "=<timeout>,<len>", RT_NULL, RT_NULL, at_wiota_gateway_api_send_data, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYOTAREQ", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_ota_req);
 AT_CMD_EXPORT("AT+GATEWAYSTATE", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_report_state);
 AT_CMD_EXPORT("AT+GATEWAYRTC", "=<fmt>", RT_NULL, RT_NULL, at_wiota_gateway_api_get_rtc, RT_NULL);
+AT_CMD_EXPORT("AT+GATEWAYVERITY", "=<is_open>", RT_NULL, RT_NULL, at_wiota_gateway_verity_setup, RT_NULL);
+AT_CMD_EXPORT("AT+GATEWAYEXMCU", "=<read_addr>,<read_len>", RT_NULL, RT_NULL, at_wiota_gateway_ex_mcu_read, RT_NULL);
 
 #endif
 #endif
