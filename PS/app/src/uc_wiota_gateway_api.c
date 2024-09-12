@@ -180,6 +180,7 @@ static void uc_gateway_clear_state(void)
     if (gateway_mode.ota_state != GATEWAY_OTA_DEFAULT)
     {
         gateway_mode.ota_state = GATEWAY_OTA_DEFAULT;
+        gateway_mode.upgrade_num = 0;
         rt_memset(gateway_mode.mask_map, 0, sizeof(gateway_mode.mask_map));
         uc_gateway_stop_ota_timer();
     }
@@ -741,9 +742,8 @@ static void uc_wiota_gateway_ota_upgrade_res_msg(unsigned char *data, unsigned i
                 }
                 else
                 {
-                    rt_kprintf("gw up fail\n");
-                    gateway_mode.ota_state = GATEWAY_OTA_DEFAULT;
-                    rt_memset(gateway_mode.mask_map, 0, sizeof(gateway_mode.mask_map));
+                    rt_kprintf("gw up f\n");
+                    uc_gateway_clear_state();
                 }
             }
         }
@@ -918,6 +918,9 @@ static void uc_wiota_gateway_analisys_dl_msg(unsigned char *data, unsigned int d
     case IOTE_VERSION_REQ:
         uc_wiota_gateway_version_msg();
         break;
+
+    default:
+        break;
     }
 
     rt_free(data_decoding);
@@ -986,7 +989,7 @@ static void uc_wiota_gateway_ota_miss_data_req_msg(void)
                        miss_data_req.miss_data_num, miss_data_req.miss_data_offset[miss_data_req.miss_data_num],
                        miss_data_req.miss_data_num, miss_data_req.miss_data_length[miss_data_req.miss_data_num]);
             miss_data_req.miss_data_num++;
-            if (offset == APP_MAX_MISSING_DATA_BLOCK_NUM - 1)
+            if (miss_data_req.miss_data_num == APP_MAX_MISSING_DATA_BLOCK_NUM - 1)
             {
                 break;
             }

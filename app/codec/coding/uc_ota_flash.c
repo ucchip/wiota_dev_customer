@@ -238,18 +238,18 @@ int uc_wiota_ota_check_flash_data(unsigned int flash_addr, unsigned int flash_si
 void uc_wiota_ota_jump_program(unsigned int file_size, unsigned char upgrade_type)
 {
     // uc_wiota_disconnect();
-    uc_wiota_suspend_connect();
-    rt_thread_mdelay(uc_wiota_get_frame_len());
-    uc_wiota_set_download_file_size(file_size);
+    // uc_wiota_suspend_connect();
+    // rt_thread_mdelay(uc_wiota_get_frame_len() / 1000 + 2);
+    uc_wiota_set_download_file_size_no_save(file_size);
     if (upgrade_type == 0)
     {
-        set_uboot_mode('d');
+        set_uboot_mode_no_save('d');
     }
     else
     {
-        set_uboot_mode('b');
+        set_uboot_mode_no_save('b');
     }
-    rt_thread_mdelay(2000);
+    // rt_thread_mdelay(2000);
     uc_wiota_exit();
     rt_hw_interrupt_disable();
     // rt_hw_cpu_reset();

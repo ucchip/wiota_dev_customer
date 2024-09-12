@@ -296,6 +296,8 @@ unsigned int uc_wiota_flash_read(unsigned char *data_addr, unsigned int flash_ad
 
 void uc_wiota_set_download_file_size(int filesize);
 
+void uc_wiota_set_download_file_size_no_save(int filesize);
+
 #ifdef __cplushplus
 }
 #endif // __cplushplus

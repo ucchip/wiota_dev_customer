@@ -544,6 +544,8 @@ void get_uboot_mode(unsigned char *mode);
 
 void set_uboot_mode(unsigned char mode);
 
+void set_uboot_mode_no_save(unsigned char mode);
+
 void set_uboot_wait_sec(unsigned char wait_sec);
 
 unsigned char get_uboot_wait_sec();
