@@ -19,9 +19,9 @@
 //#define MSD_TRACE
 
 #ifdef MSD_TRACE
-#define MSD_DEBUG(...)         rt_kprintf("[MSD] %d ", rt_tick_get()); rt_kprintf(__VA_ARGS__);
+    #define MSD_DEBUG(...)         rt_kprintf("[MSD] %d ", rt_tick_get()); rt_kprintf(__VA_ARGS__);
 #else
-#define MSD_DEBUG(...)
+    #define MSD_DEBUG(...)
 #endif /* #ifdef MSD_TRACE */
 
 #define DUMMY                 0xFF
@@ -36,20 +36,20 @@ static struct msd_device  _msd_device;
 /* function define */
 static rt_bool_t rt_tick_timeout(rt_tick_t tick_start, rt_tick_t tick_long);
 
-static rt_err_t MSD_take_owner(struct rt_spi_device* spi_device);
+static rt_err_t MSD_take_owner(struct rt_spi_device *spi_device);
 
-static rt_err_t _wait_token(struct rt_spi_device* device, uint8_t token);
-static rt_err_t _wait_ready(struct rt_spi_device* device);
+static rt_err_t _wait_token(struct rt_spi_device *device, uint8_t token);
+static rt_err_t _wait_ready(struct rt_spi_device *device);
 static rt_err_t  rt_msd_init(rt_device_t dev);
 static rt_err_t  rt_msd_open(rt_device_t dev, rt_uint16_t oflag);
 static rt_err_t  rt_msd_close(rt_device_t dev);
-static rt_size_t rt_msd_write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size);
-static rt_size_t rt_msd_read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t size);
-static rt_size_t rt_msd_sdhc_read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t size);
-static rt_size_t rt_msd_sdhc_write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size);
-static rt_err_t rt_msd_control(rt_device_t dev, int cmd, void* args);
+static rt_size_t rt_msd_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size);
+static rt_size_t rt_msd_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size);
+static rt_size_t rt_msd_sdhc_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size);
+static rt_size_t rt_msd_sdhc_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size);
+static rt_err_t rt_msd_control(rt_device_t dev, int cmd, void *args);
 
-static rt_err_t MSD_take_owner(struct rt_spi_device* spi_device)
+static rt_err_t MSD_take_owner(struct rt_spi_device *spi_device)
 {
     rt_err_t result;
 
@@ -103,7 +103,7 @@ static rt_bool_t rt_tick_timeout(rt_tick_t tick_start, rt_tick_t tick_long)
     return result;
 }
 
-static uint8_t crc7(const uint8_t* buf, int len)
+static uint8_t crc7(const uint8_t *buf, int len)
 {
     unsigned char   i, j, crc, ch, ch2, ch3;
 
@@ -135,12 +135,12 @@ static uint8_t crc7(const uint8_t* buf, int len)
 }
 
 static rt_err_t _send_cmd(
-    struct rt_spi_device* device,
+    struct rt_spi_device *device,
     uint8_t cmd,
     uint32_t arg,
     uint8_t crc,
     response_type type,
-    uint8_t* response
+    uint8_t *response
 )
 {
     struct rt_spi_message message;
@@ -267,7 +267,7 @@ static rt_err_t _send_cmd(
     return RT_EOK;
 }
 
-static rt_err_t _wait_token(struct rt_spi_device* device, uint8_t token)
+static rt_err_t _wait_token(struct rt_spi_device *device, uint8_t token)
 {
     struct rt_spi_message message;
     rt_tick_t tick_start;
@@ -301,7 +301,7 @@ static rt_err_t _wait_token(struct rt_spi_device* device, uint8_t token)
     } /* wati token */
 }
 
-static rt_err_t _wait_ready(struct rt_spi_device* device)
+static rt_err_t _wait_ready(struct rt_spi_device *device)
 {
     struct rt_spi_message message;
     rt_tick_t tick_start;
@@ -334,7 +334,7 @@ static rt_err_t _wait_ready(struct rt_spi_device* device)
     }
 }
 
-static rt_err_t _read_block(struct rt_spi_device* device, void* buffer, uint32_t block_size)
+static rt_err_t _read_block(struct rt_spi_device *device, void *buffer, uint32_t block_size)
 {
     struct rt_spi_message message;
     rt_err_t result;
@@ -375,7 +375,7 @@ static rt_err_t _read_block(struct rt_spi_device* device, void* buffer, uint32_t
     return RT_EOK;
 }
 
-static rt_err_t _write_block(struct rt_spi_device* device, const void* buffer, uint32_t block_size, uint8_t token)
+static rt_err_t _write_block(struct rt_spi_device *device, const void *buffer, uint32_t block_size, uint8_t token)
 {
     struct rt_spi_message message;
     uint8_t send_buffer[16];
@@ -421,7 +421,7 @@ static rt_err_t _write_block(struct rt_spi_device* device, const void* buffer, u
         /* transfer message */
         device->bus->ops->xfer(device, &message);
 
-        //        response = 0x0E & recv_buffer[2];
+//        response = 0x0E & recv_buffer[2];
         response = MSD_GET_DATA_RESPONSE(recv_buffer[2]);
         if (response != MSD_DATA_OK)
         {
@@ -459,7 +459,7 @@ const static struct rt_device_ops msd_sdhc_ops =
 /* RT-Thread Device Driver Interface */
 static rt_err_t rt_msd_init(rt_device_t dev)
 {
-    struct msd_device* msd = (struct msd_device*)dev;
+    struct msd_device *msd = (struct msd_device *)dev;
     uint8_t response[MSD_RESPONSE_MAX_LEN];
     rt_err_t result = RT_EOK;
     rt_tick_t tick_start;
@@ -500,7 +500,7 @@ static rt_err_t rt_msd_init(rt_device_t dev)
             uint8_t send_buffer[100]; /* 100byte > 74 clock */
 
             /* initial message */
-            memset(send_buffer, DUMMY, sizeof(send_buffer));
+            rt_memset(send_buffer, DUMMY, sizeof(send_buffer));
             message.send_buf = send_buffer;
             message.recv_buf = RT_NULL;
             message.length = sizeof(send_buffer);
@@ -583,7 +583,8 @@ static rt_err_t rt_msd_init(rt_device_t dev)
                         goto _exit;
                     }
                 }
-            } while (0xAA != response[4]);
+            }
+            while (0xAA != response[4]);
         } /* CMD8 */
 
         /* Ver1.X SD Memory Card or MMC card */
@@ -696,7 +697,7 @@ static rt_err_t rt_msd_init(rt_device_t dev)
                     uint8_t send_buffer[100];
 
                     /* initial message */
-                    memset(send_buffer, DUMMY, sizeof(send_buffer));
+                    rt_memset(send_buffer, DUMMY, sizeof(send_buffer));
                     message.send_buf = send_buffer;
                     message.recv_buf = RT_NULL;
                     message.length = sizeof(send_buffer);
@@ -806,7 +807,7 @@ static rt_err_t rt_msd_init(rt_device_t dev)
 
                 /* CMD55 APP_CMD */
                 result = _send_cmd(msd->spi_device, APP_CMD, 0x00, 0x65, response_r1, response);
-                //                if((result != RT_EOK) || (response[0] == 0x01))
+//                if((result != RT_EOK) || (response[0] == 0x01))
                 if (result != RT_EOK)
                 {
                     rt_spi_release(msd->spi_device);
@@ -835,9 +836,10 @@ static rt_err_t rt_msd_init(rt_device_t dev)
                 {
                     rt_spi_release(msd->spi_device);
                     MSD_DEBUG("[info] Not SD card4 , response : 0x%02X\r\n", response[0]);
-                    //                    break;
+//                    break;
                 }
-            } while (response[0] != MSD_RESPONSE_NO_ERROR);
+            }
+            while (response[0] != MSD_RESPONSE_NO_ERROR);
             rt_spi_release(msd->spi_device);
             /* try CMD55 + ACMD41 */
 
@@ -942,7 +944,7 @@ static rt_err_t rt_msd_init(rt_device_t dev)
         uint8_t CSD_buffer[MSD_CSD_LEN];
 
         rt_spi_take(msd->spi_device);
-        //        result = _send_cmd(msd->spi_device, SEND_CSD, 0x00, 0xAF, response_r1, response);
+//        result = _send_cmd(msd->spi_device, SEND_CSD, 0x00, 0xAF, response_r1, response);
         result = _send_cmd(msd->spi_device, SEND_CSD, 0x00, 0x00, response_r1, response);
 
         if (result != RT_EOK)
@@ -1197,19 +1199,19 @@ _exit:
 
 static rt_err_t rt_msd_open(rt_device_t dev, rt_uint16_t oflag)
 {
-    //    struct msd_device * msd = (struct msd_device *)dev;
+//    struct msd_device * msd = (struct msd_device *)dev;
     return RT_EOK;
 }
 
 static rt_err_t rt_msd_close(rt_device_t dev)
 {
-    //    struct msd_device * msd = (struct msd_device *)dev;
+//    struct msd_device * msd = (struct msd_device *)dev;
     return RT_EOK;
 }
 
-static rt_size_t rt_msd_read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t size)
+static rt_size_t rt_msd_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
-    struct msd_device* msd = (struct msd_device*)dev;
+    struct msd_device *msd = (struct msd_device *)dev;
     uint8_t response[MSD_RESPONSE_MAX_LEN];
     rt_err_t result = RT_EOK;
 
@@ -1257,7 +1259,7 @@ static rt_size_t rt_msd_read(rt_device_t dev, rt_off_t pos, void* buffer, rt_siz
         for (i = 0; i < size; i++)
         {
             result = _read_block(msd->spi_device,
-                                 (uint8_t*)buffer + msd->geometry.bytes_per_sector * i,
+                                 (uint8_t *)buffer + msd->geometry.bytes_per_sector * i,
                                  msd->geometry.bytes_per_sector);
             if (result != RT_EOK)
             {
@@ -1283,9 +1285,9 @@ _exit:
     return size;
 }
 
-static rt_size_t rt_msd_sdhc_read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t size)
+static rt_size_t rt_msd_sdhc_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
-    struct msd_device* msd = (struct msd_device*)dev;
+    struct msd_device *msd = (struct msd_device *)dev;
     uint8_t response[MSD_RESPONSE_MAX_LEN];
     rt_err_t result = RT_EOK;
 
@@ -1333,7 +1335,7 @@ static rt_size_t rt_msd_sdhc_read(rt_device_t dev, rt_off_t pos, void* buffer, r
         for (i = 0; i < size; i++)
         {
             result = _read_block(msd->spi_device,
-                                 (uint8_t*)buffer + msd->geometry.bytes_per_sector * i,
+                                 (uint8_t *)buffer + msd->geometry.bytes_per_sector * i,
                                  msd->geometry.bytes_per_sector);
             if (result != RT_EOK)
             {
@@ -1359,9 +1361,9 @@ _exit:
     return size;
 }
 
-static rt_size_t rt_msd_write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size)
+static rt_size_t rt_msd_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
-    struct msd_device* msd = (struct msd_device*)dev;
+    struct msd_device *msd = (struct msd_device *)dev;
     uint8_t response[MSD_RESPONSE_MAX_LEN];
     rt_err_t result;
 
@@ -1435,7 +1437,7 @@ static rt_size_t rt_msd_write(rt_device_t dev, rt_off_t pos, const void* buffer,
         for (i = 0; i < size; i++)
         {
             result = _write_block(msd->spi_device,
-                                  (const uint8_t*)buffer + msd->geometry.bytes_per_sector * i,
+                                  (const uint8_t *)buffer + msd->geometry.bytes_per_sector * i,
                                   msd->geometry.bytes_per_sector,
                                   MSD_TOKEN_WRITE_MULTIPLE_START);
             if (result != RT_EOK)
@@ -1479,9 +1481,9 @@ _exit:
     return size;
 }
 
-static rt_size_t rt_msd_sdhc_write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size)
+static rt_size_t rt_msd_sdhc_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
-    struct msd_device* msd = (struct msd_device*)dev;
+    struct msd_device *msd = (struct msd_device *)dev;
     uint8_t response[MSD_RESPONSE_MAX_LEN];
     rt_err_t result;
 
@@ -1550,7 +1552,7 @@ static rt_size_t rt_msd_sdhc_write(rt_device_t dev, rt_off_t pos, const void* bu
         for (i = 0; i < size; i++)
         {
             result = _write_block(msd->spi_device,
-                                  (const uint8_t*)buffer + msd->geometry.bytes_per_sector * i,
+                                  (const uint8_t *)buffer + msd->geometry.bytes_per_sector * i,
                                   msd->geometry.bytes_per_sector,
                                   MSD_TOKEN_WRITE_MULTIPLE_START);
             if (result != RT_EOK)
@@ -1593,21 +1595,18 @@ _exit:
     return size;
 }
 
-static rt_err_t rt_msd_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t rt_msd_control(rt_device_t dev, int cmd, void *args)
 {
-    struct msd_device* msd = (struct msd_device*)dev;
+    struct msd_device *msd = (struct msd_device *)dev;
 
     RT_ASSERT(dev != RT_NULL);
 
     if (cmd == RT_DEVICE_CTRL_BLK_GETGEOME)
     {
-        struct rt_device_blk_geometry* geometry;
+        struct rt_device_blk_geometry *geometry;
 
-        geometry = (struct rt_device_blk_geometry*)args;
-        if (geometry == RT_NULL)
-        {
-            return -RT_ERROR;
-        }
+        geometry = (struct rt_device_blk_geometry *)args;
+        if (geometry == RT_NULL) return -RT_ERROR;
 
         geometry->bytes_per_sector = msd->geometry.bytes_per_sector;
         geometry->block_size = msd->geometry.block_size;
@@ -1617,12 +1616,12 @@ static rt_err_t rt_msd_control(rt_device_t dev, int cmd, void* args)
     return RT_EOK;
 }
 
-rt_err_t msd_init(const char* sd_device_name, const char* spi_device_name)
+rt_err_t msd_init(const char *sd_device_name, const char *spi_device_name)
 {
     rt_err_t result = RT_EOK;
-    struct rt_spi_device* spi_device;
+    struct rt_spi_device *spi_device;
 
-    spi_device = (struct rt_spi_device*)rt_device_find(spi_device_name);
+    spi_device = (struct rt_spi_device *)rt_device_find(spi_device_name);
     if (spi_device == RT_NULL)
     {
         MSD_DEBUG("spi device %s not found!\r\n", spi_device_name);

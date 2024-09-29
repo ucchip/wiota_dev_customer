@@ -30,18 +30,18 @@
 struct rt_wlan_prot_event_des
 {
     rt_wlan_prot_event_handler handler;
-    struct rt_wlan_prot* prot;
+    struct rt_wlan_prot *prot;
 };
 
-static struct rt_wlan_prot* _prot[RT_WLAN_PROT_MAX];
+static struct rt_wlan_prot *_prot[RT_WLAN_PROT_MAX];
 
 static struct rt_wlan_prot_event_des prot_event_tab[RT_WLAN_PROT_EVT_MAX][RT_WLAN_PROT_MAX];
 
-static void rt_wlan_prot_event_handle(struct rt_wlan_device* wlan, rt_wlan_dev_event_t event, struct rt_wlan_buff* buff, void* parameter)
+static void rt_wlan_prot_event_handle(struct rt_wlan_device *wlan, rt_wlan_dev_event_t event, struct rt_wlan_buff *buff, void *parameter)
 {
     int i;
-    struct rt_wlan_prot* wlan_prot;
-    struct rt_wlan_prot* prot;
+    struct rt_wlan_prot *wlan_prot;
+    struct rt_wlan_prot *prot;
     rt_wlan_prot_event_handler handler;
     rt_wlan_prot_event_t prot_event;
 
@@ -52,57 +52,57 @@ static void rt_wlan_prot_event_handle(struct rt_wlan_device* wlan, rt_wlan_dev_e
     prot = RT_NULL;
     switch (event)
     {
-        case RT_WLAN_DEV_EVT_INIT_DONE:
-        {
-            LOG_D("L%d event: INIT_DONE", __LINE__);
-            prot_event = RT_WLAN_PROT_EVT_INIT_DONE;
-            break;
-        }
-        case RT_WLAN_DEV_EVT_CONNECT:
-        {
-            LOG_D("L%d event: CONNECT", __LINE__);
-            prot_event = RT_WLAN_PROT_EVT_CONNECT;
-            break;
-        }
-        case RT_WLAN_DEV_EVT_DISCONNECT:
-        {
-            LOG_D("L%d event: DISCONNECT", __LINE__);
-            prot_event = RT_WLAN_PROT_EVT_DISCONNECT;
-            break;
-        }
-        case RT_WLAN_DEV_EVT_AP_START:
-        {
-            LOG_D("L%d event: AP_START", __LINE__);
-            prot_event = RT_WLAN_PROT_EVT_AP_START;
-            break;
-        }
-        case RT_WLAN_DEV_EVT_AP_STOP:
-        {
-            LOG_D("L%d event: AP_STOP", __LINE__);
-            prot_event = RT_WLAN_PROT_EVT_AP_STOP;
-            break;
-        }
-        case RT_WLAN_DEV_EVT_AP_ASSOCIATED:
-        {
-            LOG_D("L%d event: AP_ASSOCIATED", __LINE__);
-            prot_event = RT_WLAN_PROT_EVT_AP_ASSOCIATED;
-            break;
-        }
-        case RT_WLAN_DEV_EVT_AP_DISASSOCIATED:
-        {
-            LOG_D("L%d event: AP_DISASSOCIATED", __LINE__);
-            prot_event = RT_WLAN_PROT_EVT_AP_DISASSOCIATED;
-            break;
-        }
-        default:
-        {
-            return;
-        }
+    case RT_WLAN_DEV_EVT_INIT_DONE:
+    {
+        LOG_D("L%d event: INIT_DONE", __LINE__);
+        prot_event = RT_WLAN_PROT_EVT_INIT_DONE;
+        break;
+    }
+    case RT_WLAN_DEV_EVT_CONNECT:
+    {
+        LOG_D("L%d event: CONNECT", __LINE__);
+        prot_event = RT_WLAN_PROT_EVT_CONNECT;
+        break;
+    }
+    case RT_WLAN_DEV_EVT_DISCONNECT:
+    {
+        LOG_D("L%d event: DISCONNECT", __LINE__);
+        prot_event = RT_WLAN_PROT_EVT_DISCONNECT;
+        break;
+    }
+    case RT_WLAN_DEV_EVT_AP_START:
+    {
+        LOG_D("L%d event: AP_START", __LINE__);
+        prot_event = RT_WLAN_PROT_EVT_AP_START;
+        break;
+    }
+    case RT_WLAN_DEV_EVT_AP_STOP:
+    {
+        LOG_D("L%d event: AP_STOP", __LINE__);
+        prot_event = RT_WLAN_PROT_EVT_AP_STOP;
+        break;
+    }
+    case RT_WLAN_DEV_EVT_AP_ASSOCIATED:
+    {
+        LOG_D("L%d event: AP_ASSOCIATED", __LINE__);
+        prot_event = RT_WLAN_PROT_EVT_AP_ASSOCIATED;
+        break;
+    }
+    case RT_WLAN_DEV_EVT_AP_DISASSOCIATED:
+    {
+        LOG_D("L%d event: AP_DISASSOCIATED", __LINE__);
+        prot_event = RT_WLAN_PROT_EVT_AP_DISASSOCIATED;
+        break;
+    }
+    default:
+    {
+        return;
+    }
     }
     for (i = 0; i < RT_WLAN_PROT_MAX; i++)
     {
         if ((prot_event_tab[prot_event][i].handler != RT_NULL) &&
-            (prot_event_tab[prot_event][i].prot->id == wlan_prot->id))
+                (prot_event_tab[prot_event][i].prot->id == wlan_prot->id))
         {
             handler = prot_event_tab[prot_event][i].handler;
             prot = prot_event_tab[prot_event][i].prot;
@@ -116,7 +116,7 @@ static void rt_wlan_prot_event_handle(struct rt_wlan_device* wlan, rt_wlan_dev_e
     }
 }
 
-static struct rt_wlan_device* rt_wlan_prot_find_by_name(const char* name)
+static struct rt_wlan_device *rt_wlan_prot_find_by_name(const char *name)
 {
     rt_device_t device;
 
@@ -131,12 +131,12 @@ static struct rt_wlan_device* rt_wlan_prot_find_by_name(const char* name)
         LOG_E("F:%s L:%d not find wlan dev!! name:%s", __FUNCTION__, __LINE__, name);
         return RT_NULL;
     }
-    return (struct rt_wlan_device*)device;
+    return (struct rt_wlan_device *)device;
 }
 
-rt_err_t rt_wlan_prot_attach(const char* dev_name, const char* prot_name)
+rt_err_t rt_wlan_prot_attach(const char *dev_name, const char *prot_name)
 {
-    struct rt_wlan_device* wlan;
+    struct rt_wlan_device *wlan;
 
     wlan = rt_wlan_prot_find_by_name(dev_name);
     if (wlan == RT_NULL)
@@ -146,9 +146,9 @@ rt_err_t rt_wlan_prot_attach(const char* dev_name, const char* prot_name)
     return rt_wlan_prot_attach_dev(wlan, prot_name);
 }
 
-rt_err_t rt_wlan_prot_detach(const char* name)
+rt_err_t rt_wlan_prot_detach(const char *name)
 {
-    struct rt_wlan_device* wlan;
+    struct rt_wlan_device *wlan;
 
     wlan = rt_wlan_prot_find_by_name(name);
     if (wlan == RT_NULL)
@@ -158,10 +158,10 @@ rt_err_t rt_wlan_prot_detach(const char* name)
     return rt_wlan_prot_detach_dev(wlan);
 }
 
-rt_err_t rt_wlan_prot_attach_dev(struct rt_wlan_device* wlan, const char* prot_name)
+rt_err_t rt_wlan_prot_attach_dev(struct rt_wlan_device *wlan, const char *prot_name)
 {
     int i = 0;
-    struct rt_wlan_prot* prot = wlan->prot;
+    struct rt_wlan_prot *prot = wlan->prot;
     rt_wlan_dev_event_handler handler = rt_wlan_prot_event_handle;
 
     if (wlan == RT_NULL)
@@ -171,7 +171,7 @@ rt_err_t rt_wlan_prot_attach_dev(struct rt_wlan_device* wlan, const char* prot_n
     }
 
     if (prot != RT_NULL &&
-        (rt_strcmp(prot->name, prot_name) == 0))
+            (rt_strcmp(prot->name, prot_name) == 0))
     {
         LOG_D("prot is register");
         return RT_EOK;
@@ -179,7 +179,7 @@ rt_err_t rt_wlan_prot_attach_dev(struct rt_wlan_device* wlan, const char* prot_n
 
     /* if prot not NULL */
     if (prot != RT_NULL)
-    { rt_wlan_prot_detach_dev(wlan); }
+        rt_wlan_prot_detach_dev(wlan);
 
 #ifdef RT_WLAN_PROT_LWIP_PBUF_FORCE
     if (rt_strcmp(RT_WLAN_PROT_LWIP_NAME, prot_name) != 0)
@@ -214,13 +214,13 @@ rt_err_t rt_wlan_prot_attach_dev(struct rt_wlan_device* wlan, const char* prot_n
     return RT_EOK;
 }
 
-rt_err_t rt_wlan_prot_detach_dev(struct rt_wlan_device* wlan)
+rt_err_t rt_wlan_prot_detach_dev(struct rt_wlan_device *wlan)
 {
-    struct rt_wlan_prot* prot = wlan->prot;
+    struct rt_wlan_prot *prot = wlan->prot;
     rt_wlan_dev_event_t event;
 
     if (prot == RT_NULL)
-    { return RT_EOK; }
+        return RT_EOK;
 
     for (event = RT_WLAN_DEV_EVT_INIT_DONE; event < RT_WLAN_DEV_EVT_MAX; event ++)
     {
@@ -234,7 +234,7 @@ rt_err_t rt_wlan_prot_detach_dev(struct rt_wlan_device* wlan)
     return RT_EOK;
 }
 
-rt_err_t rt_wlan_prot_regisetr(struct rt_wlan_prot* prot)
+rt_err_t rt_wlan_prot_regisetr(struct rt_wlan_prot *prot)
 {
     int i;
     rt_uint32_t id;
@@ -242,8 +242,8 @@ rt_err_t rt_wlan_prot_regisetr(struct rt_wlan_prot* prot)
 
     /* Parameter checking */
     if ((prot == RT_NULL) ||
-        (prot->ops->prot_recv == RT_NULL) ||
-        (prot->ops->dev_reg_callback == RT_NULL))
+            (prot->ops->prot_recv == RT_NULL) ||
+            (prot->ops->dev_reg_callback == RT_NULL))
     {
         LOG_E("F:%s L:%d Parameter Wrongful", __FUNCTION__, __LINE__);
         return -RT_EINVAL;
@@ -276,7 +276,7 @@ rt_err_t rt_wlan_prot_regisetr(struct rt_wlan_prot* prot)
     return RT_EOK;
 }
 
-rt_err_t rt_wlan_prot_event_register(struct rt_wlan_prot* prot, rt_wlan_prot_event_t event, rt_wlan_prot_event_handler handler)
+rt_err_t rt_wlan_prot_event_register(struct rt_wlan_prot *prot, rt_wlan_prot_event_t event, rt_wlan_prot_event_handler handler)
 {
     int i;
 
@@ -298,7 +298,7 @@ rt_err_t rt_wlan_prot_event_register(struct rt_wlan_prot* prot, rt_wlan_prot_eve
     return -RT_ERROR;
 }
 
-rt_err_t rt_wlan_prot_event_unregister(struct rt_wlan_prot* prot, rt_wlan_prot_event_t event)
+rt_err_t rt_wlan_prot_event_unregister(struct rt_wlan_prot *prot, rt_wlan_prot_event_t event)
 {
     int i;
 
@@ -310,7 +310,7 @@ rt_err_t rt_wlan_prot_event_unregister(struct rt_wlan_prot* prot, rt_wlan_prot_e
     for (i = 0; i < RT_WLAN_PROT_MAX; i++)
     {
         if ((prot_event_tab[event][i].handler != RT_NULL) &&
-            (prot_event_tab[event][i].prot == prot))
+                (prot_event_tab[event][i].prot == prot))
         {
             rt_memset(&prot_event_tab[event][i], 0, sizeof(struct rt_wlan_prot_event_des));
             return RT_EOK;
@@ -320,7 +320,7 @@ rt_err_t rt_wlan_prot_event_unregister(struct rt_wlan_prot* prot, rt_wlan_prot_e
     return -RT_ERROR;
 }
 
-rt_err_t rt_wlan_prot_transfer_dev(struct rt_wlan_device* wlan, void* buff, int len)
+rt_err_t rt_wlan_prot_transfer_dev(struct rt_wlan_device *wlan, void *buff, int len)
 {
     if (wlan->ops->wlan_send != RT_NULL)
     {
@@ -329,9 +329,9 @@ rt_err_t rt_wlan_prot_transfer_dev(struct rt_wlan_device* wlan, void* buff, int 
     return -RT_ERROR;
 }
 
-rt_err_t rt_wlan_dev_transfer_prot(struct rt_wlan_device* wlan, void* buff, int len)
+rt_err_t rt_wlan_dev_transfer_prot(struct rt_wlan_device *wlan, void *buff, int len)
 {
-    struct rt_wlan_prot* prot = wlan->prot;
+    struct rt_wlan_prot *prot = wlan->prot;
 
     if (prot != RT_NULL)
     {
@@ -340,8 +340,8 @@ rt_err_t rt_wlan_dev_transfer_prot(struct rt_wlan_device* wlan, void* buff, int 
     return -RT_ERROR;
 }
 
-extern int rt_wlan_prot_ready_event(struct rt_wlan_device* wlan, struct rt_wlan_buff* buff);
-int rt_wlan_prot_ready(struct rt_wlan_device* wlan, struct rt_wlan_buff* buff)
+extern int rt_wlan_prot_ready_event(struct rt_wlan_device *wlan, struct rt_wlan_buff *buff);
+int rt_wlan_prot_ready(struct rt_wlan_device *wlan, struct rt_wlan_buff *buff)
 {
     return rt_wlan_prot_ready_event(wlan, buff);
 }

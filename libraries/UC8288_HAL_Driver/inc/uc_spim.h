@@ -1,21 +1,3 @@
-// Copyright 2017 ETH Zurich and University of Bologna.
-// Copyright and related rights are licensed under the Solderpad Hardware
-// License, Version 0.51 (the “License”); you may not use this file except in
-// compliance with the License.  You may obtain a copy of the License at
-// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
-// or agreed to in writing, software, hardware and materials distributed under
-// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the
-// specific language governing permissions and limitations under the License.
-
-/**
- * @file
- * @brief SPI library.
- *
- * Provides SPI helper function like configuring SPI and sending
- * data and commands over SPI.
- *
- */
 #ifndef _SPIM_H_
 #define _SPIM_H_
 
@@ -58,9 +40,14 @@
 typedef struct
 {
     uint32_t Clk_rate;
-    uint32_t cs;      /* parity bit enable */
+    uint32_t cs; /* parity bit enable */
 } SPIM_CFG_Type;
 
+union spim_data
+{
+    uint8_t data8[4];
+    uint32_t data32;
+};
 
 #define PARAM_SPIM(spix)    (spix==UC_SPIM)
 #define PARAM_SPIM_CS(cs)   ((cs==SPIM_CSN0)||(cs==SPIM_CSN1)||(cs==SPIM_CSN2)||(cs==SPIM_CSN3))
@@ -162,14 +149,27 @@ int spim_get_status(SPI_TypeDef* SPIx);
 
 
 /**/
-void spim_write_fifo(SPI_TypeDef* SPIx, int* data, int datalen);
+void spim_write_fifo(SPI_TypeDef *SPIx, char *wdata, uint32_t datalen);
 
 /**/
-void spim_read_fifo(SPI_TypeDef* SPIx, int* data, int datalen) ;
+void spim_read_fifo(SPI_TypeDef *SPIx, char *rdata, uint32_t datalen);
+
+void spim_write_read_fifo(SPI_TypeDef *SPIx, char *wdata, char *rdata, uint32_t datalen);
+
+void spim_transmit_send(SPI_TypeDef *SPIx, char *data, uint32_t datalen);
+void spim_transmit_recv(SPI_TypeDef *SPIx, char *data, uint32_t datalen);
+void spim_transmit_send_recv(SPI_TypeDef *SPIx, char *wdata, char *rdata, uint32_t datalen);
 
 /*useing spi send data with udma*/
-void Udma_Spim_Tx(SPI_TypeDef* SPIx, uint32_t* source_addr, uint16_t size);
+void Udma_Spim_Tx(SPI_TypeDef *SPIx, uint32_t *source_addr, uint16_t size);
 
 /*useing spi receive data with udma*/
-void Udma_Spim_Rx(SPI_TypeDef* SPIx, uint32_t* dest_addr, uint16_t size);
+void Udma_Spim_Rx(SPI_TypeDef *SPIx, uint32_t *dest_addr, uint16_t size);
+
+#define SPIM_WAIT(x)                             \
+    {                                           \
+        while (1 != (spim_get_status(x) & 0x01)) \
+            ;                                   \
+    }
+
 #endif // _SPI_H_

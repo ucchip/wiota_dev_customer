@@ -46,21 +46,23 @@ extern "C" {
 #define EP_ADDRESS(ep)              ep->ep_desc->bEndpointAddress
 #define EP_MAXPACKET(ep)            ep->ep_desc->wMaxPacketSize
 #define FUNC_ENABLE(func)           do{                                             \
-        if(func->ops->enable != RT_NULL &&          \
-           func->enabled == RT_FALSE)              \
-        {                                           \
-            if(func->ops->enable(func) == RT_EOK)   \
-                func->enabled = RT_TRUE;            \
-        }                                           \
-    }while(0)
+                                        if(func->ops->enable != RT_NULL &&          \
+                                            func->enabled == RT_FALSE)              \
+                                        {                                           \
+                                            if(func->ops->enable(func) == RT_EOK)   \
+                                                func->enabled = RT_TRUE;            \
+                                        }                                           \
+                                    }while(0)
 #define FUNC_DISABLE(func)          do{                                             \
-        if(func->ops->disable != RT_NULL &&         \
-           func->enabled == RT_TRUE)               \
-        {                                           \
-            func->enabled = RT_FALSE;           \
-            func->ops->disable(func);           \
-        }                                           \
-    }while(0)
+                                        if(func->ops->disable != RT_NULL &&         \
+                                            func->enabled == RT_TRUE)               \
+                                        {                                           \
+                                                func->enabled = RT_FALSE;           \
+                                                func->ops->disable(func);           \
+                                        }                                           \
+                                    }while(0)
+
+#define RT_USBD_CLASS_CTRL_CONNECTED (RT_DEVICE_CTRL_BASE(USBDevice) + 0)
 
 struct ufunction;
 struct udevice;
@@ -74,7 +76,7 @@ typedef enum
     UIO_REQUEST_READ_BEST,
     /* request to write full count */
     UIO_REQUEST_WRITE,
-} UIO_REQUEST_TYPE;
+}UIO_REQUEST_TYPE;
 
 struct udcd_ops
 {
@@ -84,9 +86,9 @@ struct udcd_ops
     rt_err_t (*ep_clear_stall)(rt_uint8_t address);
     rt_err_t (*ep_enable)(struct uendpoint* ep);
     rt_err_t (*ep_disable)(struct uendpoint* ep);
-    rt_size_t (*ep_read_prepare)(rt_uint8_t address, void* buffer, rt_size_t size);
-    rt_size_t (*ep_read)(rt_uint8_t address, void* buffer);
-    rt_size_t (*ep_write)(rt_uint8_t address, void* buffer, rt_size_t size);
+    rt_size_t (*ep_read_prepare)(rt_uint8_t address, void *buffer, rt_size_t size);
+    rt_size_t (*ep_read)(rt_uint8_t address, void *buffer);
+    rt_size_t (*ep_write)(rt_uint8_t address, void *buffer, rt_size_t size);
     rt_err_t (*ep0_send_status)(void);
     rt_err_t (*suspend)(void);
     rt_err_t (*wakeup)(void);
@@ -194,10 +196,10 @@ struct udevice
     rt_list_t list;
     struct udevice_descriptor dev_desc;
 
-    struct usb_qualifier_descriptor* dev_qualifier;
+    struct usb_qualifier_descriptor * dev_qualifier;
     usb_os_comp_id_desc_t    os_comp_id_desc;
     const char** str;
-    const char* str_intf[MAX_INTF_STR];
+    const char *str_intf[MAX_INTF_STR];
     udevice_state_t state;
     rt_list_t cfg_list;
     uconfig_t curr_cfg;
@@ -253,7 +255,7 @@ int rt_usbd_class_list_init(void);
 udevice_t rt_usbd_device_new(void);
 uconfig_t rt_usbd_config_new(void);
 ufunction_t rt_usbd_function_new(udevice_t device, udev_desc_t dev_desc,
-                                 ufunction_ops_t ops);
+                              ufunction_ops_t ops);
 uintf_t rt_usbd_interface_new(udevice_t device, uintf_handler_t handler);
 uep_t rt_usbd_endpoint_new(uep_desc_t ep_desc, udep_handler_t handler);
 ualtsetting_t rt_usbd_altsetting_new(rt_size_t desc_size);
@@ -280,12 +282,12 @@ rt_err_t rt_usbd_set_altsetting(uintf_t intf, rt_uint8_t value);
 
 udevice_t rt_usbd_find_device(udcd_t dcd);
 uconfig_t rt_usbd_find_config(udevice_t device, rt_uint8_t value);
-uintf_t rt_usbd_find_interface(udevice_t device, rt_uint8_t value, ufunction_t* pfunc);
+uintf_t rt_usbd_find_interface(udevice_t device, rt_uint8_t value, ufunction_t *pfunc);
 uep_t rt_usbd_find_endpoint(udevice_t device, ufunction_t* pfunc, rt_uint8_t ep_addr);
 rt_size_t rt_usbd_io_request(udevice_t device, uep_t ep, uio_request_t req);
-rt_size_t rt_usbd_ep0_write(udevice_t device, void* buffer, rt_size_t size);
-rt_size_t rt_usbd_ep0_read(udevice_t device, void* buffer, rt_size_t size,
-                           rt_err_t (*rx_ind)(udevice_t device, rt_size_t size));
+rt_size_t rt_usbd_ep0_write(udevice_t device, void *buffer, rt_size_t size);
+rt_size_t rt_usbd_ep0_read(udevice_t device, void *buffer, rt_size_t size,
+    rt_err_t (*rx_ind)(udevice_t device, rt_size_t size));
 
 int rt_usbd_vcom_class_register(void);
 int rt_usbd_ecm_class_register(void);
@@ -350,13 +352,13 @@ rt_inline rt_err_t dcd_ep_disable(udcd_t dcd, uep_t ep)
     return dcd->ops->ep_disable(ep);
 }
 
-rt_inline rt_size_t dcd_ep_read_prepare(udcd_t dcd, rt_uint8_t address, void* buffer,
-                                        rt_size_t size)
+rt_inline rt_size_t dcd_ep_read_prepare(udcd_t dcd, rt_uint8_t address, void *buffer,
+                               rt_size_t size)
 {
     RT_ASSERT(dcd != RT_NULL);
     RT_ASSERT(dcd->ops != RT_NULL);
 
-    if (dcd->ops->ep_read_prepare != RT_NULL)
+    if(dcd->ops->ep_read_prepare != RT_NULL)
     {
         return dcd->ops->ep_read_prepare(address, buffer, size);
     }
@@ -366,12 +368,12 @@ rt_inline rt_size_t dcd_ep_read_prepare(udcd_t dcd, rt_uint8_t address, void* bu
     }
 }
 
-rt_inline rt_size_t dcd_ep_read(udcd_t dcd, rt_uint8_t address, void* buffer)
+rt_inline rt_size_t dcd_ep_read(udcd_t dcd, rt_uint8_t address, void *buffer)
 {
     RT_ASSERT(dcd != RT_NULL);
     RT_ASSERT(dcd->ops != RT_NULL);
 
-    if (dcd->ops->ep_read != RT_NULL)
+    if(dcd->ops->ep_read != RT_NULL)
     {
         return dcd->ops->ep_read(address, buffer);
     }
@@ -381,7 +383,7 @@ rt_inline rt_size_t dcd_ep_read(udcd_t dcd, rt_uint8_t address, void* buffer)
     }
 }
 
-rt_inline rt_size_t dcd_ep_write(udcd_t dcd, rt_uint8_t address, void* buffer,
+rt_inline rt_size_t dcd_ep_write(udcd_t dcd, rt_uint8_t address, void *buffer,
                                  rt_size_t size)
 {
     RT_ASSERT(dcd != RT_NULL);
@@ -420,38 +422,38 @@ rt_inline rt_err_t dcd_ep_clear_stall(udcd_t dcd, rt_uint8_t address)
 rt_inline void usbd_os_proerty_descriptor_send(ufunction_t func, ureq_t setup, usb_os_proerty_t usb_os_proerty, rt_uint8_t number_of_proerty)
 {
     struct usb_os_property_header header;
-    static rt_uint8_t* data;
-    rt_uint8_t* pdata;
-    rt_uint8_t index, i;
-    if (data == RT_NULL)
+    static rt_uint8_t * data;
+    rt_uint8_t * pdata;
+    rt_uint8_t index,i;
+    if(data == RT_NULL)
     {
         header.dwLength = sizeof(struct usb_os_property_header);
         header.bcdVersion = 0x0100;
         header.wIndex = 0x05;
         header.wCount = number_of_proerty;
-        for (index = 0; index < number_of_proerty; index++)
+        for(index = 0;index < number_of_proerty;index++)
         {
             header.dwLength += usb_os_proerty[index].dwSize;
         }
-        data = (rt_uint8_t*)rt_malloc(header.dwLength);
+        data = (rt_uint8_t *)rt_malloc(header.dwLength);
         RT_ASSERT(data != RT_NULL);
         pdata = data;
-        rt_memcpy((void*)pdata, (void*)&header, sizeof(struct usb_os_property_header));
+        rt_memcpy((void *)pdata,(void *)&header,sizeof(struct usb_os_property_header));
         pdata += sizeof(struct usb_os_property_header);
-        for (index = 0; index < number_of_proerty; index++)
+        for(index = 0;index < number_of_proerty;index++)
         {
-            rt_memcpy((void*)pdata, (void*)&usb_os_proerty[index], 10);
+            rt_memcpy((void *)pdata,(void *)&usb_os_proerty[index],10);
             pdata += 10;
-            for (i = 0; i < usb_os_proerty[index].wPropertyNameLength / 2; i++)
+            for(i = 0;i < usb_os_proerty[index].wPropertyNameLength/2;i++)
             {
                 *pdata = usb_os_proerty[index].bPropertyName[i];
                 pdata++;
                 *pdata = 0;
                 pdata++;
             }
-            *((rt_uint32_t*)pdata) = usb_os_proerty[index].dwPropertyDataLength;
+            *((rt_uint32_t *)pdata) = usb_os_proerty[index].dwPropertyDataLength;
             pdata += 4;
-            for (i = 0; i < usb_os_proerty[index].dwPropertyDataLength / 2; i++)
+            for(i = 0;i < usb_os_proerty[index].dwPropertyDataLength/2;i++)
             {
                 *pdata = usb_os_proerty[index].bPropertyData[i];
                 pdata++;

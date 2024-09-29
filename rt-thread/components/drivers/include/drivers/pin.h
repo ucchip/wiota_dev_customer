@@ -22,7 +22,7 @@ extern "C" {
 struct rt_device_pin
 {
     struct rt_device parent;
-    const struct rt_pin_ops* ops;
+    const struct rt_pin_ops *ops;
 };
 
 #define PIN_LOW                 0x00
@@ -31,7 +31,7 @@ struct rt_device_pin
 #define PIN_MODE_OUTPUT         0x00
 #define PIN_MODE_INPUT          0x01
 #define PIN_MODE_INPUT_PULLUP   0x02
-#define PIN_MODE_INPUT_PULLDOWN 0x03    // not support
+#define PIN_MODE_INPUT_PULLDOWN 0x03
 #define PIN_MODE_OUTPUT_OD      0x04
 
 #define PIN_IRQ_MODE_RISING             0x00
@@ -59,32 +59,32 @@ struct rt_pin_irq_hdr
 {
     rt_int16_t        pin;
     rt_uint16_t       mode;
-    void (*hdr)(void* args);
-    void*             args;
+    void (*hdr)(void *args);
+    void             *args;
 };
 struct rt_pin_ops
 {
-    void (*pin_mode)(struct rt_device* device, rt_base_t pin, rt_base_t mode);
-    void (*pin_write)(struct rt_device* device, rt_base_t pin, rt_base_t value);
-    int (*pin_read)(struct rt_device* device, rt_base_t pin);
-    rt_err_t (*pin_attach_irq)(struct rt_device* device, rt_int32_t pin,
-                               rt_uint32_t mode, void (*hdr)(void* args), void* args);
-    rt_err_t (*pin_detach_irq)(struct rt_device* device, rt_int32_t pin);
-    rt_err_t (*pin_irq_enable)(struct rt_device* device, rt_base_t pin, rt_uint32_t enabled);
-    rt_base_t (*pin_get)(const char* name);
+    void (*pin_mode)(struct rt_device *device, rt_base_t pin, rt_base_t mode);
+    void (*pin_write)(struct rt_device *device, rt_base_t pin, rt_base_t value);
+    int (*pin_read)(struct rt_device *device, rt_base_t pin);
+    rt_err_t (*pin_attach_irq)(struct rt_device *device, rt_int32_t pin,
+                      rt_uint32_t mode, void (*hdr)(void *args), void *args);
+    rt_err_t (*pin_detach_irq)(struct rt_device *device, rt_int32_t pin);
+    rt_err_t (*pin_irq_enable)(struct rt_device *device, rt_base_t pin, rt_uint32_t enabled);
+    rt_base_t (*pin_get)(const char *name);
 };
 
-int rt_device_pin_register(const char* name, const struct rt_pin_ops* ops, void* user_data);
+int rt_device_pin_register(const char *name, const struct rt_pin_ops *ops, void *user_data);
 
 void rt_pin_mode(rt_base_t pin, rt_base_t mode);
 void rt_pin_write(rt_base_t pin, rt_base_t value);
 int  rt_pin_read(rt_base_t pin);
 rt_err_t rt_pin_attach_irq(rt_int32_t pin, rt_uint32_t mode,
-                           void (*hdr)(void* args), void*  args);
+                             void (*hdr)(void *args), void  *args);
 rt_err_t rt_pin_detach_irq(rt_int32_t pin);
 rt_err_t rt_pin_irq_enable(rt_base_t pin, rt_uint32_t enabled);
 /* Get pin number by name,such as PA.0,P0.12 */
-rt_base_t rt_pin_get(const char* name);
+rt_base_t rt_pin_get(const char *name);
 
 #ifdef __cplusplus
 }

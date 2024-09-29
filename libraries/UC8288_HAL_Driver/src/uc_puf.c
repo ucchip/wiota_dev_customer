@@ -1,4 +1,5 @@
-#include<stdint.h>
+#include <rtthread.h>
+#include <stdint.h>
 #include "uc_puf.h"
 #include "uc_spi.h"
 #include "uc_string_lib.h"
@@ -29,7 +30,7 @@ void load_help_bits()
             help_bit_ram[j + i * 8] = data[4 * j] << 24   | data[4 * j + 1] << 16 |
                                       data[4 * j + 2] << 8  | data[4 * j + 3];
         }
-        memset(data, 0, 256);
+        rt_memset(data, 0, 256);
     }
 
     spi_setup_cmd_addr(FLASH_QRD, 32, (addr + 2048) << 8, 24);

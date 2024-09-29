@@ -26,7 +26,7 @@ static rt_err_t rt_usbh_hid_kbd_callback(void* arg)
     int1 = *(rt_uint32_t*)hid->buffer;
     int2 = *(rt_uint32_t*)(&hid->buffer[4]);
 
-    if (int1 != 0 || int2 != 0)
+    if(int1 != 0 || int2 != 0)
     {
         RT_DEBUG_LOG(RT_DEBUG_USB, ("key down 0x%x, 0x%x\n", int1, int2));
     }

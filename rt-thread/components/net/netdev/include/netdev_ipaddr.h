@@ -49,14 +49,13 @@ extern "C" {
 #define IN_LOOPBACKNET      127         /* official! */
 
 /* IP address types for use in ip_addr_t.type member */
-enum netdev_ip_addr_type
-{
-    /** IPv4 */
-    IPADDR_TYPE_V4 =   0U,
-    /** IPv6 */
-    IPADDR_TYPE_V6 =   6U,
-    /** IPv4+IPv6 ("dual-stack") */
-    IPADDR_TYPE_ANY = 46U
+enum netdev_ip_addr_type {
+  /** IPv4 */
+  IPADDR_TYPE_V4 =   0U,
+  /** IPv6 */
+  IPADDR_TYPE_V6 =   6U,
+  /** IPv4+IPv6 ("dual-stack") */
+  IPADDR_TYPE_ANY = 46U
 };
 
 #if NETDEV_IPV4
@@ -133,10 +132,10 @@ typedef struct ip4_addr
 #define ip4_addr_isany_val(ipaddr)          ((ipaddr).addr == IPADDR_ANY)
 #define ip4_addr_isany(ipaddr)              ((ipaddr) == NULL || ip4_addr_isany_val(*(ipaddr)))
 
-in_addr_t netdev_ipaddr_addr(const char* cp);
-int netdev_ip4addr_aton(const char* cp, ip4_addr_t* addr);
-char* netdev_ip4addr_ntoa(const ip4_addr_t* addr);
-char* netdev_ip4addr_ntoa_r(const ip4_addr_t* addr, char* buf, int buflen);
+in_addr_t netdev_ipaddr_addr(const char *cp);
+int netdev_ip4addr_aton(const char *cp, ip4_addr_t *addr);
+char *netdev_ip4addr_ntoa(const ip4_addr_t *addr);
+char *netdev_ip4addr_ntoa_r(const ip4_addr_t *addr, char *buf, int buflen);
 #endif /* NETIF_IPV4 */
 
 #if NETDEV_IPV6
@@ -170,24 +169,24 @@ typedef struct ip6_addr
 extern const struct in6_addr in6addr_any;
 
 #define ip6_addr_cmp(addr1, addr2)  (((addr1)->addr[0] == (addr2)->addr[0]) && \
-                                     ((addr1)->addr[1] == (addr2)->addr[1]) && \
-                                     ((addr1)->addr[2] == (addr2)->addr[2]) && \
-                                     ((addr1)->addr[3] == (addr2)->addr[3]))
+                                    ((addr1)->addr[1] == (addr2)->addr[1]) && \
+                                    ((addr1)->addr[2] == (addr2)->addr[2]) && \
+                                    ((addr1)->addr[3] == (addr2)->addr[3]))
 /** Copy IPv6 address - faster than ip6_addr_set: no NULL check */
 #define ip6_addr_copy(dest, src) do{(dest).addr[0] = (src).addr[0]; \
-        (dest).addr[1] = (src).addr[1]; \
-        (dest).addr[2] = (src).addr[2]; \
-        (dest).addr[3] = (src).addr[3];}while(0)
+                                    (dest).addr[1] = (src).addr[1]; \
+                                    (dest).addr[2] = (src).addr[2]; \
+                                    (dest).addr[3] = (src).addr[3];}while(0)
 /** Safely copy one IPv6 address to another (src may be NULL) */
 #define ip6_addr_set(dest, src)  do{(dest)->addr[0] = (src) == NULL ? 0 : (src)->addr[0]; \
-        (dest)->addr[1] = (src) == NULL ? 0 : (src)->addr[1]; \
-        (dest)->addr[2] = (src) == NULL ? 0 : (src)->addr[2]; \
-        (dest)->addr[3] = (src) == NULL ? 0 : (src)->addr[3];}while(0)
+                                    (dest)->addr[1] = (src) == NULL ? 0 : (src)->addr[1]; \
+                                    (dest)->addr[2] = (src) == NULL ? 0 : (src)->addr[2]; \
+                                    (dest)->addr[3] = (src) == NULL ? 0 : (src)->addr[3];}while(0)
 /** Set complete address to zero */
 #define ip6_addr_set_zero(ip6addr)  do{(ip6addr)->addr[0] = 0; \
-        (ip6addr)->addr[1] = 0; \
-        (ip6addr)->addr[2] = 0; \
-        (ip6addr)->addr[3] = 0;}while(0)
+                                       (ip6addr)->addr[1] = 0; \
+                                       (ip6addr)->addr[2] = 0; \
+                                       (ip6addr)->addr[3] = 0;}while(0)
 /** Set address to ipv6 'any' (no need for lwip_htonl()) */
 #define ip6_addr_set_any(ip6addr)   ip6_addr_set_zero(ip6addr)
 #define ip6_addr_isany_val(ip6addr) (((ip6addr).addr[0] == 0) && \
@@ -196,9 +195,9 @@ extern const struct in6_addr in6addr_any;
                                      ((ip6addr).addr[3] == 0))
 #define ip6_addr_isany(ip6addr)     (((ip6addr) == NULL) || ip6_addr_isany_val(*(ip6addr)))
 
-int netdev_ip6addr_aton(const char* cp, ip6_addr_t* addr);
-char* netdev_ip6addr_ntoa(const ip6_addr_t* addr);
-char* netdev_ip6addr_ntoa_r(const ip6_addr_t* addr, char* buf, int buflen);
+int netdev_ip6addr_aton(const char *cp, ip6_addr_t *addr);
+char *netdev_ip6addr_ntoa(const ip6_addr_t *addr);
+char *netdev_ip6addr_ntoa_r(const ip6_addr_t *addr, char *buf, int buflen);
 #endif /* NETIF_IPV6 */
 
 #if NETDEV_IPV4 && NETDEV_IPV6
@@ -229,37 +228,37 @@ typedef struct _ip_addr
 #define ip_2_ip4(ipaddr)               (&((ipaddr)->u_addr.ip4))
 
 #define ip_addr_copy(dest, src)     do{ IP_SET_TYPE_VAL(dest, IP_GET_TYPE(&src)); if(IP_IS_V6_VAL(src)){ \
-            ip6_addr_copy(*ip_2_ip6(&(dest)), *ip_2_ip6(&(src))); }else{ \
-            ip4_addr_copy(*ip_2_ip4(&(dest)), *ip_2_ip4(&(src))); }}while(0)
+                                        ip6_addr_copy(*ip_2_ip6(&(dest)), *ip_2_ip6(&(src))); }else{ \
+                                        ip4_addr_copy(*ip_2_ip4(&(dest)), *ip_2_ip4(&(src))); }}while(0)
 #define ip_addr_cmp(addr1, addr2)   ((IP_GET_TYPE(addr1) != IP_GET_TYPE(addr2)) ? 0 : (IP_IS_V6_VAL(*(addr1)) ? \
-                                                                                       ip6_addr_cmp(ip_2_ip6(addr1), ip_2_ip6(addr2)) : \
-                                                                                       ip4_addr_cmp(ip_2_ip4(addr1), ip_2_ip4(addr2))))
+                                     ip6_addr_cmp(ip_2_ip6(addr1), ip_2_ip6(addr2)) : \
+                                     ip4_addr_cmp(ip_2_ip4(addr1), ip_2_ip4(addr2))))
 #define ip_addr_set(dest, src)      do{ IP_SET_TYPE(dest, IP_GET_TYPE(src)); if(IP_IS_V6(src)){ \
-            ip6_addr_set(ip_2_ip6(dest), ip_2_ip6(src)); }else{ \
-            ip4_addr_set(ip_2_ip4(dest), ip_2_ip4(src)); }}while(0)
+                                        ip6_addr_set(ip_2_ip6(dest), ip_2_ip6(src)); }else{ \
+                                        ip4_addr_set(ip_2_ip4(dest), ip_2_ip4(src)); }}while(0)
 #define ip_addr_set_zero(ipaddr)    do{ ip6_addr_set_zero(ip_2_ip6(ipaddr)); IP_SET_TYPE(ipaddr, 0); }while(0)
 #define ip_addr_set_any(is_ipv6, ipaddr) do{ if(is_ipv6){ \
-            ip6_addr_set_any(ip_2_ip6(ipaddr)); IP_SET_TYPE(ipaddr, IPADDR_TYPE_V6); }else{ \
-            ip4_addr_set_any(ip_2_ip4(ipaddr)); IP_SET_TYPE(ipaddr, IPADDR_TYPE_V4); }}while(0)
+                                             ip6_addr_set_any(ip_2_ip6(ipaddr)); IP_SET_TYPE(ipaddr, IPADDR_TYPE_V6); }else{ \
+                                             ip4_addr_set_any(ip_2_ip4(ipaddr)); IP_SET_TYPE(ipaddr, IPADDR_TYPE_V4); }}while(0)
 
 #define ip_addr_isany_val(ipaddr)   ((IP_IS_V6_VAL(ipaddr)) ? \
-                                     ip6_addr_isany_val(*ip_2_ip6(&(ipaddr))) : \
-                                     ip4_addr_isany_val(*ip_2_ip4(&(ipaddr))))
+                                      ip6_addr_isany_val(*ip_2_ip6(&(ipaddr))) : \
+                                      ip4_addr_isany_val(*ip_2_ip4(&(ipaddr))))
 #define ip_addr_isany(ipaddr)       ((IP_IS_V6(ipaddr)) ? \
-                                     ip6_addr_isany(ip_2_ip6(ipaddr)) : \
-                                     ip4_addr_isany(ip_2_ip4(ipaddr)))
+                                      ip6_addr_isany(ip_2_ip6(ipaddr)) : \
+                                      ip4_addr_isany(ip_2_ip4(ipaddr)))
 
 /* directly map this to the lwip internal functions */
 #define inet_addr(cp)                       netdev_ipaddr_addr(cp)
 #define inet_aton(cp, addr)                 ((IP_IS_V6_VAL(*addr)) ? \
-                                             netdev_ip6addr_aton(cp, ip_2_ip6(addr)) : \
-                                             netdev_ip4addr_aton(cp, ip_2_ip4(addr)))
+                                              netdev_ip6addr_aton(cp, ip_2_ip6(addr)) : \
+                                              netdev_ip4addr_aton(cp, ip_2_ip4(addr)))
 #define inet_ntoa(addr)                     ((IP_IS_V6_VAL(addr)) ? \
-                                             netdev_ip6addr_ntoa(ip_2_ip6(&addr)) : \
-                                             netdev_ip4addr_ntoa(ip_2_ip4(&addr)))
+                                              netdev_ip6addr_ntoa(ip_2_ip6(&addr)) : \
+                                              netdev_ip4addr_ntoa(ip_2_ip4(&addr)))
 #define inet_ntoa_r(addr, buf, buflen)      ((IP_IS_V6_VAL(addr)) ? \
-                                             netdev_ip6addr_ntoa_r(ip_2_ip6(&addr), buf, buflen) : \
-                                             netdev_ip4addr_ntoa_r(ip_2_ip4(&addr), buf, buflen))
+                                              netdev_ip6addr_ntoa_r(ip_2_ip6(&addr), buf, buflen) : \
+                                              netdev_ip4addr_ntoa_r(ip_2_ip4(&addr), buf, buflen))
 #elif NETDEV_IPV4  /* NETDEV_IPV4 */
 
 typedef ip4_addr_t ip_addr_t;
@@ -304,8 +303,8 @@ typedef ip6_addr_t ip_addr_t;
 #endif /* NTDEV_IPV4 && NTDEV_IPV6 */
 
 
-const char* netdev_inet_ntop(int af, const void* src, char* dst, int32_t size);
-int netdev_inet_pton(int af, const char* src, void* dst);
+const char *netdev_inet_ntop(int af, const void *src, char *dst, int32_t size);
+int netdev_inet_pton(int af, const char *src, void *dst);
 
 #define inet_ntop(af, src, dst, size)       netdev_inet_ntop(af, src, dst, size)
 #define inet_pton(af, src, dst)             netdev_inet_pton(af, src, dst)

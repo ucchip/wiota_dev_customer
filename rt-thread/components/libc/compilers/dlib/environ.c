@@ -8,5 +8,5 @@
  * 2015-01-28     Bernard      first version
  */
 
-const char* __environ = "OS=RT-Thread";
+const char *__environ = "OS=RT-Thread";
 

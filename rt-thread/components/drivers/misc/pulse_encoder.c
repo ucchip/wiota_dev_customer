@@ -8,14 +8,13 @@
  * 2019-08-08     balanceTWK   the first version
  */
 
-#include <rtthread.h>
 #include <rtdevice.h>
 
-static rt_err_t rt_pulse_encoder_init(struct rt_device* dev)
+static rt_err_t rt_pulse_encoder_init(struct rt_device *dev)
 {
-    struct rt_pulse_encoder_device* pulse_encoder;
+    struct rt_pulse_encoder_device *pulse_encoder;
 
-    pulse_encoder = (struct rt_pulse_encoder_device*)dev;
+    pulse_encoder = (struct rt_pulse_encoder_device *)dev;
     if (pulse_encoder->ops->init)
     {
         return pulse_encoder->ops->init(pulse_encoder);
@@ -26,11 +25,11 @@ static rt_err_t rt_pulse_encoder_init(struct rt_device* dev)
     }
 }
 
-static rt_err_t rt_pulse_encoder_open(struct rt_device* dev, rt_uint16_t oflag)
+static rt_err_t rt_pulse_encoder_open(struct rt_device *dev, rt_uint16_t oflag)
 {
-    struct rt_pulse_encoder_device* pulse_encoder;
+    struct rt_pulse_encoder_device *pulse_encoder;
 
-    pulse_encoder = (struct rt_pulse_encoder_device*)dev;
+    pulse_encoder = (struct rt_pulse_encoder_device *)dev;
     if (pulse_encoder->ops->control)
     {
         return pulse_encoder->ops->control(pulse_encoder, PULSE_ENCODER_CMD_ENABLE, RT_NULL);
@@ -41,11 +40,11 @@ static rt_err_t rt_pulse_encoder_open(struct rt_device* dev, rt_uint16_t oflag)
     }
 }
 
-static rt_err_t rt_pulse_encoder_close(struct rt_device* dev)
+static rt_err_t rt_pulse_encoder_close(struct rt_device *dev)
 {
-    struct rt_pulse_encoder_device* pulse_encoder;
+    struct rt_pulse_encoder_device *pulse_encoder;
 
-    pulse_encoder = (struct rt_pulse_encoder_device*)dev;
+    pulse_encoder = (struct rt_pulse_encoder_device *)dev;
     if (pulse_encoder->ops->control)
     {
         return pulse_encoder->ops->control(pulse_encoder, PULSE_ENCODER_CMD_DISABLE, RT_NULL);
@@ -56,40 +55,40 @@ static rt_err_t rt_pulse_encoder_close(struct rt_device* dev)
     }
 }
 
-static rt_size_t rt_pulse_encoder_read(struct rt_device* dev, rt_off_t pos, void* buffer, rt_size_t size)
+static rt_size_t rt_pulse_encoder_read(struct rt_device *dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
-    struct rt_pulse_encoder_device* pulse_encoder;
+    struct rt_pulse_encoder_device *pulse_encoder;
 
-    pulse_encoder = (struct rt_pulse_encoder_device*)dev;
+    pulse_encoder = (struct rt_pulse_encoder_device *)dev;
     if (pulse_encoder->ops->get_count)
     {
-        *(rt_int32_t*)buffer = pulse_encoder->ops->get_count(pulse_encoder);
+        *(rt_int32_t *)buffer = pulse_encoder->ops->get_count(pulse_encoder);
     }
     return 1;
 }
 
-static rt_err_t rt_pulse_encoder_control(struct rt_device* dev, int cmd, void* args)
+static rt_err_t rt_pulse_encoder_control(struct rt_device *dev, int cmd, void *args)
 {
     rt_err_t result;
-    struct rt_pulse_encoder_device* pulse_encoder;
+    struct rt_pulse_encoder_device *pulse_encoder;
 
     result = RT_EOK;
-    pulse_encoder = (struct rt_pulse_encoder_device*)dev;
+    pulse_encoder = (struct rt_pulse_encoder_device *)dev;
     switch (cmd)
     {
-        case PULSE_ENCODER_CMD_CLEAR_COUNT:
-            result = pulse_encoder->ops->clear_count(pulse_encoder);
-            break;
-        case PULSE_ENCODER_CMD_GET_TYPE:
-            *(enum rt_pulse_encoder_type*)args = pulse_encoder->type;
-            break;
-        case PULSE_ENCODER_CMD_ENABLE:
-        case PULSE_ENCODER_CMD_DISABLE:
-            result = pulse_encoder->ops->control(pulse_encoder, cmd, args);
-            break;
-        default:
-            result = -RT_ENOSYS;
-            break;
+    case PULSE_ENCODER_CMD_CLEAR_COUNT:
+        result = pulse_encoder->ops->clear_count(pulse_encoder);
+        break;
+    case PULSE_ENCODER_CMD_GET_TYPE:
+        *(enum rt_pulse_encoder_type *)args = pulse_encoder->type;
+        break;
+    case PULSE_ENCODER_CMD_ENABLE:
+    case PULSE_ENCODER_CMD_DISABLE:
+        result = pulse_encoder->ops->control(pulse_encoder, cmd, args);
+        break;
+    default:
+        result = -RT_ENOSYS;
+        break;
     }
 
     return result;
@@ -107,9 +106,9 @@ const static struct rt_device_ops pulse_encoder_ops =
 };
 #endif
 
-rt_err_t rt_device_pulse_encoder_register(struct rt_pulse_encoder_device* pulse_encoder, const char* name, void* user_data)
+rt_err_t rt_device_pulse_encoder_register(struct rt_pulse_encoder_device *pulse_encoder, const char *name, void *user_data)
 {
-    struct rt_device* device;
+    struct rt_device *device;
 
     RT_ASSERT(pulse_encoder != RT_NULL);
     RT_ASSERT(pulse_encoder->ops != RT_NULL);

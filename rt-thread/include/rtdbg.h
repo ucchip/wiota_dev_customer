@@ -129,7 +129,7 @@ extern "C" {
 #define dbg_here                                            \
     if ((DBG_LEVEL) <= DBG_LOG){                            \
         rt_kprintf(DBG_SECTION_NAME " Here %s:%d\n",        \
-                   __FUNCTION__, __LINE__);                        \
+            __FUNCTION__, __LINE__);                        \
     }
 
 #define dbg_log_line(lvl, color_n, fmt, ...)                \

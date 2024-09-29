@@ -54,16 +54,15 @@ static char sccsid[] =
 #include <rpc/auth.h>
 #define MAX_MARSHEL_SIZE 20
 
-static void authnone_verf(AUTH*);
-static bool_t authnone_validate(AUTH*, struct opaque_auth*);
-static bool_t authnone_refresh(AUTH*);
-static void authnone_destroy(AUTH*);
-static bool_t authnone_marshal(AUTH* client, XDR* xdrs);
+static void authnone_verf(AUTH *);
+static bool_t authnone_validate(AUTH *, struct opaque_auth *);
+static bool_t authnone_refresh(AUTH *);
+static void authnone_destroy(AUTH *);
+static bool_t authnone_marshal(AUTH *client, XDR *xdrs);
 
 struct opaque_auth _null_auth;
 
-static struct auth_ops ops =
-{
+static struct auth_ops ops = {
     authnone_verf,
     authnone_marshal,
     authnone_validate,
@@ -71,32 +70,26 @@ static struct auth_ops ops =
     authnone_destroy
 };
 
-static struct authnone_private
-{
+static struct authnone_private {
     AUTH no_client;
     char marshalled_client[MAX_MARSHEL_SIZE];
     unsigned int mcnt;
-}* authnone_private;
+} *authnone_private;
 
-AUTH* authnone_create()
+AUTH *authnone_create()
 {
-    register struct authnone_private* ap = authnone_private;
+    register struct authnone_private *ap = authnone_private;
     XDR xdr_stream;
-    register XDR* xdrs;
-    extern bool_t xdr_opaque_auth(XDR * xdrs, struct opaque_auth * ap);
+    register XDR *xdrs;
+    extern bool_t xdr_opaque_auth(XDR *xdrs, struct opaque_auth *ap);
 
-    if (ap == 0)
-    {
-        ap = (struct authnone_private*) rt_malloc (sizeof(*ap));
-        if (ap == 0)
-        {
-            return NULL;
-        }
+    if (ap == 0) {
+        ap = (struct authnone_private *) rt_malloc (sizeof(*ap));
+        if (ap == 0) return NULL;
         memset(ap, 0, sizeof(*ap));
         authnone_private = ap;
     }
-    if (!ap->mcnt)
-    {
+    if (!ap->mcnt) {
         ap->no_client.ah_cred = ap->no_client.ah_verf = _null_auth;
         ap->no_client.ah_ops = &ops;
         xdrs = &xdr_stream;
@@ -111,32 +104,32 @@ AUTH* authnone_create()
 }
 
 /*ARGSUSED*/
-static bool_t authnone_marshal(AUTH* client, XDR* xdrs)
+static bool_t authnone_marshal(AUTH *client, XDR *xdrs)
 {
-    register struct authnone_private* ap = authnone_private;
+    register struct authnone_private *ap = authnone_private;
 
     if (ap == 0)
-    { return (0); }
+        return (0);
     return ((*xdrs->x_ops->x_putbytes) (xdrs,
                                         ap->marshalled_client, ap->mcnt));
 }
 
-static void authnone_verf(AUTH* x)
+static void authnone_verf(AUTH *x)
 {
 }
 
-static bool_t authnone_validate(AUTH* x, struct opaque_auth* x1)
+static bool_t authnone_validate(AUTH *x, struct opaque_auth *x1)
 {
 
     return (TRUE);
 }
 
-static bool_t authnone_refresh(AUTH* x)
+static bool_t authnone_refresh(AUTH *x)
 {
 
     return (FALSE);
 }
 
-static void authnone_destroy(AUTH* x)
+static void authnone_destroy(AUTH *x)
 {
 }

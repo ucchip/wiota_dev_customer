@@ -17,7 +17,7 @@ static int wiota_get_static_freq(char *list)
 
     for (num = 0; num < 16; num++)
     {
-        rt_kprintf("static freq *(list+%d) %d\n", num, *(list+num));
+        rt_kprintf("static freq *(list+%d) %d\n", num, *(list + num));
         if (*(list + num) == 0xFF)
             break;
     }
@@ -55,11 +55,11 @@ static int wiota_scan_freq(unsigned char *sync_freq)
         for (int i = 0; i < freq_num; i++)
         {
             // the freq point at which the syncromization is success.
-            if (freq_list->is_synced )
+            if (freq_list->is_synced)
             {
                 // record frequency point results.
                 // result of rssi from high to low.
-                sync_freq[sync_freq_num ++] = freq_list->freq_idx;
+                sync_freq[sync_freq_num++] = freq_list->freq_idx;
             }
             freq_list++;
         }
@@ -104,8 +104,7 @@ static void wiota_test_data(void)
 
         // connect error or send success less than 20%.
         if ((stats_info.ul_sm_succ * 5 < stats_info.ul_sm_total && stats_info.ul_sm_total > 20) ||
-            UC_STATUS_SYNC_LOST == connect_state || UC_STATUS_ERROR == connect_state
-        )
+            UC_STATUS_SYNC_LOST == connect_state || UC_STATUS_ERROR == connect_state)
         {
             rt_kprintf("%s line %d sm_succ %d sm_total %d connect state %d\n",
                        __FUNCTION__, __LINE__, stats_info.ul_sm_succ, stats_info.ul_sm_total, connect_state);
@@ -117,12 +116,12 @@ static void wiota_test_data(void)
         uc_wiota_reset_stats(UC_STATS_TYPE_ALL);
 
         // send test data.
-         send_result = uc_wiota_send_data(sendbuffer, rt_strlen(sendbuffer),  WIOTA_TEST_SEND_TIMEOUT, RT_NULL);
+        send_result = uc_wiota_send_data(sendbuffer, rt_strlen(sendbuffer), WIOTA_TEST_SEND_TIMEOUT, RT_NULL);
         // send data fail.
-         if (UC_OP_SUCC != send_result)
-         {
+        if (UC_OP_SUCC != send_result)
+        {
             rt_kprintf("uc_wiota_send_data send fail %d\n", send_result);
-         }
+        }
 
         rt_thread_mdelay(5000);
     }
@@ -177,7 +176,7 @@ static int wiota_run_test(unsigned char freq)
     uc_wiota_connect();
 
     // wait for the connect ap. timeout 4s
-    if(uc_wiota_wait_sync(4000))
+    if (uc_wiota_wait_sync(4000, 2))
     {
         // release all resource of the wiota protocol
         uc_wiota_exit();
@@ -189,7 +188,6 @@ static int wiota_run_test(unsigned char freq)
 
     // release all resource of the wiota protocol
     uc_wiota_exit();
-
 }
 
 void wiota_scan_freq_demo(void)
@@ -203,17 +201,17 @@ void wiota_scan_freq_demo(void)
     if (!sync_freq_num)
     {
         rt_kprintf("wiota_scan_freq no freq\n");
-        return ;
+        return;
     }
 
     // start connect trial from point where the rssi is higest.
     // until all freq scanned have been used.
-    for (int n = 0; n < sync_freq_num; n ++)
+    for (int n = 0; n < sync_freq_num; n++)
     {
         wiota_run_test(sync_freq[n]);
     }
 
-    return ;
+    return;
 }
 
 #endif

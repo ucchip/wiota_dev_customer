@@ -12,7 +12,6 @@
 #define __PULSE_ENCODER_H__
 
 #include <rtthread.h>
-#include <rtdevice.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,20 +35,20 @@ struct rt_pulse_encoder_device;
 
 struct rt_pulse_encoder_ops
 {
-    rt_err_t (*init)(struct rt_pulse_encoder_device* pulse_encoder);
-    rt_int32_t (*get_count)(struct rt_pulse_encoder_device* pulse_encoder);
-    rt_err_t (*clear_count)(struct rt_pulse_encoder_device* pulse_encoder);
-    rt_err_t (*control)(struct rt_pulse_encoder_device* pulse_encoder, rt_uint32_t cmd, void* args);
+    rt_err_t (*init)(struct rt_pulse_encoder_device *pulse_encoder);
+    rt_int32_t (*get_count)(struct rt_pulse_encoder_device *pulse_encoder);
+    rt_err_t (*clear_count)(struct rt_pulse_encoder_device *pulse_encoder);
+    rt_err_t (*control)(struct rt_pulse_encoder_device *pulse_encoder, rt_uint32_t cmd, void *args);
 };
 
 struct rt_pulse_encoder_device
 {
     struct rt_device parent;
-    const struct rt_pulse_encoder_ops* ops;
+    const struct rt_pulse_encoder_ops *ops;
     enum rt_pulse_encoder_type type;
 };
 
-rt_err_t rt_device_pulse_encoder_register(struct rt_pulse_encoder_device* pulse_encoder, const char* name, void* user_data);
+rt_err_t rt_device_pulse_encoder_register(struct rt_pulse_encoder_device *pulse_encoder, const char *name, void *user_data);
 
 #ifdef __cplusplus
 }

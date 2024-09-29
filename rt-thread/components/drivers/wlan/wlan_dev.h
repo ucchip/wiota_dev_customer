@@ -44,7 +44,9 @@ typedef enum
     RT_WLAN_CMD_SET_COUNTRY,
     RT_WLAN_CMD_GET_COUNTRY,
     RT_WLAN_CMD_SET_MAC,
-    RT_WLAN_CMD_GET_MAC
+    RT_WLAN_CMD_GET_MAC,
+    RT_WLAN_CMD_GET_FAST_CONNECT_INFO,
+    RT_WLAN_CMD_FAST_CONNECT,
 } rt_wlan_cmd_t;
 
 typedef enum
@@ -357,11 +359,11 @@ typedef enum
 struct rt_wlan_device;
 struct rt_wlan_buff;
 
-typedef void (*rt_wlan_dev_event_handler)(struct rt_wlan_device* device, rt_wlan_dev_event_t event, struct rt_wlan_buff* buff, void* parameter);
+typedef void (*rt_wlan_dev_event_handler)(struct rt_wlan_device *device, rt_wlan_dev_event_t event, struct rt_wlan_buff *buff, void *parameter);
 
-typedef void (*rt_wlan_pormisc_callback_t)(struct rt_wlan_device* device, void* data, int len);
+typedef void (*rt_wlan_pormisc_callback_t)(struct rt_wlan_device *device, void *data, int len);
 
-typedef void (*rt_wlan_mgnt_filter_callback_t)(struct rt_wlan_device* device, void* data, int len);
+typedef void (*rt_wlan_mgnt_filter_callback_t)(struct rt_wlan_device *device, void *data, int len);
 
 struct rt_wlan_ssid
 {
@@ -378,16 +380,16 @@ struct rt_wlan_key
 typedef struct rt_wlan_key rt_wlan_key_t;
 
 #define INVALID_INFO(_info)       do {    \
-        rt_memset((_info), 0, sizeof(struct rt_wlan_info)); \
-        (_info)->band = RT_802_11_BAND_UNKNOWN; \
-        (_info)->security = SECURITY_UNKNOWN; \
-        (_info)->channel = -1; \
-    } while(0)
+                                        rt_memset((_info), 0, sizeof(struct rt_wlan_info)); \
+                                        (_info)->band = RT_802_11_BAND_UNKNOWN; \
+                                        (_info)->security = SECURITY_UNKNOWN; \
+                                        (_info)->channel = -1; \
+                                    } while(0)
 
 #define SSID_SET(_info, _ssid)    do {    \
-        rt_strncpy((char *)(_info)->ssid.val, (_ssid), RT_WLAN_SSID_MAX_LENGTH); \
-        (_info)->ssid.len = rt_strlen((char *)(_info)->ssid.val); \
-    } while(0)
+                                        rt_strncpy((char *)(_info)->ssid.val, (_ssid), RT_WLAN_SSID_MAX_LENGTH); \
+                                        (_info)->ssid.len = rt_strlen((char *)(_info)->ssid.val); \
+                                    } while(0)
 
 struct rt_wlan_info
 {
@@ -410,7 +412,7 @@ struct rt_wlan_info
 
 struct rt_wlan_buff
 {
-    void* data;
+    void *data;
     rt_int32_t len;
 };
 
@@ -418,8 +420,8 @@ struct rt_filter_pattern
 {
     rt_uint16_t offset;     /* Offset in bytes to start filtering (referenced to the start of the ethernet packet) */
     rt_uint16_t mask_size;  /* Size of the mask in bytes */
-    rt_uint8_t* mask;       /* Pattern mask bytes to be ANDed with the pattern eg. "\xff00" (must be in network byte order) */
-    rt_uint8_t* pattern;    /* Pattern bytes used to filter eg. "\x0800"  (must be in network byte order) */
+    rt_uint8_t *mask;       /* Pattern mask bytes to be ANDed with the pattern eg. "\xff00" (must be in network byte order) */
+    rt_uint8_t *pattern;    /* Pattern bytes used to filter eg. "\x0800"  (must be in network byte order) */
 };
 
 typedef enum
@@ -438,7 +440,7 @@ struct rt_wlan_filter
 struct rt_wlan_dev_event_desc
 {
     rt_wlan_dev_event_handler handler;
-    void* parameter;
+    void *parameter;
 };
 
 struct rt_wlan_device
@@ -449,11 +451,11 @@ struct rt_wlan_device
     struct rt_wlan_dev_event_desc handler_table[RT_WLAN_DEV_EVT_MAX][RT_WLAN_DEV_EVENT_NUM];
     rt_wlan_pormisc_callback_t pormisc_callback;
     rt_wlan_mgnt_filter_callback_t mgnt_filter_callback;
-    const struct rt_wlan_dev_ops* ops;
+    const struct rt_wlan_dev_ops *ops;
     rt_uint32_t flags;
-    struct netdev* netdev;
-    void* prot;
-    void* user_data;
+    struct netdev *netdev;
+    void *prot;
+    void *user_data;
 };
 
 struct rt_sta_info
@@ -485,112 +487,115 @@ struct rt_scan_info
 
 struct rt_wlan_dev_ops
 {
-    rt_err_t (*wlan_init)(struct rt_wlan_device* wlan);
-    rt_err_t (*wlan_mode)(struct rt_wlan_device* wlan, rt_wlan_mode_t mode);
-    rt_err_t (*wlan_scan)(struct rt_wlan_device* wlan, struct rt_scan_info* scan_info);
-    rt_err_t (*wlan_join)(struct rt_wlan_device* wlan, struct rt_sta_info* sta_info);
-    rt_err_t (*wlan_softap)(struct rt_wlan_device* wlan, struct rt_ap_info* ap_info);
-    rt_err_t (*wlan_disconnect)(struct rt_wlan_device* wlan);
-    rt_err_t (*wlan_ap_stop)(struct rt_wlan_device* wlan);
-    rt_err_t (*wlan_ap_deauth)(struct rt_wlan_device* wlan, rt_uint8_t mac[]);
-    rt_err_t (*wlan_scan_stop)(struct rt_wlan_device* wlan);
-    int (*wlan_get_rssi)(struct rt_wlan_device* wlan);
-    rt_err_t (*wlan_set_powersave)(struct rt_wlan_device* wlan, int level);
-    int (*wlan_get_powersave)(struct rt_wlan_device* wlan);
-    rt_err_t (*wlan_cfg_promisc)(struct rt_wlan_device* wlan, rt_bool_t start);
-    rt_err_t (*wlan_cfg_filter)(struct rt_wlan_device* wlan, struct rt_wlan_filter* filter);
-    rt_err_t (*wlan_cfg_mgnt_filter)(struct rt_wlan_device* wlan, rt_bool_t start);
-    rt_err_t (*wlan_set_channel)(struct rt_wlan_device* wlan, int channel);
-    int (*wlan_get_channel)(struct rt_wlan_device* wlan);
-    rt_err_t (*wlan_set_country)(struct rt_wlan_device* wlan, rt_country_code_t country_code);
-    rt_country_code_t (*wlan_get_country)(struct rt_wlan_device* wlan);
-    rt_err_t (*wlan_set_mac)(struct rt_wlan_device* wlan, rt_uint8_t mac[]);
-    rt_err_t (*wlan_get_mac)(struct rt_wlan_device* wlan, rt_uint8_t mac[]);
-    int (*wlan_recv)(struct rt_wlan_device* wlan, void* buff, int len);
-    int (*wlan_send)(struct rt_wlan_device* wlan, void* buff, int len);
-    int (*wlan_send_raw_frame)(struct rt_wlan_device* wlan, void* buff, int len);
+    rt_err_t (*wlan_init)(struct rt_wlan_device *wlan);
+    rt_err_t (*wlan_mode)(struct rt_wlan_device *wlan, rt_wlan_mode_t mode);
+    rt_err_t (*wlan_scan)(struct rt_wlan_device *wlan, struct rt_scan_info *scan_info);
+    rt_err_t (*wlan_join)(struct rt_wlan_device *wlan, struct rt_sta_info *sta_info);
+    rt_err_t (*wlan_softap)(struct rt_wlan_device *wlan, struct rt_ap_info *ap_info);
+    rt_err_t (*wlan_disconnect)(struct rt_wlan_device *wlan);
+    rt_err_t (*wlan_ap_stop)(struct rt_wlan_device *wlan);
+    rt_err_t (*wlan_ap_deauth)(struct rt_wlan_device *wlan, rt_uint8_t mac[]);
+    rt_err_t (*wlan_scan_stop)(struct rt_wlan_device *wlan);
+    int (*wlan_get_rssi)(struct rt_wlan_device *wlan);
+    rt_err_t (*wlan_set_powersave)(struct rt_wlan_device *wlan, int level);
+    int (*wlan_get_powersave)(struct rt_wlan_device *wlan);
+    rt_err_t (*wlan_cfg_promisc)(struct rt_wlan_device *wlan, rt_bool_t start);
+    rt_err_t (*wlan_cfg_filter)(struct rt_wlan_device *wlan, struct rt_wlan_filter *filter);
+    rt_err_t (*wlan_cfg_mgnt_filter)(struct rt_wlan_device *wlan, rt_bool_t start);
+    rt_err_t (*wlan_set_channel)(struct rt_wlan_device *wlan, int channel);
+    int (*wlan_get_channel)(struct rt_wlan_device *wlan);
+    rt_err_t (*wlan_set_country)(struct rt_wlan_device *wlan, rt_country_code_t country_code);
+    rt_country_code_t (*wlan_get_country)(struct rt_wlan_device *wlan);
+    rt_err_t (*wlan_set_mac)(struct rt_wlan_device *wlan, rt_uint8_t mac[]);
+    rt_err_t (*wlan_get_mac)(struct rt_wlan_device *wlan, rt_uint8_t mac[]);
+    int (*wlan_recv)(struct rt_wlan_device *wlan, void *buff, int len);
+    int (*wlan_send)(struct rt_wlan_device *wlan, void *buff, int len);
+    int (*wlan_send_raw_frame)(struct rt_wlan_device *wlan, void *buff, int len);
+    int (*wlan_get_fast_info)(void *data);
+    rt_err_t (*wlan_fast_connect)(void *data,rt_int32_t len);
 };
 
 /*
  * wlan device init
  */
-rt_err_t rt_wlan_dev_init(struct rt_wlan_device* device, rt_wlan_mode_t mode);
+rt_err_t rt_wlan_dev_init(struct rt_wlan_device *device, rt_wlan_mode_t mode);
 
 /*
  * wlan device station interface
  */
-rt_err_t rt_wlan_dev_connect(struct rt_wlan_device* device, struct rt_wlan_info* info, const char* password, int password_len);
-rt_err_t rt_wlan_dev_disconnect(struct rt_wlan_device* device);
-int rt_wlan_dev_get_rssi(struct rt_wlan_device* device);
+rt_err_t rt_wlan_dev_connect(struct rt_wlan_device *device, struct rt_wlan_info *info, const char *password, int password_len);
+rt_err_t rt_wlan_dev_fast_connect(struct rt_wlan_device *device, struct rt_wlan_info *info, const char *password, int password_len);
+rt_err_t rt_wlan_dev_disconnect(struct rt_wlan_device *device);
+int rt_wlan_dev_get_rssi(struct rt_wlan_device *device);
 
 /*
  * wlan device ap interface
  */
-rt_err_t rt_wlan_dev_ap_start(struct rt_wlan_device* device, struct rt_wlan_info* info, const char* password, int password_len);
-rt_err_t rt_wlan_dev_ap_stop(struct rt_wlan_device* device);
-rt_err_t rt_wlan_dev_ap_deauth(struct rt_wlan_device* device, rt_uint8_t mac[6]);
+rt_err_t rt_wlan_dev_ap_start(struct rt_wlan_device *device, struct rt_wlan_info *info, const char *password, int password_len);
+rt_err_t rt_wlan_dev_ap_stop(struct rt_wlan_device *device);
+rt_err_t rt_wlan_dev_ap_deauth(struct rt_wlan_device *device, rt_uint8_t mac[6]);
 
 /*
  * wlan device scan interface
  */
-rt_err_t rt_wlan_dev_scan(struct rt_wlan_device* device, struct rt_wlan_info* info);
-rt_err_t rt_wlan_dev_scan_stop(struct rt_wlan_device* device);
+rt_err_t rt_wlan_dev_scan(struct rt_wlan_device *device, struct rt_wlan_info *info);
+rt_err_t rt_wlan_dev_scan_stop(struct rt_wlan_device *device);
 
 /*
  * wlan device mac interface
  */
-rt_err_t rt_wlan_dev_get_mac(struct rt_wlan_device* device, rt_uint8_t mac[6]);
-rt_err_t rt_wlan_dev_set_mac(struct rt_wlan_device* device, rt_uint8_t mac[6]);
+rt_err_t rt_wlan_dev_get_mac(struct rt_wlan_device *device, rt_uint8_t mac[6]);
+rt_err_t rt_wlan_dev_set_mac(struct rt_wlan_device *device, rt_uint8_t mac[6]);
 
 /*
  * wlan device powersave interface
  */
-rt_err_t rt_wlan_dev_set_powersave(struct rt_wlan_device* device, int level);
-int rt_wlan_dev_get_powersave(struct rt_wlan_device* device);
+rt_err_t rt_wlan_dev_set_powersave(struct rt_wlan_device *device, int level);
+int rt_wlan_dev_get_powersave(struct rt_wlan_device *device);
 
 /*
  * wlan device event interface
  */
-rt_err_t rt_wlan_dev_register_event_handler(struct rt_wlan_device* device, rt_wlan_dev_event_t event, rt_wlan_dev_event_handler handler, void* parameter);
-rt_err_t rt_wlan_dev_unregister_event_handler(struct rt_wlan_device* device, rt_wlan_dev_event_t event, rt_wlan_dev_event_handler handler);
-void rt_wlan_dev_indicate_event_handle(struct rt_wlan_device* device, rt_wlan_dev_event_t event, struct rt_wlan_buff* buff);
+rt_err_t rt_wlan_dev_register_event_handler(struct rt_wlan_device *device, rt_wlan_dev_event_t event, rt_wlan_dev_event_handler handler, void *parameter);
+rt_err_t rt_wlan_dev_unregister_event_handler(struct rt_wlan_device *device, rt_wlan_dev_event_t event, rt_wlan_dev_event_handler handler);
+void rt_wlan_dev_indicate_event_handle(struct rt_wlan_device *device, rt_wlan_dev_event_t event, struct rt_wlan_buff *buff);
 
 /*
  * wlan device promisc interface
  */
-rt_err_t rt_wlan_dev_enter_promisc(struct rt_wlan_device* device);
-rt_err_t rt_wlan_dev_exit_promisc(struct rt_wlan_device* device);
-rt_err_t rt_wlan_dev_set_promisc_callback(struct rt_wlan_device* device, rt_wlan_pormisc_callback_t callback);
-void rt_wlan_dev_promisc_handler(struct rt_wlan_device* device, void* data, int len);
+rt_err_t rt_wlan_dev_enter_promisc(struct rt_wlan_device *device);
+rt_err_t rt_wlan_dev_exit_promisc(struct rt_wlan_device *device);
+rt_err_t rt_wlan_dev_set_promisc_callback(struct rt_wlan_device *device, rt_wlan_pormisc_callback_t callback);
+void rt_wlan_dev_promisc_handler(struct rt_wlan_device *device, void *data, int len);
 
 /*
  * wlan device filter interface
  */
-rt_err_t rt_wlan_dev_cfg_filter(struct rt_wlan_device* device, struct rt_wlan_filter* filter);
+rt_err_t rt_wlan_dev_cfg_filter(struct rt_wlan_device *device, struct rt_wlan_filter *filter);
 
 /*
  * wlan device channel interface
  */
-rt_err_t rt_wlan_dev_set_channel(struct rt_wlan_device* device, int channel);
-int rt_wlan_dev_get_channel(struct rt_wlan_device* device);
+rt_err_t rt_wlan_dev_set_channel(struct rt_wlan_device *device, int channel);
+int rt_wlan_dev_get_channel(struct rt_wlan_device *device);
 
 /*
  * wlan device country interface
  */
-rt_err_t rt_wlan_dev_set_country(struct rt_wlan_device* device, rt_country_code_t country_code);
-rt_country_code_t rt_wlan_dev_get_country(struct rt_wlan_device* device);
+rt_err_t rt_wlan_dev_set_country(struct rt_wlan_device *device, rt_country_code_t country_code);
+rt_country_code_t rt_wlan_dev_get_country(struct rt_wlan_device *device);
 
 /*
  * wlan device datat transfer interface
  */
-rt_err_t rt_wlan_dev_report_data(struct rt_wlan_device* device, void* buff, int len);
+rt_err_t rt_wlan_dev_report_data(struct rt_wlan_device *device, void *buff, int len);
 // void rt_wlan_dev_data_ready(struct rt_wlan_device *device, int len);
 
 /*
  * wlan device register interface
  */
-rt_err_t rt_wlan_dev_register(struct rt_wlan_device* wlan, const char* name,
-                              const struct rt_wlan_dev_ops* ops, rt_uint32_t flag, void* user_data);
+rt_err_t rt_wlan_dev_register(struct rt_wlan_device *wlan, const char *name,
+    const struct rt_wlan_dev_ops *ops, rt_uint32_t flag, void *user_data);
 
 #ifdef __cplusplus
 }

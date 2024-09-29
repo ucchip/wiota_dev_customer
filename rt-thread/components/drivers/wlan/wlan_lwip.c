@@ -51,19 +51,19 @@ struct lwip_prot_des
     struct rt_work work;
 };
 
-static void netif_is_ready(struct rt_work* work, void* parameter)
+static void netif_is_ready(struct rt_work *work, void *parameter)
 {
     ip_addr_t ip_addr_zero = { 0 };
-    struct rt_wlan_device* wlan = parameter;
-    struct lwip_prot_des* lwip_prot = (struct lwip_prot_des*)wlan->prot;
-    struct eth_device* eth_dev;
+    struct rt_wlan_device *wlan = parameter;
+    struct lwip_prot_des *lwip_prot = (struct lwip_prot_des *)wlan->prot;
+    struct eth_device *eth_dev;
     rt_base_t level;
     struct rt_wlan_buff buff;
     rt_uint32_t ip_addr[4];
     char str[IPADDR_STRLEN_MAX];
 
     if (lwip_prot == RT_NULL)
-    { return; }
+        return;
 
     eth_dev = &lwip_prot->eth;
     rt_timer_stop(&lwip_prot->timer);
@@ -82,7 +82,7 @@ static void netif_is_ready(struct rt_work* work, void* parameter)
     }
     else if (eth_dev->netif->ip_addr.type == IPADDR_TYPE_V6)
     {
-        *(ip6_addr_t*)(&ip_addr[0]) = eth_dev->netif->ip_addr.u_addr.ip6;
+        *(ip6_addr_t *)(&ip_addr[0]) = eth_dev->netif->ip_addr.u_addr.ip6;
         buff.data = ip_addr;
         buff.len = sizeof(ip_addr);
     }
@@ -96,7 +96,7 @@ static void netif_is_ready(struct rt_work* work, void* parameter)
     buff.data = &ip_addr[0];
     buff.len = sizeof(ip_addr[0]);
 #else
-    *(ip_addr_t*)(&ip_addr[0]) = eth_dev->netif->ip_addr;
+    *(ip_addr_t *)(&ip_addr[0]) = eth_dev->netif->ip_addr;
     buff.data = ip_addr;
     buff.len = sizeof(ip_addr);
 #endif
@@ -120,17 +120,17 @@ exit:
     rt_hw_interrupt_enable(level);
 }
 
-static void timer_callback(void* parameter)
+static void timer_callback(void *parameter)
 {
 #ifdef RT_WLAN_WORK_THREAD_ENABLE
-    struct rt_workqueue* workqueue;
-    struct rt_wlan_device* wlan = parameter;
-    struct lwip_prot_des* lwip_prot = (struct lwip_prot_des*)wlan->prot;
-    struct rt_work* work;
+    struct rt_workqueue *workqueue;
+    struct rt_wlan_device *wlan = parameter;
+    struct lwip_prot_des *lwip_prot = (struct lwip_prot_des *)wlan->prot;
+    struct rt_work *work;
     rt_base_t level;
 
     if (lwip_prot == RT_NULL)
-    { return; }
+        return;
 
     work = &lwip_prot->work;
     workqueue = rt_wlan_get_workqueue();
@@ -152,14 +152,14 @@ static void timer_callback(void* parameter)
 
 }
 
-static void netif_set_connected(void* parameter)
+static void netif_set_connected(void *parameter)
 {
-    struct rt_wlan_device* wlan = parameter;
-    struct lwip_prot_des* lwip_prot = wlan->prot;
-    struct eth_device* eth_dev;
+    struct rt_wlan_device *wlan = parameter;
+    struct lwip_prot_des *lwip_prot = wlan->prot;
+    struct eth_device *eth_dev;
 
     if (lwip_prot == RT_NULL)
-    { return; }
+        return;
 
     eth_dev = &lwip_prot->eth;
 
@@ -170,7 +170,7 @@ static void netif_set_connected(void* parameter)
             LOG_D("F:%s L:%d dhcp start run", __FUNCTION__, __LINE__);
             netifapi_netif_common(eth_dev->netif, netif_set_link_up, NULL);
 #ifdef RT_LWIP_DHCP
-            dhcp_start(eth_dev->netif);
+            netifapi_dhcp_start(eth_dev->netif);
 #endif
             rt_timer_start(&lwip_prot->timer);
         }
@@ -198,7 +198,7 @@ static void netif_set_connected(void* parameter)
 #ifdef RT_LWIP_DHCP
         {
             ip_addr_t ip_addr = { 0 };
-            dhcp_stop(eth_dev->netif);
+            netifapi_dhcp_stop(eth_dev->netif);
             netif_set_addr(eth_dev->netif, &ip_addr, &ip_addr, &ip_addr);
         }
 #endif
@@ -213,57 +213,57 @@ static void netif_set_connected(void* parameter)
     }
 }
 
-static void rt_wlan_lwip_event_handle(struct rt_wlan_prot* port, struct rt_wlan_device* wlan, int event)
+static void rt_wlan_lwip_event_handle(struct rt_wlan_prot *port, struct rt_wlan_device *wlan, int event)
 {
-    struct lwip_prot_des* lwip_prot = (struct lwip_prot_des*)wlan->prot;
+    struct lwip_prot_des *lwip_prot = (struct lwip_prot_des *)wlan->prot;
     rt_bool_t flag_old;
 
     if (lwip_prot == RT_NULL)
-    { return; }
+        return;
 
     flag_old = lwip_prot->connected_flag;
 
     switch (event)
     {
-        case RT_WLAN_PROT_EVT_CONNECT:
-        {
-            LOG_D("event: CONNECT");
-            lwip_prot->connected_flag = RT_TRUE;
-            break;
-        }
-        case RT_WLAN_PROT_EVT_DISCONNECT:
-        {
-            LOG_D("event: DISCONNECT");
-            lwip_prot->connected_flag = RT_FALSE;
-            break;
-        }
-        case RT_WLAN_PROT_EVT_AP_START:
-        {
-            LOG_D("event: AP_START");
-            lwip_prot->connected_flag = RT_TRUE;
-            break;
-        }
-        case RT_WLAN_PROT_EVT_AP_STOP:
-        {
-            LOG_D("event: AP_STOP");
-            lwip_prot->connected_flag = RT_FALSE;
-            break;
-        }
-        case RT_WLAN_PROT_EVT_AP_ASSOCIATED:
-        {
-            LOG_D("event: ASSOCIATED");
-            break;
-        }
-        case RT_WLAN_PROT_EVT_AP_DISASSOCIATED:
-        {
-            LOG_D("event: DISASSOCIATED");
-            break;
-        }
-        default :
-        {
-            LOG_D("event: UNKNOWN");
-            break;
-        }
+    case RT_WLAN_PROT_EVT_CONNECT:
+    {
+        LOG_D("event: CONNECT");
+        lwip_prot->connected_flag = RT_TRUE;
+        break;
+    }
+    case RT_WLAN_PROT_EVT_DISCONNECT:
+    {
+        LOG_D("event: DISCONNECT");
+        lwip_prot->connected_flag = RT_FALSE;
+        break;
+    }
+    case RT_WLAN_PROT_EVT_AP_START:
+    {
+        LOG_D("event: AP_START");
+        lwip_prot->connected_flag = RT_TRUE;
+        break;
+    }
+    case RT_WLAN_PROT_EVT_AP_STOP:
+    {
+        LOG_D("event: AP_STOP");
+        lwip_prot->connected_flag = RT_FALSE;
+        break;
+    }
+    case RT_WLAN_PROT_EVT_AP_ASSOCIATED:
+    {
+        LOG_D("event: ASSOCIATED");
+        break;
+    }
+    case RT_WLAN_PROT_EVT_AP_DISASSOCIATED:
+    {
+        LOG_D("event: DISASSOCIATED");
+        break;
+    }
+    default :
+    {
+        LOG_D("event: UNKNOWN");
+        break;
+    }
     }
     if (flag_old != lwip_prot->connected_flag)
     {
@@ -275,10 +275,10 @@ static void rt_wlan_lwip_event_handle(struct rt_wlan_prot* port, struct rt_wlan_
     }
 }
 
-static rt_err_t rt_wlan_lwip_protocol_control(rt_device_t device, int cmd, void* args)
+static rt_err_t rt_wlan_lwip_protocol_control(rt_device_t device, int cmd, void *args)
 {
-    struct eth_device* eth_dev = (struct eth_device*)device;
-    struct rt_wlan_device* wlan;
+    struct eth_device *eth_dev = (struct eth_device *)device;
+    struct rt_wlan_device *wlan;
     rt_err_t err = RT_EOK;
 
     RT_ASSERT(eth_dev != RT_NULL);
@@ -287,21 +287,21 @@ static rt_err_t rt_wlan_lwip_protocol_control(rt_device_t device, int cmd, void*
 
     switch (cmd)
     {
-        case NIOCTL_GADDR:
-            /* get MAC address */
-            wlan = eth_dev->parent.user_data;
-            err = rt_device_control((rt_device_t)wlan, RT_WLAN_CMD_GET_MAC, args);
-            break;
-        default :
-            break;
+    case NIOCTL_GADDR:
+        /* get MAC address */
+        wlan = eth_dev->parent.user_data;
+        err = rt_device_control((rt_device_t)wlan, RT_WLAN_CMD_GET_MAC, args);
+        break;
+    default :
+        break;
     }
     return err;
 }
 
-static rt_err_t rt_wlan_lwip_protocol_recv(struct rt_wlan_device* wlan, void* buff, int len)
+static rt_err_t rt_wlan_lwip_protocol_recv(struct rt_wlan_device *wlan, void *buff, int len)
 {
-    struct eth_device* eth_dev = &((struct lwip_prot_des*)wlan->prot)->eth;
-    struct pbuf* p = RT_NULL;
+    struct eth_device *eth_dev = &((struct lwip_prot_des *)wlan->prot)->eth;
+    struct pbuf *p = RT_NULL;
 
     LOG_D("F:%s L:%d run", __FUNCTION__, __LINE__);
 
@@ -326,11 +326,11 @@ static rt_err_t rt_wlan_lwip_protocol_recv(struct rt_wlan_device* wlan, void* bu
         {
             p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
             if (p != RT_NULL)
-            { break; }
+                break;
 
             p = pbuf_alloc(PBUF_RAW, len, PBUF_RAM);
             if (p != RT_NULL)
-            { break; }
+                break;
 
             LOG_D("F:%s L:%d wait for pbuf_alloc!", __FUNCTION__, __LINE__);
             rt_thread_delay(1);
@@ -357,9 +357,9 @@ static rt_err_t rt_wlan_lwip_protocol_recv(struct rt_wlan_device* wlan, void* bu
 #endif
 }
 
-static rt_err_t rt_wlan_lwip_protocol_send(rt_device_t device, struct pbuf* p)
+static rt_err_t rt_wlan_lwip_protocol_send(rt_device_t device, struct pbuf *p)
 {
-    struct rt_wlan_device* wlan = ((struct eth_device*)device)->parent.user_data;
+    struct rt_wlan_device *wlan = ((struct eth_device *)device)->parent.user_data;
 
     LOG_D("F:%s L:%d run", __FUNCTION__, __LINE__);
 
@@ -375,12 +375,12 @@ static rt_err_t rt_wlan_lwip_protocol_send(rt_device_t device, struct pbuf* p)
     }
 #else
     {
-        rt_uint8_t* frame;
+        rt_uint8_t *frame;
 
         /* sending data directly */
         if (p->len == p->tot_len)
         {
-            frame = (rt_uint8_t*)p->payload;
+            frame = (rt_uint8_t *)p->payload;
             rt_wlan_prot_transfer_dev(wlan, frame, p->tot_len);
             LOG_D("F:%s L:%d run len:%d", __FUNCTION__, __LINE__, p->tot_len);
             return RT_EOK;
@@ -414,16 +414,16 @@ const static struct rt_device_ops wlan_lwip_ops =
 };
 #endif
 
-static struct rt_wlan_prot* rt_wlan_lwip_protocol_register(struct rt_wlan_prot* prot, struct rt_wlan_device* wlan)
+static struct rt_wlan_prot *rt_wlan_lwip_protocol_register(struct rt_wlan_prot *prot, struct rt_wlan_device *wlan)
 {
-    struct eth_device* eth = RT_NULL;
+    struct eth_device *eth = RT_NULL;
     rt_uint8_t id = 0;
     char eth_name[4], timer_name[16];
     rt_device_t device = RT_NULL;
-    struct lwip_prot_des* lwip_prot;
+    struct lwip_prot_des *lwip_prot;
 
     if (wlan == RT_NULL || prot == RT_NULL)
-    { return RT_NULL; };
+        return RT_NULL;;
 
     LOG_D("F:%s L:%d is run wlan:0x%08x", __FUNCTION__, __LINE__, wlan);
 
@@ -434,7 +434,8 @@ static struct rt_wlan_prot* rt_wlan_lwip_protocol_register(struct rt_wlan_prot* 
         eth_name[1] = '0' + id++;
         eth_name[2] = '\0';
         device = rt_device_find(eth_name);
-    } while (device);
+    }
+    while (device);
 
     if (id > 9)
     {
@@ -485,7 +486,7 @@ static struct rt_wlan_prot* rt_wlan_lwip_protocol_register(struct rt_wlan_prot* 
     rt_memcpy(&lwip_prot->prot, prot, sizeof(struct rt_wlan_prot));
     rt_sprintf(timer_name, "timer_%s", eth_name);
     rt_timer_init(&lwip_prot->timer, timer_name, timer_callback, wlan, rt_tick_from_millisecond(1000),
-                  RT_TIMER_FLAG_SOFT_TIMER | RT_TIMER_FLAG_ONE_SHOT);
+                    RT_TIMER_FLAG_SOFT_TIMER | RT_TIMER_FLAG_ONE_SHOT);
     netif_set_up(eth->netif);
     LOG_I("eth device init ok name:%s", eth_name);
 #ifdef RT_USING_NETDEV
@@ -494,9 +495,9 @@ static struct rt_wlan_prot* rt_wlan_lwip_protocol_register(struct rt_wlan_prot* 
     return &lwip_prot->prot;
 }
 
-static void rt_wlan_lwip_protocol_unregister(struct rt_wlan_prot* prot, struct rt_wlan_device* wlan)
+static void rt_wlan_lwip_protocol_unregister(struct rt_wlan_prot *prot, struct rt_wlan_device *wlan)
 {
-    struct lwip_prot_des* lwip_prot = (struct lwip_prot_des*)prot;
+    struct lwip_prot_des *lwip_prot = (struct lwip_prot_des *)prot;
 
     LOG_D("F:%s L:%d is run wlan:0x%08x", __FUNCTION__, __LINE__, wlan);
 #if !defined(RT_USING_LWIP141)

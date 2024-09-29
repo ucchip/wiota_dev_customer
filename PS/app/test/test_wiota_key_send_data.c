@@ -132,7 +132,7 @@ static void wiota_test_send_data_task(void* para)
         uc_wiota_connect();
 
         // wait for the connect ap. timeout 5s
-        if (uc_wiota_wait_sync(5000))
+        if (uc_wiota_wait_sync(5000, 2))
         {
             rt_kprintf("connect ap fail !!!!\n");
             continue;

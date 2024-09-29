@@ -78,26 +78,26 @@ struct rt_hwcrypto_ctx;
 
 struct rt_hwcrypto_ops
 {
-    rt_err_t (*create)(struct rt_hwcrypto_ctx* ctx);        /**< Creating hardware context */
-    void (*destroy)(struct rt_hwcrypto_ctx* ctx);           /**< Delete hardware context */
-    rt_err_t (*copy)(struct rt_hwcrypto_ctx* des,
-                     const struct rt_hwcrypto_ctx* src);    /**< Cpoy hardware context */
-    void (*reset)(struct rt_hwcrypto_ctx* ctx);             /**< Reset hardware context */
+    rt_err_t (*create)(struct rt_hwcrypto_ctx *ctx);        /**< Creating hardware context */
+    void (*destroy)(struct rt_hwcrypto_ctx *ctx);           /**< Delete hardware context */
+    rt_err_t (*copy)(struct rt_hwcrypto_ctx *des,
+                     const struct rt_hwcrypto_ctx *src);    /**< Cpoy hardware context */
+    void (*reset)(struct rt_hwcrypto_ctx *ctx);             /**< Reset hardware context */
 };
 
 struct rt_hwcrypto_device
 {
     struct rt_device parent;                            /**< Inherited from the standard device */
-    const struct rt_hwcrypto_ops* ops;                  /**< Hardware crypto ops */
+    const struct rt_hwcrypto_ops *ops;                  /**< Hardware crypto ops */
     rt_uint64_t id;                                     /**< Unique id */
-    void* user_data;                                    /**< Device user data */
+    void *user_data;                                    /**< Device user data */
 };
 
 struct rt_hwcrypto_ctx
 {
-    struct rt_hwcrypto_device* device;  /**< Binding device */
+    struct rt_hwcrypto_device *device;  /**< Binding device */
     hwcrypto_type type;                 /**< Encryption and decryption types */
-    void* contex;                       /**< Hardware context */
+    void *contex;                       /**< Hardware context */
 };
 
 /**
@@ -108,14 +108,14 @@ struct rt_hwcrypto_ctx
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_set_type(struct rt_hwcrypto_ctx* ctx, hwcrypto_type type);
+rt_err_t rt_hwcrypto_set_type(struct rt_hwcrypto_ctx *ctx, hwcrypto_type type);
 
 /**
  * @brief           Reset context type (Direct calls are not recommended)
  *
  * @param ctx       Crypto context
  */
-void rt_hwcrypto_ctx_reset(struct rt_hwcrypto_ctx* ctx);
+void rt_hwcrypto_ctx_reset(struct rt_hwcrypto_ctx *ctx);
 
 /**
  * @brief           Init crypto context (Direct calls are not recommended)
@@ -127,8 +127,8 @@ void rt_hwcrypto_ctx_reset(struct rt_hwcrypto_ctx* ctx);
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_ctx_init(struct rt_hwcrypto_ctx* ctx,
-                              struct rt_hwcrypto_device* device, hwcrypto_type type);
+rt_err_t rt_hwcrypto_ctx_init(struct rt_hwcrypto_ctx *ctx,
+                              struct rt_hwcrypto_device *device, hwcrypto_type type);
 
 /**
  * @brief           Create crypto context (Direct calls are not recommended)
@@ -139,7 +139,7 @@ rt_err_t rt_hwcrypto_ctx_init(struct rt_hwcrypto_ctx* ctx,
  *
  * @return          Crypto context
  */
-struct rt_hwcrypto_ctx* rt_hwcrypto_ctx_create(struct rt_hwcrypto_device* device,
+struct rt_hwcrypto_ctx *rt_hwcrypto_ctx_create(struct rt_hwcrypto_device *device,
                                                hwcrypto_type type, rt_uint32_t obj_size);
 
 /**
@@ -147,7 +147,7 @@ struct rt_hwcrypto_ctx* rt_hwcrypto_ctx_create(struct rt_hwcrypto_device* device
  *
  * @param device    Crypto context
  */
-void rt_hwcrypto_ctx_destroy(struct rt_hwcrypto_ctx* ctx);
+void rt_hwcrypto_ctx_destroy(struct rt_hwcrypto_ctx *ctx);
 
 /**
  * @brief           Copy crypto context (Direct calls are not recommended)
@@ -157,7 +157,7 @@ void rt_hwcrypto_ctx_destroy(struct rt_hwcrypto_ctx* ctx);
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_ctx_cpy(struct rt_hwcrypto_ctx* des, const struct rt_hwcrypto_ctx* src);
+rt_err_t rt_hwcrypto_ctx_cpy(struct rt_hwcrypto_ctx *des, const struct rt_hwcrypto_ctx *src);
 
 /**
  * @brief           Register hardware crypto device
@@ -167,7 +167,7 @@ rt_err_t rt_hwcrypto_ctx_cpy(struct rt_hwcrypto_ctx* des, const struct rt_hwcryp
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_register(struct rt_hwcrypto_device* device, const char* name);
+rt_err_t rt_hwcrypto_register(struct rt_hwcrypto_device *device, const char *name);
 
 /**
  * @brief           Get the default hardware crypto device
@@ -175,7 +175,7 @@ rt_err_t rt_hwcrypto_register(struct rt_hwcrypto_device* device, const char* nam
  * @return          Hardware crypto device
  *
  */
-struct rt_hwcrypto_device* rt_hwcrypto_dev_default(void);
+struct rt_hwcrypto_device *rt_hwcrypto_dev_default(void);
 
 /**
  * @brief           Get the unique ID of the device
@@ -184,7 +184,7 @@ struct rt_hwcrypto_device* rt_hwcrypto_dev_default(void);
  *
  * @return          Device unique ID
  */
-rt_uint64_t rt_hwcrypto_id(struct rt_hwcrypto_device* device);
+rt_uint64_t rt_hwcrypto_id(struct rt_hwcrypto_device *device);
 
 #ifdef __cplusplus
 }

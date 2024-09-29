@@ -20,7 +20,7 @@
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_set_type(struct rt_hwcrypto_ctx* ctx, hwcrypto_type type)
+rt_err_t rt_hwcrypto_set_type(struct rt_hwcrypto_ctx *ctx, hwcrypto_type type)
 {
     if (ctx)
     {
@@ -50,7 +50,7 @@ rt_err_t rt_hwcrypto_set_type(struct rt_hwcrypto_ctx* ctx, hwcrypto_type type)
  * @param ctx       Crypto context
  *
  */
-void rt_hwcrypto_ctx_reset(struct rt_hwcrypto_ctx* ctx)
+void rt_hwcrypto_ctx_reset(struct rt_hwcrypto_ctx *ctx)
 {
     if (ctx && ctx->device->ops->reset)
     {
@@ -68,7 +68,7 @@ void rt_hwcrypto_ctx_reset(struct rt_hwcrypto_ctx* ctx)
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_ctx_init(struct rt_hwcrypto_ctx* ctx, struct rt_hwcrypto_device* device, hwcrypto_type type)
+rt_err_t rt_hwcrypto_ctx_init(struct rt_hwcrypto_ctx *ctx, struct rt_hwcrypto_device *device, hwcrypto_type type)
 {
     rt_err_t err;
 
@@ -93,9 +93,9 @@ rt_err_t rt_hwcrypto_ctx_init(struct rt_hwcrypto_ctx* ctx, struct rt_hwcrypto_de
  *
  * @return          Crypto context
  */
-struct rt_hwcrypto_ctx* rt_hwcrypto_ctx_create(struct rt_hwcrypto_device* device, hwcrypto_type type, rt_uint32_t obj_size)
+struct rt_hwcrypto_ctx *rt_hwcrypto_ctx_create(struct rt_hwcrypto_device *device, hwcrypto_type type, rt_uint32_t obj_size)
 {
-    struct rt_hwcrypto_ctx* ctx;
+    struct rt_hwcrypto_ctx *ctx;
     rt_err_t err;
 
     /* Parameter checking */
@@ -124,7 +124,7 @@ struct rt_hwcrypto_ctx* rt_hwcrypto_ctx_create(struct rt_hwcrypto_device* device
  *
  * @param device    Crypto context
  */
-void rt_hwcrypto_ctx_destroy(struct rt_hwcrypto_ctx* ctx)
+void rt_hwcrypto_ctx_destroy(struct rt_hwcrypto_ctx *ctx)
 {
     if (ctx == RT_NULL)
     {
@@ -147,7 +147,7 @@ void rt_hwcrypto_ctx_destroy(struct rt_hwcrypto_ctx* ctx)
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_ctx_cpy(struct rt_hwcrypto_ctx* des, const struct rt_hwcrypto_ctx* src)
+rt_err_t rt_hwcrypto_ctx_cpy(struct rt_hwcrypto_ctx *des, const struct rt_hwcrypto_ctx *src)
 {
     if (des == RT_NULL || src == RT_NULL)
     {
@@ -171,9 +171,9 @@ rt_err_t rt_hwcrypto_ctx_cpy(struct rt_hwcrypto_ctx* des, const struct rt_hwcryp
  * @return          Hardware crypto device
  *
  */
-struct rt_hwcrypto_device* rt_hwcrypto_dev_default(void)
+struct rt_hwcrypto_device *rt_hwcrypto_dev_default(void)
 {
-    static struct rt_hwcrypto_device* hwcrypto_dev;
+    static struct rt_hwcrypto_device *hwcrypto_dev;
 
     /* If there is a default device, return the device */
     if (hwcrypto_dev)
@@ -181,7 +181,7 @@ struct rt_hwcrypto_device* rt_hwcrypto_dev_default(void)
         return hwcrypto_dev;
     }
     /* Find by default device name */
-    hwcrypto_dev = (struct rt_hwcrypto_device*)rt_device_find(RT_HWCRYPTO_DEFAULT_NAME);
+    hwcrypto_dev = (struct rt_hwcrypto_device *)rt_device_find(RT_HWCRYPTO_DEFAULT_NAME);
     return hwcrypto_dev;
 }
 
@@ -192,7 +192,7 @@ struct rt_hwcrypto_device* rt_hwcrypto_dev_default(void)
  *
  * @return          Device unique ID
  */
-rt_uint64_t rt_hwcrypto_id(struct rt_hwcrypto_device* device)
+rt_uint64_t rt_hwcrypto_id(struct rt_hwcrypto_device *device)
 {
     if (device)
     {
@@ -221,7 +221,7 @@ const static struct rt_device_ops hwcrypto_ops =
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_register(struct rt_hwcrypto_device* device, const char* name)
+rt_err_t rt_hwcrypto_register(struct rt_hwcrypto_device *device, const char *name)
 {
     rt_err_t err;
 
@@ -246,7 +246,7 @@ rt_err_t rt_hwcrypto_register(struct rt_hwcrypto_device* device, const char* nam
 #endif
 
     device->parent.user_data  = RT_NULL;
-    device->parent.type = RT_Device_Class_Miscellaneous;
+    device->parent.type = RT_Device_Class_Security;
 
     /* Register device */
     err = rt_device_register(&device->parent, name, RT_DEVICE_FLAG_RDWR);

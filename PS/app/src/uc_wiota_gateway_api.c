@@ -87,7 +87,10 @@ typedef struct uc_wiota_gateway_api_mode
     unsigned char is_force_active : 1;
     unsigned char is_waiting_ts : 1;
     unsigned char is_ts_mode : 1;
-    unsigned char na : 4;
+    unsigned char gateway_task_run : 1;
+    unsigned char exit_flag : 1;
+    unsigned char gw_verity : 1;
+    unsigned char na1 : 1;
 
     // e_auth_state auth_state;
     char auth_code[16];
@@ -97,19 +100,20 @@ typedef struct uc_wiota_gateway_api_mode
     rt_timer_t ota_timer;
     char new_version[16];
     uc_gateway_ota_state_t ota_state;
-    int upgrade_type;
+    unsigned char upgrade_type;
+    unsigned char miss_data_num;
+    unsigned char miss_data_invalid_req;
+    unsigned char na2;
+
     unsigned int block_count;
     unsigned int block_size;
     unsigned char mask_map[28];
     unsigned short mcs_len;
     unsigned short upgrade_num;
-    int miss_data_num;
-    int miss_data_invalid_req;
 
     unsigned int dev_address;
-    unsigned short gateway_task_run;
-    unsigned char exit_flag;
-    unsigned char gw_verity;
+
+    unsigned int ota_recved_len;
 } uc_wiota_gateway_api_mode_t;
 
 static uc_wiota_gateway_api_mode_t gateway_mode = {0};
@@ -124,9 +128,14 @@ void uc_wiota_gateway_set_auth_period(unsigned char auth_period)
     gateway_mode.auth_period = auth_period;
 }
 
-unsigned char uc_wiota_gateway_is_ex_mcu_read(void)
+unsigned char uc_wiota_gateway_get_ota_state(void)
 {
-    return (gateway_mode.ota_state != GATEWAY_OTA_DOWNLOAD);
+    return gateway_mode.ota_state;
+}
+
+unsigned int uc_wiota_gateway_get_ota_recved_len(void)
+{
+    return gateway_mode.ota_recved_len;
 }
 
 unsigned char uc_wiota_gateway_get_run_flag(void)
@@ -760,7 +769,7 @@ static void uc_wiota_gateway_auth_res_msg(unsigned char *data, unsigned int data
         uc_wiota_disconnect();
         uc_wiota_set_freq_info(auth_res_data->connect_index.freq);
         uc_wiota_connect();
-        if (0 == uc_wiota_wait_sync(uc_wiota_get_frame_len() / 200))
+        if (0 == uc_wiota_wait_sync(uc_wiota_get_frame_len() / 200, 2))
         {
             uc_wiota_gateway_send_auth_req();
         }
@@ -942,6 +951,7 @@ static void uc_wiota_gateway_ota_upgrade_res_msg(unsigned char *data, unsigned i
             {
                 uc_wiota_ota_flash_write(ota_upgrade_req->data, bin_size + reserved_size + ota_upgrade_req->data_offset, ota_upgrade_req->data_length);
                 SET_BIT(gateway_mode.mask_map[offset / 8], offset % 8);
+                gateway_mode.ota_recved_len = ota_upgrade_req->data_offset;
                 rt_kprintf("gw d offset %d mask[%d] 0x%x\n", offset, offset / 8, gateway_mode.mask_map[offset / 8]);
             }
 
@@ -957,6 +967,8 @@ static void uc_wiota_gateway_ota_upgrade_res_msg(unsigned char *data, unsigned i
 
                         gateway_mode.ota_state = GATEWAY_OTA_PROGRAM;
                         rt_kprintf("gw jump\n");
+                        uc_wiota_gateway_exce_report(GATEWAY_OTA_PROGRAMING);
+                        rt_thread_mdelay(100);
                         // wiota_gateway_mode_flag = RT_FALSE;
                         //  set_partition_size(GATEWAY_OTA_FLASH_BIN_SIZE, GATEWAY_OTA_FLASH_REVERSE_SIZE, GATEWAY_OTA_FLASH_OTA_SIZE);
                         uc_wiota_ota_jump_program(file_size, ota_upgrade_req->upgrade_type);
@@ -1162,6 +1174,14 @@ static void uc_wiota_gateway_analisys_dl_msg(unsigned char *data, unsigned int d
     case IOTE_VERSION_REQ:
         uc_wiota_gateway_version_msg();
         break;
+
+    case AUTHENTICATION_BC_TIME_SLOT:
+    {
+        app_ps_ts_info_t *ts_info = (app_ps_ts_info_t *)data_decoding;
+
+        uc_wiota_set_frame_num(ts_info->frame_num);
+        break;
+    }
 
     default:
         break;
@@ -1504,6 +1524,7 @@ static int uc_wiota_gateway_auth(uc_gatway_mode_e mode)
                 if (mode == UC_GATEWAY_TIME_SLOT_MODE && time_slot_state == 0)
                 {
                     ts_info = (app_ps_ts_info_t *)data_decoding;
+                    uc_wiota_set_frame_num(ts_info->frame_num);
                     uc_wiota_get_gateway_info(&gw_info);
                     gw_info.pof = ts_info->pof;
                     gw_info.resend_times = ts_info->resend_times;
@@ -2035,11 +2056,11 @@ void uc_wiota_gateway_api_handle(void *para)
     char lost_count = 0;
     char report_flag = 0;
     /*
-    �Զ�����ʱ�����ź��쳣���������쳣������ն�trackingʧ���Զ��Ͽ����ӡ�
-    �����Զ���������ɨƵ����ap��
-    ���Ǵ�ʱ exit_flag ��ȻΪ1.�����ʱ�յ�at+gwdeinit,û�еȴ������Ƴ���ֱ�ӽ�������Դ�ͷš�
-    ע������Զ����������н�������ҵ���
-    ������ʽ�������½���uc_wiota_gateway_api_hanldeʱ��exit_flag���ó�0
+    自动连接时，当信号异常或者网关异常，造成终端tracking失败自动断开连接。
+    后续自动连接重新扫频连接ap。
+    但是此时 exit_flag 依然为1.如果此时收到at+gwdeinit,没有等待队列推出就直接将队列资源释放。
+    注定造成自动连接任务中接收任务挂掉。
+    处理方式是在重新进入uc_wiota_gateway_api_hanlde时将exit_flag设置成0
     */
     gateway_mode.exit_flag = 0;
 

@@ -8,7 +8,7 @@
  * 2012-5-30     Bernard      the first version
  */
 
-#include <drivers/mtd_nor.h>
+#include <rtdevice.h>
 
 #ifdef RT_USING_MTD_NOR
 
@@ -32,7 +32,7 @@ static rt_err_t _mtd_close(rt_device_t dev)
 
 static rt_size_t _mtd_read(rt_device_t dev,
                            rt_off_t    pos,
-                           void*       buffer,
+                           void       *buffer,
                            rt_size_t   size)
 {
     return size;
@@ -40,13 +40,13 @@ static rt_size_t _mtd_read(rt_device_t dev,
 
 static rt_size_t _mtd_write(rt_device_t dev,
                             rt_off_t    pos,
-                            const void* buffer,
+                            const void *buffer,
                             rt_size_t   size)
 {
     return size;
 }
 
-static rt_err_t _mtd_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t _mtd_control(rt_device_t dev, int cmd, void *args)
 {
     return RT_EOK;
 }
@@ -63,8 +63,8 @@ const static struct rt_device_ops mtd_nor_ops =
 };
 #endif
 
-rt_err_t rt_mtd_nor_register_device(const char*               name,
-                                    struct rt_mtd_nor_device* device)
+rt_err_t rt_mtd_nor_register_device(const char               *name,
+                                    struct rt_mtd_nor_device *device)
 {
     rt_device_t dev;
 
@@ -89,6 +89,29 @@ rt_err_t rt_mtd_nor_register_device(const char*               name,
 
     /* register to RT-Thread device system */
     return rt_device_register(dev, name, RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_STANDALONE);
+}
+
+rt_uint32_t rt_mtd_nor_read_id(struct rt_mtd_nor_device* device)
+{
+    return device->ops->read_id(device);
+}
+
+rt_size_t rt_mtd_nor_read(struct rt_mtd_nor_device* device,
+        rt_off_t offset, rt_uint8_t* data, rt_uint32_t length)
+{
+    return device->ops->read(device, offset, data, length);
+}
+
+rt_size_t rt_mtd_nor_write(struct rt_mtd_nor_device* device,
+        rt_off_t offset, const rt_uint8_t* data, rt_uint32_t length)
+{
+    return device->ops->write(device, offset, data, length);
+}
+
+rt_err_t rt_mtd_nor_erase_block(struct rt_mtd_nor_device* device,
+        rt_off_t offset, rt_size_t length)
+{
+    return device->ops->erase_block(device, offset, length);
 }
 
 #endif

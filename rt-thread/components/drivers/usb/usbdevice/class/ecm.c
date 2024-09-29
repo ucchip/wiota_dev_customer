@@ -30,7 +30,7 @@ struct rt_ecm_eth
 {
     /* inherit from ethernet device */
     struct eth_device       parent;
-    struct ufunction*       func;
+    struct ufunction *      func;
     struct cdc_eps          eps;
     /* interface address info */
     rt_uint8_t              host_addr[MAX_ADDR_LEN];
@@ -49,7 +49,7 @@ struct rt_ecm_eth
     struct rt_semaphore     tx_buffer_free;
 
 };
-typedef struct rt_ecm_eth* rt_ecm_eth_t;
+typedef struct rt_ecm_eth * rt_ecm_eth_t;
 
 ALIGN(4)
 static struct udevice_descriptor _dev_desc =
@@ -124,7 +124,7 @@ const static struct ucdc_eth_descriptor _comm_desc =
         USB_CDC_CS_INTERFACE,
         USB_CDC_SCS_ETH,
         USB_STRING_SERIAL_INDEX,
-        {0, 0, 0, 0},
+        {0,0,0,0},
         USB_ETH_MTU,
         0x00,
         0x00,
@@ -202,18 +202,18 @@ static struct usb_qualifier_descriptor dev_qualifier =
     0,
 };
 
-static rt_err_t _cdc_send_notifi(ufunction_t func, ucdc_notification_code_t notifi, rt_uint16_t wValue, rt_uint16_t wLength)
+static rt_err_t _cdc_send_notifi(ufunction_t func,ucdc_notification_code_t notifi,rt_uint16_t wValue,rt_uint16_t wLength)
 {
     static struct ucdc_management_element_notifications _notifi;
     cdc_eps_t eps;
-    RT_ASSERT(func != RT_NULL)
+    RT_ASSERT(func!=RT_NULL)
     eps = &((rt_ecm_eth_t)func->user_data)->eps;
     _notifi.bmRequestType = 0xA1;
     _notifi.bNotificatinCode = notifi;
     _notifi.wValue = wValue;
     _notifi.wLength = wLength;
 
-    eps->ep_cmd->request.buffer = (void*)&_notifi;
+    eps->ep_cmd->request.buffer = (void *)&_notifi;
     eps->ep_cmd->request.size = 8;
     eps->ep_cmd->request.req_type = UIO_REQUEST_WRITE;
     rt_usbd_io_request(func->device, eps->ep_cmd, &eps->ep_cmd->request);
@@ -231,7 +231,7 @@ static rt_err_t _ecm_set_eth_packet_filter(ufunction_t func, ureq_t setup)
     _cdc_send_notifi(func, UCDC_NOTIFI_NETWORK_CONNECTION, 1, 0);
 
 #ifdef LWIP_USING_DHCPD
-    extern void dhcpd_start(const char* netif_name);
+    extern void dhcpd_start(const char *netif_name);
     dhcpd_start("u0");
 #endif
 
@@ -250,15 +250,15 @@ static rt_err_t _interface_handler(ufunction_t func, ureq_t setup)
     RT_ASSERT(func != RT_NULL);
     RT_ASSERT(setup != RT_NULL);
 
-    switch (setup->bRequest)
+    switch(setup->bRequest)
     {
-        case CDC_SET_ETH_PACKET_FILTER:
-            LOG_D("CDC_SET_ETH_PACKET_FILTER");
-            _ecm_set_eth_packet_filter(func, setup);
-            break;
-        default:
-            LOG_E("Unknow setup->bRequest: 0x%02X", setup->bRequest);
-            break;
+    case CDC_SET_ETH_PACKET_FILTER:
+        LOG_D("CDC_SET_ETH_PACKET_FILTER");
+        _ecm_set_eth_packet_filter(func, setup);
+        break;
+    default:
+        LOG_E("Unknow setup->bRequest: 0x%02X", setup->bRequest);
+        break;
     }
     return RT_EOK;
 }
@@ -290,16 +290,15 @@ static rt_err_t _ep_in_handler(ufunction_t func, rt_size_t size)
 static rt_err_t _ep_out_handler(ufunction_t func, rt_size_t size)
 {
     rt_ecm_eth_t ecm_device = (rt_ecm_eth_t)func->user_data;
-    rt_memcpy((void*)(ecm_device->rx_buffer + ecm_device->rx_offset), ecm_device->rx_pool, size);
+    rt_memcpy((void *)(ecm_device->rx_buffer + ecm_device->rx_offset),ecm_device->rx_pool,size);
     ecm_device->rx_offset += size;
-    if (size < EP_MAXPACKET(ecm_device->eps.ep_out))
+    if(size < EP_MAXPACKET(ecm_device->eps.ep_out))
     {
         ecm_device->rx_size = ecm_device->rx_offset;
         ecm_device->rx_offset = 0;
         eth_device_ready(&ecm_device->parent);
 
-    }
-    else
+    }else
     {
         ecm_device->eps.ep_out->request.buffer = ecm_device->eps.ep_out->buffer;
         ecm_device->eps.ep_out->request.size = EP_MAXPACKET(ecm_device->eps.ep_out);
@@ -336,25 +335,19 @@ static rt_size_t rt_ecm_eth_write (rt_device_t dev, rt_off_t pos, const void* bu
     rt_set_errno(-RT_ENOSYS);
     return 0;
 }
-static rt_err_t rt_ecm_eth_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t rt_ecm_eth_control(rt_device_t dev, int cmd, void *args)
 {
     rt_ecm_eth_t ecm_eth_dev = (rt_ecm_eth_t)dev;
-    switch (cmd)
+    switch(cmd)
     {
-        case NIOCTL_GADDR:
-            /* get mac address */
-            if (args)
-            {
-                rt_memcpy(args, ecm_eth_dev->dev_addr, MAX_ADDR_LEN);
-            }
-            else
-            {
-                return -RT_ERROR;
-            }
-            break;
+    case NIOCTL_GADDR:
+        /* get mac address */
+        if(args) rt_memcpy(args, ecm_eth_dev->dev_addr, MAX_ADDR_LEN);
+        else return -RT_ERROR;
+        break;
 
-        default :
-            break;
+    default :
+        break;
     }
 
     return RT_EOK;
@@ -372,12 +365,12 @@ const static struct rt_device_ops ecm_device_ops =
 };
 #endif
 
-struct pbuf* rt_ecm_eth_rx(rt_device_t dev)
+struct pbuf *rt_ecm_eth_rx(rt_device_t dev)
 {
     struct pbuf* p = RT_NULL;
     rt_uint32_t offset = 0;
     rt_ecm_eth_t ecm_eth_dev = (rt_ecm_eth_t)dev;
-    if (ecm_eth_dev->rx_size != 0)
+    if(ecm_eth_dev->rx_size != 0)
     {
         /* allocate buffer */
         p = pbuf_alloc(PBUF_RAW, ecm_eth_dev->rx_size, PBUF_RAM);
@@ -385,19 +378,19 @@ struct pbuf* rt_ecm_eth_rx(rt_device_t dev)
         {
             struct pbuf* q;
 
-            for (q = p; q != RT_NULL; q = q->next)
+            for (q = p; q != RT_NULL; q= q->next)
             {
                 /* Copy the received frame into buffer from memory pointed by the current ETHERNET DMA Rx descriptor */
                 rt_memcpy(q->payload,
-                          (rt_uint8_t*)((ecm_eth_dev->rx_buffer) + offset),
-                          q->len);
+                        (rt_uint8_t *)((ecm_eth_dev->rx_buffer) + offset),
+                        q->len);
                 offset += q->len;
             }
         }
     }
 
     {
-        if (ecm_eth_dev->func->device->state == USB_STATE_CONFIGURED)
+        if(ecm_eth_dev->func->device->state == USB_STATE_CONFIGURED)
         {
             ecm_eth_dev->rx_size = 0;
             ecm_eth_dev->rx_offset = 0;
@@ -414,25 +407,25 @@ struct pbuf* rt_ecm_eth_rx(rt_device_t dev)
 rt_err_t rt_ecm_eth_tx(rt_device_t dev, struct pbuf* p)
 {
     struct pbuf* q;
-    char* pbuffer;
+    char * pbuffer;
     rt_err_t result = RT_EOK;
     rt_ecm_eth_t ecm_eth_dev = (rt_ecm_eth_t)dev;
 
-    if (!ecm_eth_dev->parent.link_status)
+    if(!ecm_eth_dev->parent.link_status)
     {
         LOG_D("linkdown, drop pkg");
         return RT_EOK;
     }
 
-    if (p->tot_len > USB_ETH_MTU)
+    if(p->tot_len > USB_ETH_MTU)
     {
         LOG_W("ECM MTU is:%d, but the send packet size is %d",
-              USB_ETH_MTU, p->tot_len);
+                     USB_ETH_MTU, p->tot_len);
         p->tot_len = USB_ETH_MTU;
     }
 
     result = rt_sem_take(&ecm_eth_dev->tx_buffer_free, rt_tick_from_millisecond(1000));
-    if (result != RT_EOK)
+    if(result != RT_EOK)
     {
         LOG_W("wait for buffer free timeout");
         /* if cost 1s to wait send done it said that connection is close . drop it */
@@ -440,7 +433,7 @@ rt_err_t rt_ecm_eth_tx(rt_device_t dev, struct pbuf* p)
         return result;
     }
 
-    pbuffer = (char*)&ecm_eth_dev->tx_buffer;
+    pbuffer = (char *)&ecm_eth_dev->tx_buffer;
     for (q = p; q != NULL; q = q->next)
     {
         rt_memcpy(pbuffer, q->payload, q->len);
@@ -448,9 +441,9 @@ rt_err_t rt_ecm_eth_tx(rt_device_t dev, struct pbuf* p)
     }
 
     {
-        if (ecm_eth_dev->func->device->state == USB_STATE_CONFIGURED)
+        if(ecm_eth_dev->func->device->state == USB_STATE_CONFIGURED)
         {
-            ecm_eth_dev->eps.ep_in->request.buffer = (void*)&ecm_eth_dev->tx_buffer;
+            ecm_eth_dev->eps.ep_in->request.buffer = (void *)&ecm_eth_dev->tx_buffer;
             ecm_eth_dev->eps.ep_in->request.size = p->tot_len;
             ecm_eth_dev->eps.ep_in->request.req_type = UIO_REQUEST_WRITE;
             rt_usbd_io_request(ecm_eth_dev->func->device, ecm_eth_dev->eps.ep_in, &ecm_eth_dev->eps.ep_in->request);
@@ -493,7 +486,7 @@ static rt_err_t _function_enable(ufunction_t func)
     ecm_device->rx_size = 0;
     ecm_device->rx_offset = 0;
 
-    eps->ep_out->request.buffer = (void*)eps->ep_out->buffer;
+    eps->ep_out->request.buffer = (void *)eps->ep_out->buffer;
     eps->ep_out->request.size = EP_MAXPACKET(eps->ep_out);
     eps->ep_out->request.req_type = UIO_REQUEST_READ_BEST;
     rt_usbd_io_request(func->device, eps->ep_out, &eps->ep_out->request);
@@ -580,7 +573,7 @@ ufunction_t rt_usbd_function_ecm_create(udevice_t device)
     /* create a cdc class */
     cdc = rt_usbd_function_new(device, &_dev_desc, &ops);
     rt_usbd_device_set_qualifier(device, &dev_qualifier);
-    _ecm_eth = rt_malloc(sizeof(struct rt_ecm_eth));
+    _ecm_eth= rt_malloc(sizeof(struct rt_ecm_eth));
     RT_ASSERT(_ecm_eth != RT_NULL);
     rt_memset(_ecm_eth, 0, sizeof(struct rt_ecm_eth));
     cdc->user_data = _ecm_eth;
@@ -598,7 +591,7 @@ ufunction_t rt_usbd_function_ecm_create(udevice_t device)
 
     /* config desc in alternate setting */
     rt_usbd_altsetting_config_descriptor(comm_setting, &_comm_desc,
-                                         (rt_off_t) & ((ucdc_eth_desc_t)0)->intf_desc);
+                                         (rt_off_t)&((ucdc_eth_desc_t)0)->intf_desc);
     rt_usbd_altsetting_config_descriptor(data_setting, &_data_desc, 0);
     /* configure the cdc interface descriptor */
     _cdc_descriptor_config(comm_setting->desc, intf_comm->intf_num, data_setting->desc, intf_data->intf_num, device->dcd->device_is_hs);
@@ -651,12 +644,16 @@ ufunction_t rt_usbd_function_ecm_create(udevice_t device)
     _ecm_eth->host_addr[4] = 0xEC;//*(const rt_uint8_t *)(0x1fff7a14);
     _ecm_eth->host_addr[5] = 0xAB;//*(const rt_uint8_t *)(0x1fff7a18);
 
+#ifdef RT_USING_DEVICE_OPS
+    _ecm_eth->parent.parent.ops = &ecm_device_ops;
+#else
     _ecm_eth->parent.parent.init       = rt_ecm_eth_init;
     _ecm_eth->parent.parent.open       = rt_ecm_eth_open;
     _ecm_eth->parent.parent.close      = rt_ecm_eth_close;
     _ecm_eth->parent.parent.read       = rt_ecm_eth_read;
     _ecm_eth->parent.parent.write      = rt_ecm_eth_write;
     _ecm_eth->parent.parent.control    = rt_ecm_eth_control;
+#endif
     _ecm_eth->parent.parent.user_data  = device;
 
     _ecm_eth->parent.eth_rx     = rt_ecm_eth_rx;

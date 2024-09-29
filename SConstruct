@@ -52,14 +52,6 @@ Export('SDK_LIB')
 # prepare building environment
 objs = PrepareBuilding(env, RTT_ROOT, has_libcpu=False)
 
-uc8288_library = 'UC8288_HAL_Driver'
-rtconfig.BSP_LIBRARY_TYPE = uc8288_library
-
-# include libraries
-objs.extend(SConscript(os.path.join(libraries_path_prefix, uc8288_library, 'SConscript'), variant_dir='build/library', duplicate=0))
-
-# include drivers
-objs.extend(SConscript(os.path.join(libraries_path_prefix, 'HAL_Drivers', 'SConscript'), variant_dir='build/drivers', duplicate=0))
 
 # make a building
 DoBuilding(TARGET, objs)

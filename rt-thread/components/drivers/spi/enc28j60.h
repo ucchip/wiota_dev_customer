@@ -332,12 +332,12 @@ struct net_device
     rt_uint32_t phy_id;
 
     /* spi device */
-    struct rt_spi_device* spi_device;
+    struct rt_spi_device *spi_device;
     struct rt_mutex lock;
 };
 
 /* export function */
-extern rt_err_t enc28j60_attach(const char* spi_device_name);
+extern rt_err_t enc28j60_attach(const char *spi_device_name);
 extern void enc28j60_isr(void);
 
 #endif // EN28J60_H_INCLUDED

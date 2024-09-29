@@ -14,34 +14,34 @@
 
 #include "vbus.h"
 
-static void _rx_indicate(void* ctx)
+static void _rx_indicate(void *ctx)
 {
     rt_device_t dev = ctx;
 
     if (dev->rx_indicate)
-    { dev->rx_indicate(dev, 0); }
+        dev->rx_indicate(dev, 0);
 }
 
-static void _tx_complete(void* ctx)
+static void _tx_complete(void *ctx)
 {
     rt_device_t dev = ctx;
 
     if (dev->tx_complete)
-    { dev->tx_complete(dev, 0); }
+        dev->tx_complete(dev, 0);
 }
 
 static rt_err_t _open(rt_device_t dev, rt_uint16_t oflag)
 {
     int chnr;
-    struct rt_vbus_dev* vdev = dev->user_data;
+    struct rt_vbus_dev *vdev = dev->user_data;
 
     if (vdev->chnr)
-    { return RT_EOK; }
+        return RT_EOK;
 
     /* FIXME: request the same name for twice will crash */
     chnr = rt_vbus_request_chn(&vdev->req, RT_WAITING_FOREVER);
     if (chnr < 0)
-    { return chnr; }
+        return chnr;
 
     vdev->chnr = chnr;
     rt_vbus_register_listener(chnr, RT_VBUS_EVENT_ID_RX, _rx_indicate, dev);
@@ -52,7 +52,7 @@ static rt_err_t _open(rt_device_t dev, rt_uint16_t oflag)
 
 static rt_err_t _close(rt_device_t dev)
 {
-    struct rt_vbus_dev* vdev = dev->user_data;
+    struct rt_vbus_dev *vdev = dev->user_data;
 
     RT_ASSERT(vdev->chnr != 0);
 
@@ -62,10 +62,10 @@ static rt_err_t _close(rt_device_t dev)
     return RT_EOK;
 }
 
-static rt_size_t _read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t size)
+static rt_size_t _read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     rt_size_t outsz = 0;
-    struct rt_vbus_dev* vdev = dev->user_data;
+    struct rt_vbus_dev *vdev = dev->user_data;
 
     RT_ASSERT(vdev->chnr != 0);
 
@@ -84,11 +84,11 @@ static rt_size_t _read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t si
             rt_size_t cpysz;
 
             if (size - outsz > vdev->act->size - vdev->pos)
-            { cpysz = vdev->act->size - vdev->pos; }
+                cpysz = vdev->act->size - vdev->pos;
             else
-            { cpysz = size - outsz; }
+                cpysz = size - outsz;
 
-            rt_memcpy((char*)buffer + outsz, ((char*)(vdev->act + 1)) + vdev->pos, cpysz);
+            rt_memcpy((char*)buffer + outsz, ((char*)(vdev->act+1)) + vdev->pos, cpysz);
             vdev->pos += cpysz;
 
             outsz += cpysz;
@@ -97,7 +97,7 @@ static rt_size_t _read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t si
                 return outsz;
             }
             else if (outsz > size)
-            { RT_ASSERT(0); }
+                RT_ASSERT(0);
 
             /* free old and get new */
             rt_free(vdev->act);
@@ -126,10 +126,10 @@ static rt_size_t _read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t si
     }
 }
 
-static rt_size_t _write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size)
+static rt_size_t _write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     rt_err_t err;
-    struct rt_vbus_dev* vdev = dev->user_data;
+    struct rt_vbus_dev *vdev = dev->user_data;
 
     RT_ASSERT(vdev->chnr != 0);
 
@@ -155,66 +155,62 @@ static rt_size_t _write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_si
     return size;
 }
 
-rt_err_t  _control(rt_device_t dev, int cmd, void* args)
+rt_err_t  _control(rt_device_t dev, int cmd, void *args)
 {
     RT_ASSERT(dev);
 
-    switch (cmd)
-    {
-        case VBUS_IOC_LISCFG:
-        {
-            struct rt_vbus_dev* vdev = dev->user_data;
-            struct rt_vbus_dev_liscfg* liscfg = args;
+    switch (cmd) {
+    case VBUS_IOC_LISCFG: {
+        struct rt_vbus_dev *vdev = dev->user_data;
+        struct rt_vbus_dev_liscfg *liscfg = args;
 
-            RT_ASSERT(vdev->chnr != 0);
-            if (!liscfg)
-            { return -RT_ERROR; }
+        RT_ASSERT(vdev->chnr != 0);
+        if (!liscfg)
+            return -RT_ERROR;
 
-            rt_vbus_register_listener(vdev->chnr, liscfg->event,
-                                      liscfg->listener, liscfg->ctx);
-            return RT_EOK;
-        }
+        rt_vbus_register_listener(vdev->chnr, liscfg->event,
+                                  liscfg->listener, liscfg->ctx);
+        return RT_EOK;
+    }
         break;
 #ifdef RT_VBUS_USING_FLOW_CONTROL
-        case VBUS_IOCRECV_WM:
-        {
-            struct rt_vbus_dev* vdev = dev->user_data;
-            struct rt_vbus_wm_cfg* cfg;
+    case VBUS_IOCRECV_WM: {
+        struct rt_vbus_dev *vdev = dev->user_data;
+        struct rt_vbus_wm_cfg *cfg;
 
-            RT_ASSERT(vdev->chnr != 0);
+        RT_ASSERT(vdev->chnr != 0);
 
-            if (!args)
-            { return -RT_ERROR; }
+        if (!args)
+            return -RT_ERROR;
 
-            cfg = (struct rt_vbus_wm_cfg*)args;
-            if (cfg->low > cfg->high)
-            { return -RT_ERROR; }
+        cfg = (struct rt_vbus_wm_cfg*)args;
+        if (cfg->low > cfg->high)
+            return -RT_ERROR;
 
-            rt_vbus_set_recv_wm(vdev->chnr, cfg->low, cfg->high);
-            return RT_EOK;
-        }
+        rt_vbus_set_recv_wm(vdev->chnr, cfg->low, cfg->high);
+        return RT_EOK;
+    }
         break;
-        case VBUS_IOCPOST_WM:
-        {
-            struct rt_vbus_dev* vdev = dev->user_data;
-            struct rt_vbus_wm_cfg* cfg;
+    case VBUS_IOCPOST_WM: {
+        struct rt_vbus_dev *vdev = dev->user_data;
+        struct rt_vbus_wm_cfg *cfg;
 
-            RT_ASSERT(vdev->chnr != 0);
+        RT_ASSERT(vdev->chnr != 0);
 
-            if (!args)
-            { return -RT_ERROR; }
+        if (!args)
+            return -RT_ERROR;
 
-            cfg = (struct rt_vbus_wm_cfg*)args;
-            if (cfg->low > cfg->high)
-            { return -RT_ERROR; }
+        cfg = (struct rt_vbus_wm_cfg*)args;
+        if (cfg->low > cfg->high)
+            return -RT_ERROR;
 
-            rt_vbus_set_post_wm(vdev->chnr, cfg->low, cfg->high);
-            return RT_EOK;
-        }
+        rt_vbus_set_post_wm(vdev->chnr, cfg->low, cfg->high);
+        return RT_EOK;
+    }
         break;
 #endif
-        default:
-            break;
+    default:
+        break;
     };
 
     return -RT_ENOSYS;
@@ -222,7 +218,7 @@ rt_err_t  _control(rt_device_t dev, int cmd, void* args)
 
 rt_uint8_t rt_vbus_get_chnnr(rt_device_t dev)
 {
-    struct rt_vbus_dev* vdev;
+    struct rt_vbus_dev *vdev;
 
     RT_ASSERT(dev);
 
@@ -233,9 +229,9 @@ rt_uint8_t rt_vbus_get_chnnr(rt_device_t dev)
 
 void rt_vbus_chnx_register_disconn(rt_device_t dev,
                                    rt_vbus_event_listener indi,
-                                   void* ctx)
+                                   void *ctx)
 {
-    struct rt_vbus_dev* vdev = dev->user_data;
+    struct rt_vbus_dev *vdev = dev->user_data;
 
     RT_ASSERT(vdev->chnr != 0);
 
@@ -252,7 +248,7 @@ static struct rt_device _devx[32];
 rt_err_t rt_vbus_chnx_init(void)
 {
     int i;
-    struct rt_vbus_dev* p;
+    struct rt_vbus_dev *p;
 
     for (i = 0,                   p = rt_vbus_chn_devx;
          i < ARRAY_SIZE(_devx) && p->req.name;

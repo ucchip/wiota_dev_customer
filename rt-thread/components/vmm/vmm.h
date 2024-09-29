@@ -24,8 +24,8 @@
 
 #ifndef __ASSEMBLY__
 
-void vmm_iomap_init(struct vmm_iomap* iomap);
-unsigned long vmm_find_iomap(const char* name);
+void vmm_iomap_init(struct vmm_iomap *iomap);
+unsigned long vmm_find_iomap(const char *name);
 unsigned long vmm_find_iomap_by_pa(unsigned long pa);
 
 void vmm_vector_init(void);

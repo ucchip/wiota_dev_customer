@@ -46,11 +46,11 @@
 #endif
 
 #define RC32K_REFERENCE_VALUE 131000000U
-//#define RC32K_DEVIATION_VALUE 13100000U/*rc32K accuracy +/-10%*/
-//#define RC32K_DEVIATION_VALUE 6550000U/*rc32K accuracy +/-5%*/
-//#define RC32K_DEVIATION_VALUE 1310000U/*rc32K accuracy +/-1%*/
+// #define RC32K_DEVIATION_VALUE 13100000U/*rc32K accuracy +/-10%*/
+// #define RC32K_DEVIATION_VALUE 6550000U/*rc32K accuracy +/-5%*/
+// #define RC32K_DEVIATION_VALUE 1310000U/*rc32K accuracy +/-1%*/
 #define RC32K_DEVIATION_VALUE 655000U /*rc32K accuracy +/-0.5%*/
-//#define RC32K_DEVIATION_VALUE 131000U/*rc32K accuracy +/-0.1%*/
+// #define RC32K_DEVIATION_VALUE 131000U/*rc32K accuracy +/-0.1%*/
 #define RC32K_UPPER_LIMIT_VALUE (RC32K_REFERENCE_VALUE + RC32K_DEVIATION_VALUE)
 #define RC32K_LOWER_LIMIT_VALUE (RC32K_REFERENCE_VALUE - RC32K_DEVIATION_VALUE)
 
@@ -66,7 +66,7 @@ enum
     RC32K_BIAS_FIRST,
 };
 
-//#define RC32K_DEBUG
+// #define RC32K_DEBUG
 
 #ifdef RC32K_DEBUG
 #define RC32K_PRINTF printf
@@ -78,20 +78,20 @@ int interval2time(int interval, rtc_time_t *rtc_time);
 
 void rc32k_set_clock_freq(uint32_t freq_code)
 {
-    REG(0x1a104228) |= BIT(14);                                                               //manual mode
-    REG(0x1a104228) = (REG(0x1a104228) & ~MASK(22, 15)) | ((freq_code << 15) & MASK(22, 15)); //set rc32k clock frequency code
+    REG(0x1a104228) |= BIT(14);                                                               // manual mode
+    REG(0x1a104228) = (REG(0x1a104228) & ~MASK(22, 15)) | ((freq_code << 15) & MASK(22, 15)); // set rc32k clock frequency code
 }
 
 void rc32k_set_bias_current(uint32_t current_code)
 {
-    REG(0x1a104228) |= BIT(14);                                                                  //manual mode
-    REG(0x1a104228) = (REG(0x1a104228) & ~MASK(12, 10)) | ((current_code << 10) & MASK(12, 10)); //set rc32k bias current code
+    REG(0x1a104228) |= BIT(14);                                                                  // manual mode
+    REG(0x1a104228) = (REG(0x1a104228) & ~MASK(12, 10)) | ((current_code << 10) & MASK(12, 10)); // set rc32k bias current code
 }
 
 void rc32k_calibrate(void)
 {
-    REG(0x1a104228) |= BIT(0) | BIT(1); //enable and reset calibrate
-    while (REG(0x1a104228) & BIT(0))    //wait calibrate complete
+    REG(0x1a104228) |= BIT(0) | BIT(1); // enable and reset calibrate
+    while (REG(0x1a104228) & BIT(0))    // wait calibrate complete
     {
         asm volatile("nop");
     }
@@ -108,11 +108,11 @@ static void rc32k_alarm(uint32_t seconds)
 {
     rtc_time_t rtc_time;
 
-    //rtc_get_rtc_time(&rtc_time.year, &rtc_time.mon, &rtc_time.day, &rtc_time.week, &rtc_time.hour, &rtc_time.min, &rtc_time.sec);
+    // rtc_get_rtc_time(&rtc_time.year, &rtc_time.mon, &rtc_time.day, &rtc_time.week, &rtc_time.hour, &rtc_time.min, &rtc_time.sec);
     rtc_get_time(UC_RTC, &rtc_time);
     interval2time(1, &rtc_time);
 
-    //set alram rtc_time and time
+    // set alram rtc_time and time
     if (rtc_time.year >= 2000)
     {
         rtc_time.year -= 2000;
@@ -120,27 +120,27 @@ static void rc32k_alarm(uint32_t seconds)
     RTC_AS0 = (((rtc_time.hour & 0x1f) << 16) | ((rtc_time.min & 0x3f) << 8) | ((rtc_time.sec & 0x3f)));
     RTC_AS1 = (((rtc_time.year & 0x3f) << 16) | ((rtc_time.mon & 0xf) << 12) | ((rtc_time.day & 0x1f) << 4) | (rtc_time.week & 0x7));
 
-    RTC_ACTRL |= BIT(8);        //enable alarm
-    IER |= BIT(0);              //enable alarm interrupt
-    ICP |= BIT(0);              //clear alarm pending
-    while ((IPR & BIT(0)) == 0) //wait alarm pending
+    RTC_ACTRL |= BIT(8);        // enable alarm
+    IER |= BIT(0);              // enable alarm interrupt
+    ICP |= BIT(0);              // clear alarm pending
+    while ((IPR & BIT(0)) == 0) // wait alarm pending
     {
         asm volatile("nop");
     }
-    //ICP |= BIT(0);
+    // ICP |= BIT(0);
 }
 
 uint32_t rc32k_measure(uint32_t seconds)
 {
     uint32_t count;
-    //start timer counting
+    // start timer counting
     TPRB &= ~BIT(0);
     TIRB = 0;
     TPRB = BIT(0);
-    rc32k_alarm(seconds); //to measure the time
+    rc32k_alarm(seconds); // to measure the time
     count = TIRB;
     TPRB &= ~BIT(0);
-    //stop timer counting
+    // stop timer counting
 
     return count;
 }
@@ -173,7 +173,7 @@ uint32_t rc32k_autoset_bias(void)
             best_count = count;
         }
         RC32K_PRINTF("cur code=%d count=%d\n", cur, count);
-        if (count >= RC32K_UPPER_LIMIT_VALUE) //RC32K is too slow
+        if (count >= RC32K_UPPER_LIMIT_VALUE) // RC32K is too slow
         {
             cur &= ~delta;
             if (try_cnt == 2)
@@ -191,11 +191,11 @@ uint32_t rc32k_autoset_bias(void)
                 RC32K_PRINTF("cur code=%d count=%d\n", cur, count);
             }
         }
-        else if (count <= RC32K_LOWER_LIMIT_VALUE) //RC32K is too fast
+        else if (count <= RC32K_LOWER_LIMIT_VALUE) // RC32K is too fast
         {
-            //do nothing
+            // do nothing
         }
-        else //RC32K is OK
+        else // RC32K is OK
         {
             break;
         }
@@ -238,7 +238,7 @@ uint32_t rc32k_autoset_freq(void)
             best_count = count;
         }
         RC32K_PRINTF("freq code=%d count=%d\n", cur, count);
-        if (count >= RC32K_UPPER_LIMIT_VALUE) //RC32K is too slow
+        if (count >= RC32K_UPPER_LIMIT_VALUE) // RC32K is too slow
         {
             cur &= ~delta;
             if (try_cnt == 7)
@@ -256,11 +256,11 @@ uint32_t rc32k_autoset_freq(void)
                 RC32K_PRINTF("freq code=%d count=%d\n", cur, count);
             }
         }
-        else if (count <= RC32K_LOWER_LIMIT_VALUE) //RC32K is too fast
+        else if (count <= RC32K_LOWER_LIMIT_VALUE) // RC32K is too fast
         {
-            //do nothing
+            // do nothing
         }
-        else //RC32K is OK
+        else // RC32K is OK
         {
             break;
         }
@@ -286,7 +286,7 @@ void rc32k_autoset(uint32_t mode)
     uint32_t try_cnt, cur, delta, count, diff;
     uint32_t best_bias_code, best_freq_code, best_count, best_diff;
 
-    //try to auto set bias current, only do it once after power up
+    // try to auto set bias current, only do it once after power up
     rtc_time.year = 2020;
     rtc_time.mon = 1;
     rtc_time.day = 1;
@@ -296,7 +296,7 @@ void rc32k_autoset(uint32_t mode)
     rtc_time.sec = 0;
     rtc_set_time(UC_RTC, &rtc_time);
 
-    rc32k_alarm(2); //to find starting line
+    rc32k_alarm(2); // to find starting line
 
     if (mode == RC32K_FREQ_FIRST)
     {
@@ -317,7 +317,7 @@ void rc32k_autoset(uint32_t mode)
                 rc32k_get_trim(&best_bias_code, &best_freq_code);
                 RC32K_PRINTF("best_bias_code=%d best_freq_code=%d count=%d\n", best_bias_code, best_freq_code, count);
             }
-            if (count >= RC32K_UPPER_LIMIT_VALUE) //RC32K is too slow
+            if (count >= RC32K_UPPER_LIMIT_VALUE) // RC32K is too slow
             {
                 cur &= ~delta;
                 if (try_cnt == 7)
@@ -335,11 +335,11 @@ void rc32k_autoset(uint32_t mode)
                     }
                 }
             }
-            else if (count <= RC32K_LOWER_LIMIT_VALUE) //RC32K is too fast
+            else if (count <= RC32K_LOWER_LIMIT_VALUE) // RC32K is too fast
             {
-                //do nothing
+                // do nothing
             }
-            else //RC32K is OK
+            else // RC32K is OK
             {
                 break;
             }
@@ -376,7 +376,7 @@ void rc32k_autoset(uint32_t mode)
                 rc32k_get_trim(&best_bias_code, &best_freq_code);
                 RC32K_PRINTF("best_bias_code=%d best_freq_code=%d count=%d\n", best_bias_code, best_freq_code, count);
             }
-            if (count >= RC32K_UPPER_LIMIT_VALUE) //RC32K is too slow
+            if (count >= RC32K_UPPER_LIMIT_VALUE) // RC32K is too slow
             {
                 cur &= ~delta;
                 if (try_cnt == 2)
@@ -394,11 +394,11 @@ void rc32k_autoset(uint32_t mode)
                     }
                 }
             }
-            else if (count <= RC32K_LOWER_LIMIT_VALUE) //RC32K is too fast
+            else if (count <= RC32K_LOWER_LIMIT_VALUE) // RC32K is too fast
             {
-                //do nothing
+                // do nothing
             }
-            else //RC32K is OK
+            else // RC32K is OK
             {
                 break;
             }
@@ -424,23 +424,22 @@ void rc32k_init(void)
     rc32k_set_bias_current(1);//set bias current code manually
     rc32k_calibrate();
 #else
-    //rc32k_autoset(RC32K_FREQ_FIRST);
+    // rc32k_autoset(RC32K_FREQ_FIRST);
     rc32k_autoset(RC32K_BIAS_FIRST);
 #endif
-    IER &= (~(1 << 0)); //close RTC alm interrput
-    ICP |= 1;           //clear RTC interrput pending
+    IER &= (~(1 << 0)); // close RTC alm interrput
+    ICP |= 1;           // clear RTC interrput pending
 }
 
 void rtc_init(RTC_TypeDef *RTCx)
 {
     CHECK_PARAM(PARAM_RTC_ADDR(RTCx));
 
-    RTCx->ACTRL = 0;            // clear alarm control reg
-    RTCx->CTRL &= ~(1U << 0);   // enable rtc
-
+    RTCx->ACTRL = 0;          // clear alarm control reg
+    RTCx->CTRL &= ~(1U << 0); // enable rtc
 
     /* do not reset rtc time value */
-    /* 
+    /*
     RTCx->TS0 = RTC_MAKE_HMS(0, 0, 0);                            //00:00:00
     RTCx->TS1 = RTC_MAKE_YMDW(RTC_YEAR_BASE, 1, 1, RTC_WDAY_SAT); //from 'RTC_YEAR_BASE'.01.01
 
@@ -455,13 +454,13 @@ void rtc_init(RTC_TypeDef *RTCx)
 void rtc_enable(RTC_TypeDef *RTCx)
 {
     CHECK_PARAM(PARAM_RTC_ADDR(RTCx));
-    RTCx->CTRL &= ~(1U << 0); //enable rtc
+    RTCx->CTRL &= ~(1U << 0); // enable rtc
 }
 
 void rtc_disable(RTC_TypeDef *RTCx)
 {
     CHECK_PARAM(PARAM_RTC_ADDR(RTCx));
-    RTCx->CTRL |= (1U << 0); //disable rtc
+    RTCx->CTRL |= (1U << 0); // disable rtc
 }
 
 void rtc_set_time(RTC_TypeDef *RTCx, rtc_time_t *rtc_time)
@@ -477,8 +476,8 @@ void rtc_set_time(RTC_TypeDef *RTCx, rtc_time_t *rtc_time)
     RTCx->TS0 = RTC_MAKE_HMS(rtc_time->hour, rtc_time->min, rtc_time->sec);
     RTCx->TS1 = RTC_MAKE_YMDW(rtc_time->year, rtc_time->mon, rtc_time->day, rtc_time->week);
 
-    RTCx->CTRL |= (1U << 1);              //uprtc_time
-    while ((RTCx->CTRL & (1U << 1)) != 0) //wait ready
+    RTCx->CTRL |= (1U << 1);              // uprtc_time
+    while ((RTCx->CTRL & (1U << 1)) != 0) // wait ready
     {
         asm("nop");
     }
@@ -491,7 +490,7 @@ void rtc_get_time(RTC_TypeDef *RTCx, rtc_time_t *rtc_time)
     CHECK_PARAM(PARAM_RTC_ADDR(RTCx));
 
     RTCx->CTRL |= (1U << 2);              //
-    while ((RTCx->CTRL & (1U << 2)) != 0) //wait ready
+    while ((RTCx->CTRL & (1U << 2)) != 0) // wait ready
     {
         asm("nop");
     }
@@ -525,9 +524,9 @@ void rtc_set_alarm(RTC_TypeDef *RTCx, rtc_alarm_t *rtc_alarm)
     RTCx->AS1 = RTC_MAKE_YMDW(rtc_alarm->year, rtc_alarm->mon, rtc_alarm->day, rtc_alarm->week);
 
     // RTCx->ACTRL = (RTCx->ACTRL & 0x7f) | rtc_alarm->mask;
-    RTCx->ACTRL = (RTCx->ACTRL & 0xff00) | rtc_alarm->mask; //set rtc alarm mask
+    RTCx->ACTRL = (RTCx->ACTRL & 0xff00) | rtc_alarm->mask; // set rtc alarm mask
 
-    RTCx->ACTRL |= (1U << 8); //enable rtc alarm
+    RTCx->ACTRL |= (1U << 8); // enable rtc alarm
 }
 
 void rtc_get_alarm(RTC_TypeDef *RTCx, rtc_alarm_t *rtc_alarm)
@@ -571,18 +570,18 @@ void rtc_disable_alarm_interrupt(RTC_TypeDef *RTCx)
 void rtc_clear_alarm_pending(RTC_TypeDef *RTCx)
 {
     CHECK_PARAM(PARAM_RTC_ADDR(RTCx));
-    RTCx->ACTRL |= 1 << 12; //it will be done before clear pending
-    ICP |= (1U << 0);       //clear RTC interrput pending
+    RTCx->ACTRL |= 1 << 12; // it will be done before clear pending
+    ICP |= (1U << 0);       // clear RTC interrput pending
 }
 
 int is_leap_year(int year)
 {
-    if ((year & 0x03) == 0) //simplify for '2000~2099'
+    if ((year & 0x03) == 0) // simplify for '2000~2099'
     {
-        return 1; //true
+        return 1; // true
     }
 
-    return 0; //false
+    return 0; // false
 }
 
 int get_month_day(int year, int mon)
@@ -613,7 +612,7 @@ int interval2time(int interval, rtc_time_t *rtc_time)
 
     total += (rtc_time->day - 1) * SECOND_PER_DAY + rtc_time->hour * SECOND_PER_HOUR + rtc_time->min * SECOND_PER_MINUTE + rtc_time->sec;
     interval += total;
-    //calculate from xxxx-01-01 00:00:00, 'xxxx' is current year
+    // calculate from xxxx-01-01 00:00:00, 'xxxx' is current year
     rtc_time->mon = 1;
     rtc_time->day = 1;
     rtc_time->hour = 0;
@@ -659,7 +658,7 @@ int interval2time(int interval, rtc_time_t *rtc_time)
 
     if (rtc_time->week == 0)
     {
-        rtc_time->week = 7; //due to rtc hardware
+        rtc_time->week = 7; // due to rtc hardware
     }
 
     return 0;
@@ -689,12 +688,12 @@ static void afc_delay(int value)
 
 static void afc_measure(int *data)
 {
-    //release cce reset
+    // release cce reset
     *(volatile int *)(PMC) |= 0x1 << 15;
     // enable afc
     *(volatile int *)(AFC_RESET) |= 0x1 << 3;
     // set afc cont
-    *(volatile int *)(AFC_HCY) = 375000;  //  96M / 128 / 32.768K
+    *(volatile int *)(AFC_HCY) = 375000; //  96M / 128 / 32.768K
     // select 128 cycle
     *(volatile int *)(AFC_SEC) = 0x0;
     // reset afc
@@ -740,24 +739,24 @@ void rtc_calibrate(void)
     int right = 255;
     int mid = (left + right) / 2;
     int target[2] = {127, 127};
-    int remainder[2] = {0, 2930};   // 2930 is 375000 / 128 = 2929.6875
+    int remainder[2] = {0, 2930}; // 2930 is 375000 / 128 = 2929.6875
 
-    RC32K_PRINTF("rtc_calib start\r\n");
-    RC32K_PRINTF("LDO = %x\r\n", *(volatile int *)(POWER_LDO));
+    RC32K_PRINTF("rtc_calib start\n");
+    RC32K_PRINTF("LDO %x\n", *(volatile int *)(POWER_LDO));
 
     // state_set_dcxo_by_idx(32);
 
     do
     {
-        //set mode
+        // set mode
         *(volatile int *)(POWER_LDO) |= 1 << 9;
-        //unsigned char temp = 128;
-        //unsigned char base_count;
+        // unsigned char temp = 128;
+        // unsigned char base_count;
 
         rtc_set_power_ldo(mid);
         afc_delay(10);
 
-        rt_kprintf("LDO = %x\r\n", *(volatile int *)(POWER_LDO));
+        rt_kprintf("LDO = %x\n", *(volatile int *)(POWER_LDO));
         while (left < right)
         {
             afc_measure(data);

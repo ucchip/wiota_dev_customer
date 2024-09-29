@@ -377,7 +377,7 @@ void uc_wiota_recover_connect(void);
 
 uc_wiota_status_e uc_wiota_get_state(void);
 
-int uc_wiota_wait_sync(int timeout);
+int uc_wiota_wait_sync(int timeout, unsigned char fn_num);
 
 void uc_wiota_set_dcxo(unsigned int dcxo);
 
@@ -518,6 +518,8 @@ unsigned int uc_wiota_algo_rand(void);
 void uc_wiota_set_is_use_temp(unsigned char is_use_temp);
 
 unsigned char uc_wiota_get_is_use_temp(void);
+
+unsigned char uc_wiota_set_frame_num(unsigned int frame_num);
 
 unsigned int uc_wiota_get_frame_num(void);
 

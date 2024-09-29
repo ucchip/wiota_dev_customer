@@ -1,78 +1,19 @@
+#include <drv_usart.h>
 
-#include <rtthread.h>
-#include <rthw.h>
-#include <board.h>
-#include "uc_sectdefs.h"
 #ifdef RT_USING_SERIAL
 
-#include <rtdevice.h>
+#if !defined(BSP_USING_UART0) && !defined(BSP_USING_UART1)
+#error "Please define at least one BSP_USING_UARTx"
+/* this driver can be disabled at menuconfig -> RT-Thread Components -> Device Drivers */
+#endif
 
-//#include <encoding.h>
-//#include <platform.h>
-//#include <interrupt.h>
-#include <rthw.h>
-
-//#include <platform.h>
-//#include <encoding.h>
-//#include <interrupt.h>
-#include "drv_gpio.h"
-
-#include <uc_utils.h>
-#include <uc_event.h>
-#include <uc_uart.h>
-//#include <uc_uartx.h>
-#include "uc_timer.h"
-#include "uc_gpio.h"
-
-//#define DRV_DEBUG
-#define DBG_TAG              "drv.usart"
-#ifdef DRV_DEBUG
-#define DBG_LVL               DBG_LOG
-#else
-#define DBG_LVL               DBG_INFO
-#endif /* DRV_DEBUG */
-#include <rtdbg.h>
-
-/* uc8088 config class */
-struct uc8088_uart_config
+struct uc8x88_usart
 {
-    const char* name;
-    UART_TYPE* Instance;
+    const char *name;
+    UART_TYPE *usart_base;
     rt_uint32_t irq_type;
-};
-
-/* uc8088 uart dirver class */
-struct uc8088_uart
-{
-    UART_TYPE* handle;
-    //UART_CFG_Type uc_uart_cfg;
-    uint32_t baud_rate;
-    struct uc8088_uart_config* config;
-
     struct rt_serial_device serial;
 };
-
-#if defined(BSP_USING_UART0)
-#ifndef UART0_CONFIG
-#define UART0_CONFIG                                                \
-    {                                                               \
-        .name = "uart0",                                            \
-                .Instance = (UART_TYPE *)UART0_BASE_ADDR,                   \
-                            .irq_type = (1 << 23),                                      \
-    }
-#endif /* UART1_CONFIG */
-#endif
-
-#if defined(BSP_USING_UART1)
-#ifndef UART1_CONFIG
-#define UART1_CONFIG                                                \
-    {                                                               \
-        .name = "uart1",                                            \
-                .Instance = (UART_TYPE *)UART1_BASE_ADDR,                   \
-                            .irq_type = (1 << 24),                                      \
-    }
-#endif /* UART1_CONFIG */
-#endif
 
 enum
 {
@@ -85,8 +26,27 @@ enum
     UART_INDEX_MAX,
 };
 
-static struct uc8088_uart_config uart_config[UART_INDEX_MAX] =
-{
+#ifdef BSP_USING_UART0
+#ifndef UART0_CONFIG
+#define UART0_CONFIG {                          \
+    .name = "uart0",                            \
+    .usart_base = (UART_TYPE *)UART0_BASE_ADDR, \
+    .irq_type = (1 << 23),                      \
+}
+#endif /* UART1_CONFIG */
+#endif
+
+#ifdef BSP_USING_UART1
+#ifndef UART1_CONFIG
+#define UART1_CONFIG {                          \
+    .name = "uart1",                            \
+    .usart_base = (UART_TYPE *)UART1_BASE_ADDR, \
+    .irq_type = (1 << 24),                      \
+}
+#endif /* UART1_CONFIG */
+#endif
+
+static struct uc8x88_usart usart_config[UART_INDEX_MAX] = {
 #ifdef BSP_USING_UART0
     UART0_CONFIG,
 #endif
@@ -95,141 +55,89 @@ static struct uc8088_uart_config uart_config[UART_INDEX_MAX] =
 #endif
 };
 
-static struct uc8088_uart uart_obj[sizeof(uart_config) / sizeof(uart_config[0])] = {0};
-
-static rt_err_t usart_configure(struct rt_serial_device* serial, struct serial_configure* cfg)
+static rt_err_t uc8x88_usart_configure(struct rt_serial_device *serial, struct serial_configure *cfg)
 {
-    struct uc8088_uart* uart;
+    struct uc8x88_usart *usart;
     RT_ASSERT(serial != RT_NULL);
     RT_ASSERT(cfg != RT_NULL);
 
-    uart = rt_container_of(serial, struct uc8088_uart, serial);
+    usart = (struct uc8x88_usart *)serial->parent.user_data;
+    RT_ASSERT(usart != RT_NULL);
 
-    if (rt_strcmp(uart->config->name, "uart0") == 0)
+    if (rt_strcmp(usart->name, "uart0") == 0)
     {
-        gpio_set_pin_mux((GPIO_CFG_TypeDef*)UC_GPIO_CFG, 14, GPIO_FUNC_1);
+        gpio_set_pin_mux((GPIO_CFG_TypeDef *)UC_GPIO_CFG, GPIO_PIN_14, GPIO_FUNC_1);
     }
-    else if (rt_strcmp(uart->config->name, "uart1") == 0)
+    else if (rt_strcmp(usart->name, "uart1") == 0)
     {
-        gpio_set_pin_mux((GPIO_CFG_TypeDef*)UC_GPIO_CFG, 12, GPIO_FUNC_2);
-        gpio_set_pin_mux((GPIO_CFG_TypeDef*)UC_GPIO_CFG, 13, GPIO_FUNC_2);
-    }
-
-    uart->handle          = uart->config->Instance;
-#if 0
-    uart->uc_uart_cfg.Baud_rate     = cfg->baud_rate;
-    uart->uc_uart_cfg.Reset     = RESET_LOW;
-    uart->uc_uart_cfg.level     = BYTE_1;
-
-    switch (cfg->data_bits)
-    {
-        case DATA_BITS_5:
-            uart->uc_uart_cfg.Databits = DATABIT_5;
-            break;
-        case DATA_BITS_6:
-            uart->uc_uart_cfg.Databits = DATABIT_6;
-            break;
-        case DATA_BITS_7:
-            uart->uc_uart_cfg.Databits = DATABIT_7;
-            break;
-        case DATA_BITS_8:
-            uart->uc_uart_cfg.Databits = DATABIT_8;
-            break;
-        default:
-            uart->uc_uart_cfg.Databits = DATABIT_8;
-            break;
-    }
-    switch (cfg->stop_bits)
-    {
-        case STOP_BITS_1:
-            uart->uc_uart_cfg.Stopbits = STOPBIT_ENABLE;
-            break;
-        default:
-            uart->uc_uart_cfg.Stopbits = STOPBIT_ENABLE;
-            break;
-    }
-    switch (cfg->parity)
-    {
-        case PARITY_NONE:
-            uart->uc_uart_cfg.Parity = PARITYBIT_DISABLE;
-            break;
-        case PARITY_ODD:
-            uart->uc_uart_cfg.Parity = PARITYBIT_DISABLE;
-            break;
-        case PARITY_EVEN:
-            uart->uc_uart_cfg.Parity = PARITYBIT_DISABLE;
-            break;
-        default:
-            uart->uc_uart_cfg.Parity = PARITYBIT_DISABLE;
-            break;
+        gpio_set_pin_mux((GPIO_CFG_TypeDef *)UC_GPIO_CFG, GPIO_PIN_12, GPIO_FUNC_2);
+        gpio_set_pin_mux((GPIO_CFG_TypeDef *)UC_GPIO_CFG, GPIO_PIN_13, GPIO_FUNC_2);
     }
 
-    uartx_init(uart->handle, &(uart->uc_uart_cfg));
-#endif
-    uart->baud_rate = cfg->baud_rate;
-    uc_uart_init(uart->handle, cfg->baud_rate, cfg->data_bits, cfg->stop_bits + 1, cfg->parity);
+    uc_uart_init(usart->usart_base, cfg->baud_rate, cfg->data_bits, cfg->stop_bits + 1, cfg->parity);
 
     return RT_EOK;
 }
 
-static rt_err_t usart_control(struct rt_serial_device* serial, int cmd, void* arg)
+static rt_err_t uc8x88_usart_control(struct rt_serial_device *serial, int cmd, void *arg)
 {
-    struct uc8088_uart* uart;
-
+    struct uc8x88_usart *usart;
     RT_ASSERT(serial != RT_NULL);
-    uart = rt_container_of(serial, struct uc8088_uart, serial);
+
+    usart = (struct uc8x88_usart *)serial->parent.user_data;
+    RT_ASSERT(usart != RT_NULL);
 
     switch (cmd)
     {
+    /* disable interrupt */
+    case RT_DEVICE_CTRL_CLR_INT:
+        /* disable rx irq */
+        uc_uart_enable_intrx(usart->usart_base, 0);
         /* disable interrupt */
-        case RT_DEVICE_CTRL_CLR_INT:
-            /* disable rx irq */
-            uc_uart_enable_intrx(uart->handle, 0);
-            /* disable interrupt */
-            IER &= ~(uart->config->irq_type);
-            break;
+        IER &= ~(usart->irq_type);
+        break;
 
+    /* enable interrupt */
+    case RT_DEVICE_CTRL_SET_INT:
+        /* enable rx irq */
+        uc_uart_enable_intrx(usart->usart_base, 1);
         /* enable interrupt */
-        case RT_DEVICE_CTRL_SET_INT:
-            /* enable rx irq */
-            uc_uart_enable_intrx(uart->handle, 1);
-            /* enable interrupt */
-            IER |= uart->config->irq_type;
-            break;
-		
-		case RT_DEVICE_CTRL_WAIT_TX_DONE:
-        	uc_uartx_wait_tx_done(uart->handle);
-			break;
+        IER |= usart->irq_type;
+        break;
     }
 
     return RT_EOK;
 }
 
-__crt0 int usart_putc(struct rt_serial_device* serial, char c)
+static int uc8x88_usart_putc(struct rt_serial_device *serial, char ch)
 {
-    struct uc8088_uart* uart;
+    struct uc8x88_usart *usart;
+
     RT_ASSERT(serial != RT_NULL);
+    usart = (struct uc8x88_usart *)serial->parent.user_data;
+    RT_ASSERT(usart != RT_NULL);
 
-    uart = rt_container_of(serial, struct uc8088_uart, serial);
-
-    uc_uart_sendchar(uart->handle, c);
+    uc_uart_sendchar(usart->usart_base, ch);
+    // uc_uartx_wait_tx_done(usart->usart_base);
 
     return 1;
 }
 
-static int usart_getc(struct rt_serial_device* serial)
+static int uc8x88_usart_getc(struct rt_serial_device *serial)
 {
-    rt_uint8_t val = -1;
-    struct uc8088_uart* uart;
-    char ret_val = -1;
+    int ret;
+    rt_uint8_t ch = 0;
+
+    struct uc8x88_usart *usart;
 
     RT_ASSERT(serial != RT_NULL);
-    uart = rt_container_of(serial, struct uc8088_uart, serial);
+    usart = (struct uc8x88_usart *)serial->parent.user_data;
+    RT_ASSERT(usart != RT_NULL);
 
-    ret_val = uc_uart_getchar(uart->handle, &val);
-    if (ret_val == 0)
+    ret = uc_uart_getchar(usart->usart_base, &ch);
+    if (ret == 0)
     {
-        return (rt_uint8_t)val;
+        return ch;
     }
     else
     {
@@ -237,112 +145,71 @@ static int usart_getc(struct rt_serial_device* serial)
     }
 }
 
-static struct rt_uart_ops uc8088_uart_ops =
-{
-    .configure = usart_configure,
-    .control = usart_control,
-    .putc = usart_putc,
-    .getc = usart_getc,
+static const struct rt_uart_ops uc8x88_usart_ops = {
+    .configure = uc8x88_usart_configure,
+    .control = uc8x88_usart_control,
+    .putc = uc8x88_usart_putc,
+    .getc = uc8x88_usart_getc,
 };
+
+static void usart_isr(struct rt_serial_device *serial)
+{
+    struct uc8x88_usart *usart;
+
+    RT_ASSERT(serial != RT_NULL);
+
+    usart = (struct uc8x88_usart *)serial->parent.user_data;
+    RT_ASSERT(usart != RT_NULL);
+
+    if (uc_uart_get_intrxflag(usart->usart_base))
+    {
+        rt_hw_serial_isr(serial, RT_SERIAL_EVENT_RX_IND);
+    }
+}
 
 void uart0_handler(void)
 {
 #ifdef BSP_USING_UART0
-    if ((uart_obj[UART0_INDEX].serial.serial_rx != NULL)
-        && uc_uart_get_intrxflag(uart_obj[UART0_INDEX].handle))
-    {
-        rt_hw_serial_isr((struct rt_serial_device*)(&uart_obj[UART0_INDEX].serial), RT_SERIAL_EVENT_RX_IND);
-    }
+    rt_interrupt_enter();
+    usart_isr(&usart_config[UART0_INDEX].serial);
+    rt_interrupt_leave();
 #endif
 }
 
 void uart1_handler(void)
 {
 #ifdef BSP_USING_UART1
-    if ((uart_obj[UART1_INDEX].serial.serial_rx != NULL)
-        && uc_uart_get_intrxflag(uart_obj[UART1_INDEX].handle))
-    {
-        rt_hw_serial_isr((struct rt_serial_device*)(&uart_obj[UART1_INDEX].serial), RT_SERIAL_EVENT_RX_IND);
-    }
+    rt_interrupt_enter();
+    usart_isr(&usart_config[UART1_INDEX].serial);
+    rt_interrupt_leave();
 #endif
 }
 
 int rt_hw_usart_init(void)
 {
-    rt_size_t obj_num = sizeof(uart_obj) / sizeof(struct uc8088_uart);
+    rt_size_t obj_num;
+    int index;
+
+    obj_num = sizeof(usart_config) / sizeof(struct uc8x88_usart);
     struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
     rt_err_t result = 0;
 
-    for (int i = 0; i < obj_num; i++)
+    for (index = 0; index < obj_num; index++)
     {
-        uart_obj[i].config = &uart_config[i];
-        uart_obj[i].serial.ops    = &uc8088_uart_ops;
-        uart_obj[i].serial.config = config;
+        usart_config[index].serial.ops = &uc8x88_usart_ops;
+        usart_config[index].serial.config = config;
+
         /* register UART device */
-        result = rt_hw_serial_register(&uart_obj[i].serial,
-                                       uart_obj[i].config->name,
-                                       RT_DEVICE_FLAG_STREAM
-                                       | RT_DEVICE_FLAG_RDWR
-                                       | RT_DEVICE_FLAG_INT_RX
-                                       , NULL);
-        //RT_ASSERT(result == RT_EOK);
+        result = rt_hw_serial_register(&usart_config[index].serial,
+                                       usart_config[index].name,
+                                       RT_DEVICE_FLAG_STREAM | RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+                                       &usart_config[index]);
+        RT_ASSERT(result == RT_EOK);
     }
 
     return result;
 }
 
-#if 0
-static rt_err_t virtual_usart_configure(struct rt_serial_device* serial, struct serial_configure* cfg)
-{
-    return RT_EOK;
-}
+#endif /* RT_USING_SERIAL */
 
-static rt_err_t virtual_usart_control(struct rt_serial_device* serial, int cmd, void* arg)
-{
-    return RT_EOK;
-}
-
-static int virtual_usart_putc(struct rt_serial_device* serial, char c)
-{
-    return 0;
-}
-
-static int virtual_usart_getc(struct rt_serial_device* serial)
-{
-    return -1;
-}
-
-static struct rt_uart_ops virtual_uart_ops =
-{
-    .configure = virtual_usart_configure,
-    .control = virtual_usart_control,
-    .putc = virtual_usart_putc,
-    .getc = virtual_usart_getc,
-};
-
-static struct rt_serial_device virtual_usart_serial =
-{
-    .ops = &virtual_uart_ops,
-    .config.baud_rate = BAUD_RATE_115200,
-    .config.bit_order = BIT_ORDER_LSB,
-    .config.data_bits = DATA_BITS_8,
-    .config.parity    = PARITY_NONE,
-    .config.stop_bits = STOP_BITS_1,
-    .config.invert    = NRZ_NORMAL,
-    .config.bufsz     = RT_SERIAL_RB_BUFSZ,
-};
-
-int virtual_usart_init(void)
-{
-    rt_hw_serial_register(&virtual_usart_serial,
-                          "uartx",
-                          RT_DEVICE_FLAG_STREAM
-                          | RT_DEVICE_FLAG_RDWR
-                          | RT_DEVICE_FLAG_INT_RX
-                          , NULL);
-
-    return 0;
-}
-#endif
-
-#endif
+/******************** end of file *******************/

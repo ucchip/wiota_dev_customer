@@ -5,7 +5,11 @@ from building import *
 cwd     = GetCurrentDir()
 src = Glob('*.c')
 src += ['crt0.flash.S']
+
 CPPPATH = [cwd]
+
+if GetDepend(['RT_USING_FAL']):
+    CPPPATH += [cwd + '/port']
 
 group = DefineGroup('Board', src, depend = [''], CPPPATH = CPPPATH)
 

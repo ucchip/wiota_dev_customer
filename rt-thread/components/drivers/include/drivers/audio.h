@@ -16,7 +16,7 @@
 #include "audio_pipe.h"
 
 /* AUDIO command */
-#define _AUDIO_CTL(a) (0x10 + a)
+#define _AUDIO_CTL(a) (RT_DEVICE_CTRL_BASE(Sound) + a)
 
 #define AUDIO_CTL_GETCAPS                   _AUDIO_CTL(1)
 #define AUDIO_CTL_CONFIGURE                 _AUDIO_CTL(2)
@@ -89,7 +89,7 @@ enum
 /* the preferred number and size of audio pipeline buffer for the audio device */
 struct rt_audio_buf_info
 {
-    rt_uint8_t* buffer;
+    rt_uint8_t *buffer;
     rt_uint16_t block_size;
     rt_uint16_t block_count;
     rt_uint32_t total_size;
@@ -100,14 +100,14 @@ struct rt_audio_caps;
 struct rt_audio_configure;
 struct rt_audio_ops
 {
-    rt_err_t (*getcaps)(struct rt_audio_device* audio, struct rt_audio_caps* caps);
-    rt_err_t (*configure)(struct rt_audio_device* audio, struct rt_audio_caps* caps);
-    rt_err_t (*init)(struct rt_audio_device* audio);
-    rt_err_t (*start)(struct rt_audio_device* audio, int stream);
-    rt_err_t (*stop)(struct rt_audio_device* audio, int stream);
-    rt_size_t (*transmit)(struct rt_audio_device* audio, const void* writeBuf, void* readBuf, rt_size_t size);
+    rt_err_t (*getcaps)(struct rt_audio_device *audio, struct rt_audio_caps *caps);
+    rt_err_t (*configure)(struct rt_audio_device *audio, struct rt_audio_caps *caps);
+    rt_err_t (*init)(struct rt_audio_device *audio);
+    rt_err_t (*start)(struct rt_audio_device *audio, int stream);
+    rt_err_t (*stop)(struct rt_audio_device *audio, int stream);
+    rt_size_t (*transmit)(struct rt_audio_device *audio, const void *writeBuf, void *readBuf, rt_size_t size);
     /* get page size of codec or private buffer's info */
-    void (*buffer_info)(struct rt_audio_device* audio, struct rt_audio_buf_info* info);
+    void (*buffer_info)(struct rt_audio_device *audio, struct rt_audio_buf_info *info);
 };
 
 struct rt_audio_configure
@@ -132,12 +132,12 @@ struct rt_audio_caps
 
 struct rt_audio_replay
 {
-    struct rt_mempool* mp;
+    struct rt_mempool *mp;
     struct rt_data_queue queue;
     struct rt_mutex lock;
     struct rt_completion cmp;
     struct rt_audio_buf_info buf_info;
-    rt_uint8_t* write_data;
+    rt_uint8_t *write_data;
     rt_uint16_t write_index;
     rt_uint16_t read_index;
     rt_uint32_t pos;
@@ -154,14 +154,14 @@ struct rt_audio_record
 struct rt_audio_device
 {
     struct rt_device           parent;
-    struct rt_audio_ops*        ops;
-    struct rt_audio_replay*     replay;
-    struct rt_audio_record*     record;
+    struct rt_audio_ops        *ops;
+    struct rt_audio_replay     *replay;
+    struct rt_audio_record     *record;
 };
 
-rt_err_t    rt_audio_register(struct rt_audio_device* audio, const char* name, rt_uint32_t flag, void* data);
-void        rt_audio_tx_complete(struct rt_audio_device* audio);
-void        rt_audio_rx_done(struct rt_audio_device* audio, rt_uint8_t* pbuf, rt_size_t len);
+rt_err_t    rt_audio_register(struct rt_audio_device *audio, const char *name, rt_uint32_t flag, void *data);
+void        rt_audio_tx_complete(struct rt_audio_device *audio);
+void        rt_audio_rx_done(struct rt_audio_device *audio, rt_uint8_t *pbuf, rt_size_t len);
 
 /* Device Control Commands */
 #define CODEC_CMD_RESET             0

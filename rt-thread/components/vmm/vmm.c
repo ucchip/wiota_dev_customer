@@ -28,9 +28,9 @@ struct rt_thread vmm_thread RT_SECTION(".bss.share.vmm");
 extern rt_uint8_t vmm_stack_start;
 extern rt_uint8_t vmm_stack_end;
 
-void vmm_thread_init(struct rt_thread* thread, const char* name)
+void vmm_thread_init(struct rt_thread *thread, const char *name)
 {
-    extern struct rt_thread* rt_current_thread;
+    extern struct rt_thread *rt_current_thread;
 
     rt_thread_init(thread, name, RT_NULL, RT_NULL,
                    &vmm_stack_start, &vmm_stack_end - &vmm_stack_start,
@@ -44,11 +44,11 @@ void vmm_thread_init(struct rt_thread* thread, const char* name)
 }
 
 #ifdef VMM_VERIFY_GUEST
-static void _verify_guest(void* p)
+static void _verify_guest(void *p)
 {
     while (1)
     {
-        rt_thread_delay(RT_TICK_PER_SECOND / 4);
+        rt_thread_delay(RT_TICK_PER_SECOND/4);
         vmm_verify_guest_status(vmm_thread.sp);
     }
 }
@@ -61,7 +61,7 @@ static void vmm_create_monitor(void)
                            _verify_guest, RT_NULL,
                            1024, 8, 20);
     if (tid)
-    { rt_thread_startup(tid); }
+        rt_thread_startup(tid);
 }
 #endif
 
@@ -73,9 +73,9 @@ extern unsigned long vmm_domain_val;
 static void vmm_entry_glue(rt_uint32_t level,
                            unsigned int vmm_domain,
                            unsigned int kernel_domain)
-/* inline would make the section setting meaningless */
-__attribute__((noinline))
-RT_SECTION(".vmm_glue");
+    /* inline would make the section setting meaningless */
+    __attribute__((noinline))
+    RT_SECTION(".vmm_glue");
 static void vmm_entry_glue(rt_uint32_t level,
                            unsigned int vmm_domain,
                            unsigned int kernel_domain)
@@ -94,9 +94,9 @@ static void vmm_entry_glue(rt_uint32_t level,
     rt_hw_interrupt_enable(level);
 }
 
-void vmm_entry(struct vmm_entry_param* param)
+void vmm_entry(struct vmm_entry_param *param)
 {
-    rt_uint32_t level;
+    rt_base_t level;
 
     level = rt_hw_interrupt_disable();
 

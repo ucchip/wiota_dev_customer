@@ -20,7 +20,7 @@
 
 #ifndef RT_SIG_INFO_MAX
 #define RT_SIG_INFO_MAX 32
-#endif
+#endif /* RT_SIG_INFO_MAX */
 
 #define DBG_TAG     "SIGN"
 #define DBG_LVL     DBG_WARNING
@@ -35,7 +35,7 @@ struct siginfo_node
     struct rt_slist_node list;
 };
 
-static struct rt_mempool* _rt_siginfo_pool;
+static struct rt_mempool *_siginfo_pool;
 static void _signal_deliver(rt_thread_t tid);
 void rt_thread_handle_sig(rt_bool_t clean_state);
 
@@ -45,7 +45,7 @@ static void _signal_default_handler(int signo)
     return ;
 }
 
-static void _signal_entry(void* parameter)
+static void _signal_entry(void *parameter)
 {
     rt_thread_t tid = rt_thread_self();
 
@@ -67,7 +67,7 @@ static void _signal_entry(void* parameter)
     /* return to thread */
     tid->sp = tid->sig_ret;
     tid->sig_ret = RT_NULL;
-#endif
+#endif /* RT_USING_SMP */
 
     LOG_D("switch back to: 0x%08x\n", tid->sp);
     tid->stat &= ~RT_THREAD_STAT_SIGNAL;
@@ -75,8 +75,8 @@ static void _signal_entry(void* parameter)
 #ifdef RT_USING_SMP
     rt_hw_context_switch_to((rt_base_t)&parameter, tid);
 #else
-    rt_hw_context_switch_to((rt_ubase_t) & (tid->sp));
-#endif /*RT_USING_SMP*/
+    rt_hw_context_switch_to((rt_ubase_t)&(tid->sp));
+#endif /* RT_USING_SMP */
 }
 
 /*
@@ -91,7 +91,7 @@ static void _signal_entry(void* parameter)
  */
 static void _signal_deliver(rt_thread_t tid)
 {
-    rt_ubase_t level;
+    rt_base_t level;
 
     level = rt_hw_interrupt_disable();
 
@@ -151,9 +151,9 @@ static void _signal_deliver(rt_thread_t tid)
             /* point to the signal handle entry */
             tid->stat &= ~RT_THREAD_STAT_SIGNAL_PENDING;
             tid->sig_ret = tid->sp;
-            tid->sp = rt_hw_stack_init((void*)_signal_entry, RT_NULL,
-                                       (void*)((char*)tid->sig_ret - 32), RT_NULL);
-#endif
+            tid->sp = rt_hw_stack_init((void *)_signal_entry, RT_NULL,
+                                       (void *)((char *)tid->sig_ret - 32), RT_NULL);
+#endif /* RT_USING_SMP */
 
             rt_hw_interrupt_enable(level);
             LOG_D("signal stack pointer @ 0x%08x", tid->sp);
@@ -169,12 +169,12 @@ static void _signal_deliver(rt_thread_t tid)
 }
 
 #ifdef RT_USING_SMP
-void* rt_signal_check(void* context)
+void *rt_signal_check(void* context)
 {
     rt_base_t level;
     int cpu_id;
     struct rt_cpu* pcpu;
-    struct rt_thread* current_thread;
+    struct rt_thread *current_thread;
 
     level = rt_hw_interrupt_disable();
     cpu_id = rt_hw_cpu_id();
@@ -191,31 +191,44 @@ void* rt_signal_check(void* context)
     {
         if (current_thread->stat & RT_THREAD_STAT_SIGNAL_PENDING)
         {
-            void* sig_context;
+            void *sig_context;
 
             current_thread->stat &= ~RT_THREAD_STAT_SIGNAL_PENDING;
 
             rt_hw_interrupt_enable(level);
-            sig_context = rt_hw_stack_init((void*)_signal_entry, context,
-                                           (void*)(context - 32), RT_NULL);
+            sig_context = rt_hw_stack_init((void *)_signal_entry, context,
+                    (void *)(context - 32), RT_NULL);
             return sig_context;
         }
     }
     rt_hw_interrupt_enable(level);
     return context;
 }
-#endif
+#endif /* RT_USING_SMP */
 
+/**
+ * @brief    This function will install a processing function to a specific
+ *           signal and return the old processing function of this signal.
+ *
+ * @note     This function needs to be used in conjunction with the
+ *           rt_signal_unmask() function to make the signal effective.
+ *
+ * @see      rt_signal_unmask()
+ *
+ * @param    signo is a specific signal value (range: 0 ~ RT_SIG_MAX).
+ *
+ * @param    handler is sets the processing of signal value.
+ *
+ * @return   Return the old processing function of this signal. ONLY When the
+ *           return value is SIG_ERR, the operation is failed.
+ */
 rt_sighandler_t rt_signal_install(int signo, rt_sighandler_t handler)
 {
     rt_base_t level;
     rt_sighandler_t old = RT_NULL;
     rt_thread_t tid = rt_thread_self();
 
-    if (!sig_valid(signo))
-    {
-        return SIG_ERR;
-    }
+    if (!sig_valid(signo)) return SIG_ERR;
 
     level = rt_hw_interrupt_disable();
     if (tid->sig_vectors == RT_NULL)
@@ -227,24 +240,26 @@ rt_sighandler_t rt_signal_install(int signo, rt_sighandler_t handler)
     {
         old = tid->sig_vectors[signo];
 
-        if (handler == SIG_IGN)
-        {
-            tid->sig_vectors[signo] = RT_NULL;
-        }
-        else if (handler == SIG_DFL)
-        {
-            tid->sig_vectors[signo] = _signal_default_handler;
-        }
-        else
-        {
-            tid->sig_vectors[signo] = handler;
-        }
+        if (handler == SIG_IGN) tid->sig_vectors[signo] = RT_NULL;
+        else if (handler == SIG_DFL) tid->sig_vectors[signo] = _signal_default_handler;
+        else tid->sig_vectors[signo] = handler;
     }
     rt_hw_interrupt_enable(level);
 
     return old;
 }
 
+/**
+ * @brief    This function will block the specified signal.
+ *
+ * @note     This function will block the specified signal, even if the
+ *           rt_thread_kill() function is called to send this signal to
+ *           the current thread, it will no longer take effect.
+ *
+ * @see      rt_thread_kill()
+ *
+ * @param    signo is a specific signal value (range: 0 ~ RT_SIG_MAX).
+ */
 void rt_signal_mask(int signo)
 {
     rt_base_t level;
@@ -257,6 +272,17 @@ void rt_signal_mask(int signo)
     rt_hw_interrupt_enable(level);
 }
 
+/**
+ * @brief    This function will unblock the specified signal.
+ *
+ * @note     This function will unblock the specified signal. After calling
+ *           the rt_thread_kill() function to send this signal to the current
+ *           thread, it will take effect.
+ *
+ * @see      rt_thread_kill()
+ *
+ * @param    signo is a specific signal value (range: 0 ~ RT_SIG_MAX).
+ */
 void rt_signal_unmask(int signo)
 {
     rt_base_t level;
@@ -278,12 +304,26 @@ void rt_signal_unmask(int signo)
     }
 }
 
-int rt_signal_wait(const rt_sigset_t* set, rt_siginfo_t* si, rt_int32_t timeout)
+/**
+ * @brief    This function will wait for the arrival of the set signal. If it does not wait for this signal, the thread will be
+ *           suspended until it waits for this signal or the waiting time exceeds the specified timeout: timeout.
+ *
+ * @param    set is the set of signal values to be waited for. Use the function
+ *           sigaddset() to add the signal.
+ *
+ * @param    si is a pointer to the received signal info. If you don't care about this value, you can use RT_NULL to set.
+ *
+ * @param    timeout is a timeout period (unit: an OS tick).
+ *
+ * @return   Return the operation status. When the return value is RT_EOK, the operation is successful.
+ *           If the return value is any other values, it means that the signal wait failed.
+ */
+int rt_signal_wait(const rt_sigset_t *set, rt_siginfo_t *si, rt_int32_t timeout)
 {
     int ret = RT_EOK;
-    rt_base_t   level;
+    rt_base_t level;
     rt_thread_t tid = rt_thread_self();
-    struct siginfo_node* si_node = RT_NULL, *si_prev = RT_NULL;
+    struct siginfo_node *si_node = RT_NULL, *si_prev = RT_NULL;
 
     /* current context checking */
     RT_DEBUG_IN_THREAD_CONTEXT;
@@ -301,10 +341,7 @@ int rt_signal_wait(const rt_sigset_t* set, rt_siginfo_t* si, rt_int32_t timeout)
     level = rt_hw_interrupt_disable();
 
     /* already pending */
-    if (tid->sig_pending & *set)
-    {
-        goto __done;
-    }
+    if (tid->sig_pending & *set) goto __done;
 
     if (timeout == 0)
     {
@@ -349,7 +386,7 @@ int rt_signal_wait(const rt_sigset_t* set, rt_siginfo_t* si, rt_int32_t timeout)
 
 __done:
     /* to get the first matched pending signals */
-    si_node = (struct siginfo_node*)tid->si_list;
+    si_node = (struct siginfo_node *)tid->si_list;
     while (si_node)
     {
         int signo;
@@ -360,17 +397,14 @@ __done:
             *si  = si_node->si;
 
             LOG_D("sigwait: %d sig raised!", signo);
-            if (si_prev)
-            {
-                si_prev->list.next = si_node->list.next;
-            }
+            if (si_prev) si_prev->list.next = si_node->list.next;
             else
             {
-                struct siginfo_node* node_next;
+                struct siginfo_node *node_next;
 
                 if (si_node->list.next)
                 {
-                    node_next = (void*)rt_slist_entry(si_node->list.next, struct siginfo_node, list);
+                    node_next = (void *)rt_slist_entry(si_node->list.next, struct siginfo_node, list);
                     tid->si_list = node_next;
                 }
                 else
@@ -388,13 +422,13 @@ __done:
         si_prev = si_node;
         if (si_node->list.next)
         {
-            si_node = (void*)rt_slist_entry(si_node->list.next, struct siginfo_node, list);
+            si_node = (void *)rt_slist_entry(si_node->list.next, struct siginfo_node, list);
         }
         else
         {
             si_node = RT_NULL;
         }
-    }
+     }
 
 __done_int:
     rt_hw_interrupt_enable(level);
@@ -408,7 +442,7 @@ void rt_thread_handle_sig(rt_bool_t clean_state)
     rt_base_t level;
 
     rt_thread_t tid = rt_thread_self();
-    struct siginfo_node* si_node;
+    struct siginfo_node *si_node;
 
     level = rt_hw_interrupt_disable();
     if (tid->sig_pending & tid->sig_mask)
@@ -421,17 +455,14 @@ void rt_thread_handle_sig(rt_bool_t clean_state)
                 int signo, error;
                 rt_sighandler_t handler;
 
-                si_node = (struct siginfo_node*)tid->si_list;
-                if (!si_node)
-                {
-                    break;
-                }
+                si_node = (struct siginfo_node *)tid->si_list;
+                if (!si_node) break;
 
                 /* remove this sig info node from list */
                 if (si_node->list.next == RT_NULL)
-                { tid->si_list = RT_NULL; }
+                    tid->si_list = RT_NULL;
                 else
-                { tid->si_list = (void*)rt_slist_entry(si_node->list.next, struct siginfo_node, list); }
+                    tid->si_list = (void *)rt_slist_entry(si_node->list.next, struct siginfo_node, list);
 
                 signo   = si_node->si.si_signo;
                 handler = tid->sig_vectors[signo];
@@ -439,10 +470,7 @@ void rt_thread_handle_sig(rt_bool_t clean_state)
                 rt_hw_interrupt_enable(level);
 
                 LOG_D("handle signal: %d, handler 0x%08x", signo, handler);
-                if (handler)
-                {
-                    handler(signo);
-                }
+                if (handler) handler(signo);
 
                 level = rt_hw_interrupt_disable();
                 error = -RT_EINTR;
@@ -470,9 +498,9 @@ void rt_thread_alloc_sig(rt_thread_t tid)
 {
     int index;
     rt_base_t level;
-    rt_sighandler_t* vectors;
+    rt_sighandler_t *vectors;
 
-    vectors = (rt_sighandler_t*)RT_KERNEL_MALLOC(sizeof(rt_sighandler_t) * RT_SIG_MAX);
+    vectors = (rt_sighandler_t *)RT_KERNEL_MALLOC(sizeof(rt_sighandler_t) * RT_SIG_MAX);
     RT_ASSERT(vectors != RT_NULL);
 
     for (index = 0; index < RT_SIG_MAX; index ++)
@@ -488,11 +516,11 @@ void rt_thread_alloc_sig(rt_thread_t tid)
 void rt_thread_free_sig(rt_thread_t tid)
 {
     rt_base_t level;
-    struct siginfo_node* si_node;
-    rt_sighandler_t* sig_vectors;
+    struct siginfo_node *si_node;
+    rt_sighandler_t *sig_vectors;
 
     level = rt_hw_interrupt_disable();
-    si_node = (struct siginfo_node*)tid->si_list;
+    si_node = (struct siginfo_node *)tid->si_list;
     tid->si_list = RT_NULL;
 
     sig_vectors = tid->sig_vectors;
@@ -501,8 +529,8 @@ void rt_thread_free_sig(rt_thread_t tid)
 
     if (si_node)
     {
-        struct rt_slist_node* node;
-        struct rt_slist_node* node_to_free;
+        struct rt_slist_node *node;
+        struct rt_slist_node *node_to_free;
 
         LOG_D("free signal info list");
         node = &(si_node->list);
@@ -521,17 +549,24 @@ void rt_thread_free_sig(rt_thread_t tid)
     }
 }
 
+/**
+ * @brief    This function can be used to send any signal to any thread.
+ *
+ * @param    tid is a pointer to the thread that receives the signal.
+ *
+ * @param    sig is a specific signal value (range: 0 ~ RT_SIG_MAX).
+ *
+ * @return   Return the operation status. When the return value is RT_EOK, the operation is successful.
+ *           If the return value is any other values, it means that the signal send failed.
+ */
 int rt_thread_kill(rt_thread_t tid, int sig)
 {
     siginfo_t si;
     rt_base_t level;
-    struct siginfo_node* si_node;
+    struct siginfo_node *si_node;
 
     RT_ASSERT(tid != RT_NULL);
-    if (!sig_valid(sig))
-    {
-        return -RT_EINVAL;
-    }
+    if (!sig_valid(sig)) return -RT_EINVAL;
 
     LOG_I("send signal: %d", sig);
     si.si_signo = sig;
@@ -542,14 +577,14 @@ int rt_thread_kill(rt_thread_t tid, int sig)
     if (tid->sig_pending & sig_mask(sig))
     {
         /* whether already emits this signal? */
-        struct rt_slist_node* node;
-        struct siginfo_node*  entry;
+        struct rt_slist_node *node;
+        struct siginfo_node  *entry;
 
-        si_node = (struct siginfo_node*)tid->si_list;
+        si_node = (struct siginfo_node *)tid->si_list;
         if (si_node)
-        { node = (struct rt_slist_node*)&si_node->list; }
+            node = (struct rt_slist_node *)&si_node->list;
         else
-        { node = RT_NULL; }
+            node = RT_NULL;
 
         /* update sig info */
         for (; (node) != RT_NULL; node = node->next)
@@ -565,7 +600,7 @@ int rt_thread_kill(rt_thread_t tid, int sig)
     }
     rt_hw_interrupt_enable(level);
 
-    si_node = (struct siginfo_node*) rt_mp_alloc(_rt_siginfo_pool, 0);
+    si_node = (struct siginfo_node *) rt_mp_alloc(_siginfo_pool, 0);
     if (si_node)
     {
         rt_slist_init(&(si_node->list));
@@ -575,9 +610,9 @@ int rt_thread_kill(rt_thread_t tid, int sig)
 
         if (tid->si_list)
         {
-            struct siginfo_node* si_list;
+            struct siginfo_node *si_list;
 
-            si_list = (struct siginfo_node*)tid->si_list;
+            si_list = (struct siginfo_node *)tid->si_list;
             rt_slist_append(&(si_list->list), &(si_node->list));
         }
         else
@@ -603,8 +638,8 @@ int rt_thread_kill(rt_thread_t tid, int sig)
 
 int rt_system_signal_init(void)
 {
-    _rt_siginfo_pool = rt_mp_create("signal", RT_SIG_INFO_MAX, sizeof(struct siginfo_node));
-    if (_rt_siginfo_pool == RT_NULL)
+    _siginfo_pool = rt_mp_create("signal", RT_SIG_INFO_MAX, sizeof(struct siginfo_node));
+    if (_siginfo_pool == RT_NULL)
     {
         LOG_E("create memory pool for signal info failed.");
         RT_ASSERT(0);
@@ -613,4 +648,4 @@ int rt_system_signal_init(void)
     return 0;
 }
 
-#endif
+#endif /* RT_USING_SIGNALS */

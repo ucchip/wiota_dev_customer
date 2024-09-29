@@ -29,7 +29,7 @@
 #define RT_MEMHEAP_MINIALLOC    12
 
 #define RT_MEMHEAP_SIZE         RT_ALIGN(sizeof(struct rt_lwp_memheap_item), RT_ALIGN_SIZE)
-#define MEMITEM_SIZE(item)      ((rt_uint32_t)item->next - (rt_uint32_t)item - RT_MEMHEAP_SIZE)
+#define MEMITEM_SIZE(item)      ((rt_ubase_t)item->next - (rt_ubase_t)item - RT_MEMHEAP_SIZE)
 
 /*
  * The initialized memory pool will be:
@@ -42,12 +42,12 @@
  * The length of Used Memory Block Tailer is 0,
  * which is prevents block merging across list
  */
-rt_err_t rt_lwp_memheap_init(struct rt_lwp_memheap* memheap,
-                             const char*        name,
-                             void*              start_addr,
-                             rt_uint32_t        size)
+rt_err_t rt_lwp_memheap_init(struct rt_lwp_memheap *memheap,
+                         const char        *name,
+                         void              *start_addr,
+                         rt_uint32_t        size)
 {
-    struct rt_lwp_memheap_item* item;
+    struct rt_lwp_memheap_item *item;
 
     RT_ASSERT(memheap != RT_NULL);
 
@@ -70,7 +70,7 @@ rt_err_t rt_lwp_memheap_init(struct rt_lwp_memheap* memheap,
     memheap->free_list = item;
 
     /* initialize the first big memory block */
-    item            = (struct rt_lwp_memheap_item*)start_addr;
+    item            = (struct rt_lwp_memheap_item *)start_addr;
     item->magic     = RT_MEMHEAP_MAGIC;
     item->pool_ptr  = memheap;
     item->next      = RT_NULL;
@@ -78,8 +78,8 @@ rt_err_t rt_lwp_memheap_init(struct rt_lwp_memheap* memheap,
     item->next_free = item;
     item->prev_free = item;
 
-    item->next = (struct rt_lwp_memheap_item*)
-                 ((rt_uint8_t*)item + memheap->available_size + RT_MEMHEAP_SIZE);
+    item->next = (struct rt_lwp_memheap_item *)
+                 ((rt_uint8_t *)item + memheap->available_size + RT_MEMHEAP_SIZE);
     item->prev = item->next;
 
     /* block list header */
@@ -98,8 +98,8 @@ rt_err_t rt_lwp_memheap_init(struct rt_lwp_memheap* memheap,
     /* it's a used memory block */
     item->magic     = RT_MEMHEAP_MAGIC | RT_MEMHEAP_USED;
     item->pool_ptr  = memheap;
-    item->next      = (struct rt_lwp_memheap_item*)start_addr;
-    item->prev      = (struct rt_lwp_memheap_item*)start_addr;
+    item->next      = (struct rt_lwp_memheap_item *)start_addr;
+    item->prev      = (struct rt_lwp_memheap_item *)start_addr;
     /* not in free list */
     item->next_free = item->prev_free = RT_NULL;
 
@@ -113,18 +113,18 @@ rt_err_t rt_lwp_memheap_init(struct rt_lwp_memheap* memheap,
     return RT_EOK;
 }
 
-void* rt_lwp_memheap_alloc(struct rt_lwp_memheap* heap, rt_uint32_t size)
+void *rt_lwp_memheap_alloc(struct rt_lwp_memheap *heap, rt_uint32_t size)
 {
     rt_err_t result;
     rt_uint32_t free_size;
-    struct rt_lwp_memheap_item* header_ptr;
+    struct rt_lwp_memheap_item *header_ptr;
 
     RT_ASSERT(heap != RT_NULL);
 
     /* align allocated size */
     size = RT_ALIGN(size, RT_ALIGN_SIZE);
     if (size < RT_MEMHEAP_MINIALLOC)
-    { size = RT_MEMHEAP_MINIALLOC; }
+        size = RT_MEMHEAP_MINIALLOC;
 
     RT_DEBUG_LOG(RT_DEBUG_MEMHEAP, ("allocate %d on heap:%8.*s",
                                     size, RT_NAME_MAX, heap->parent.name));
@@ -164,11 +164,11 @@ void* rt_lwp_memheap_alloc(struct rt_lwp_memheap* heap, rt_uint32_t size)
             /* determine if the block needs to be split. */
             if (free_size >= (size + RT_MEMHEAP_SIZE + RT_MEMHEAP_MINIALLOC))
             {
-                struct rt_lwp_memheap_item* new_ptr;
+                struct rt_lwp_memheap_item *new_ptr;
 
                 /* split the block. */
-                new_ptr = (struct rt_lwp_memheap_item*)
-                          (((rt_uint8_t*)header_ptr) + size + RT_MEMHEAP_SIZE);
+                new_ptr = (struct rt_lwp_memheap_item *)
+                          (((rt_uint8_t *)header_ptr) + size + RT_MEMHEAP_SIZE);
 
                 RT_DEBUG_LOG(RT_DEBUG_MEMHEAP,
                              ("split: block[0x%08x] nextm[0x%08x] prevm[0x%08x] to new[0x%08x]\n",
@@ -209,14 +209,14 @@ void* rt_lwp_memheap_alloc(struct rt_lwp_memheap* heap, rt_uint32_t size)
                                        size -
                                        RT_MEMHEAP_SIZE;
                 if (heap->pool_size - heap->available_size > heap->max_used_size)
-                { heap->max_used_size = heap->pool_size - heap->available_size; }
+                    heap->max_used_size = heap->pool_size - heap->available_size;
             }
             else
             {
                 /* decrement the entire free size from the available bytes count. */
                 heap->available_size = heap->available_size - free_size;
                 if (heap->pool_size - heap->available_size > heap->max_used_size)
-                { heap->max_used_size = heap->pool_size - heap->available_size; }
+                    heap->max_used_size = heap->pool_size - heap->available_size;
 
                 /* remove header_ptr from free list */
                 RT_DEBUG_LOG(RT_DEBUG_MEMHEAP,
@@ -240,11 +240,11 @@ void* rt_lwp_memheap_alloc(struct rt_lwp_memheap* heap, rt_uint32_t size)
             /* Return a memory address to the caller.  */
             RT_DEBUG_LOG(RT_DEBUG_MEMHEAP,
                          ("alloc mem: memory[0x%08x], heap[0x%08x], size: %d\n",
-                          (void*)((rt_uint8_t*)header_ptr + RT_MEMHEAP_SIZE),
+                          (void *)((rt_uint8_t *)header_ptr + RT_MEMHEAP_SIZE),
                           header_ptr,
                           size));
 
-            return (void*)((rt_uint8_t*)header_ptr + RT_MEMHEAP_SIZE);
+            return (void *)((rt_uint8_t *)header_ptr + RT_MEMHEAP_SIZE);
         }
 
         /* release lock */
@@ -257,12 +257,12 @@ void* rt_lwp_memheap_alloc(struct rt_lwp_memheap* heap, rt_uint32_t size)
     return RT_NULL;
 }
 
-void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t newsize)
+void *rt_lwp_memheap_realloc(struct rt_lwp_memheap *heap, void *ptr, rt_size_t newsize)
 {
     rt_err_t result;
     rt_size_t oldsize;
-    struct rt_lwp_memheap_item* header_ptr;
-    struct rt_lwp_memheap_item* new_ptr;
+    struct rt_lwp_memheap_item *header_ptr;
+    struct rt_lwp_memheap_item *new_ptr;
 
     if (newsize == 0)
     {
@@ -273,7 +273,7 @@ void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t n
     /* align allocated size */
     newsize = RT_ALIGN(newsize, RT_ALIGN_SIZE);
     if (newsize < RT_MEMHEAP_MINIALLOC)
-    { newsize = RT_MEMHEAP_MINIALLOC; }
+        newsize = RT_MEMHEAP_MINIALLOC;
 
     if (ptr == RT_NULL)
     {
@@ -281,14 +281,14 @@ void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t n
     }
 
     /* get memory block header and get the size of memory block */
-    header_ptr = (struct rt_lwp_memheap_item*)
-                 ((rt_uint8_t*)ptr - RT_MEMHEAP_SIZE);
+    header_ptr = (struct rt_lwp_memheap_item *)
+                 ((rt_uint8_t *)ptr - RT_MEMHEAP_SIZE);
     oldsize = MEMITEM_SIZE(header_ptr);
     /* re-allocate memory */
     if (newsize > oldsize)
     {
-        void* new_ptr;
-        struct rt_lwp_memheap_item* next_ptr;
+        void *new_ptr;
+        struct rt_lwp_memheap_item *next_ptr;
 
         /* lock memheap */
         result = rt_sem_take(&(heap->lock), RT_WAITING_FOREVER);
@@ -325,7 +325,7 @@ void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t n
                 /* decrement the entire free size from the available bytes count. */
                 heap->available_size = heap->available_size - (newsize - oldsize);
                 if (heap->pool_size - heap->available_size > heap->max_used_size)
-                { heap->max_used_size = heap->pool_size - heap->available_size; }
+                    heap->max_used_size = heap->pool_size - heap->available_size;
 
                 /* remove next_ptr from free list */
                 RT_DEBUG_LOG(RT_DEBUG_MEMHEAP,
@@ -340,7 +340,7 @@ void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t n
                 next_ptr->prev->next = next_ptr->next;
 
                 /* build a new one on the right place */
-                next_ptr = (struct rt_lwp_memheap_item*)((char*)ptr + newsize);
+                next_ptr = (struct rt_lwp_memheap_item *)((char *)ptr + newsize);
 
                 RT_DEBUG_LOG(RT_DEBUG_MEMHEAP,
                              ("new free block: block[0x%08x] nextm[0x%08x] prevm[0x%08x]",
@@ -379,7 +379,7 @@ void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t n
         rt_sem_release(&(heap->lock));
 
         /* re-allocate a memory block */
-        new_ptr = (void*)rt_lwp_memheap_alloc(heap, newsize);
+        new_ptr = (void *)rt_lwp_memheap_alloc(heap, newsize);
         if (new_ptr != RT_NULL)
         {
             rt_memcpy(new_ptr, ptr, oldsize < newsize ? oldsize : newsize);
@@ -391,7 +391,7 @@ void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t n
 
     /* don't split when there is less than one node space left */
     if (newsize + RT_MEMHEAP_SIZE + RT_MEMHEAP_MINIALLOC >= oldsize)
-    { return ptr; }
+        return ptr;
 
     /* lock memheap */
     result = rt_sem_take(&(heap->lock), RT_WAITING_FOREVER);
@@ -403,8 +403,8 @@ void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t n
     }
 
     /* split the block. */
-    new_ptr = (struct rt_lwp_memheap_item*)
-              (((rt_uint8_t*)header_ptr) + newsize + RT_MEMHEAP_SIZE);
+    new_ptr = (struct rt_lwp_memheap_item *)
+              (((rt_uint8_t *)header_ptr) + newsize + RT_MEMHEAP_SIZE);
 
     RT_DEBUG_LOG(RT_DEBUG_MEMHEAP,
                  ("split: block[0x%08x] nextm[0x%08x] prevm[0x%08x] to new[0x%08x]\n",
@@ -427,7 +427,7 @@ void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t n
     /* determine if the block can be merged with the next neighbor. */
     if (!RT_MEMHEAP_IS_USED(new_ptr->next))
     {
-        struct rt_lwp_memheap_item* free_ptr;
+        struct rt_lwp_memheap_item *free_ptr;
 
         /* merge block with next neighbor. */
         free_ptr = new_ptr->next;
@@ -464,24 +464,21 @@ void* rt_lwp_memheap_realloc(struct rt_lwp_memheap* heap, void* ptr, rt_size_t n
     return ptr;
 }
 
-void rt_lwp_memheap_free(void* ptr)
+void rt_lwp_memheap_free(void *ptr)
 {
     rt_err_t result;
-    struct rt_lwp_memheap* heap;
-    struct rt_lwp_memheap_item* header_ptr, *new_ptr;
+    struct rt_lwp_memheap *heap;
+    struct rt_lwp_memheap_item *header_ptr, *new_ptr;
     rt_uint32_t insert_header;
 
     /* NULL check */
-    if (ptr == RT_NULL)
-    {
-        return;
-    }
+    if (ptr == RT_NULL) return;
 
     /* set initial status as OK */
     insert_header = 1;
     new_ptr       = RT_NULL;
-    header_ptr    = (struct rt_lwp_memheap_item*)
-                    ((rt_uint8_t*)ptr - RT_MEMHEAP_SIZE);
+    header_ptr    = (struct rt_lwp_memheap_item *)
+                    ((rt_uint8_t *)ptr - RT_MEMHEAP_SIZE);
 
     RT_DEBUG_LOG(RT_DEBUG_MEMHEAP, ("free memory: memory[0x%08x], block[0x%08x]\n",
                                     ptr, header_ptr));
@@ -566,7 +563,7 @@ void rt_lwp_memheap_free(void* ptr)
     rt_sem_release(&(heap->lock));
 }
 
-rt_bool_t rt_lwp_memheap_is_empty(struct rt_lwp_memheap* memheap)
+rt_bool_t rt_lwp_memheap_is_empty(struct rt_lwp_memheap *memheap)
 {
     RT_ASSERT(memheap != RT_NULL);
 

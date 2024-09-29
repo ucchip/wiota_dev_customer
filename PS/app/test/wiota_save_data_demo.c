@@ -151,7 +151,7 @@ void wiota_save_data_demo(void)
     uc_wiota_connect();
 
     // wait for the connect ap. timeout 4s
-    if (uc_wiota_wait_sync(4000))
+    if (uc_wiota_wait_sync(4000, 2))
     {
         // release all resource of the wiota protocol
         uc_wiota_exit();

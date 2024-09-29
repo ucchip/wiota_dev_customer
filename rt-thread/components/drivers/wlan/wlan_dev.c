@@ -46,7 +46,7 @@
 #error "dev num Too little"
 #endif
 
-rt_err_t rt_wlan_dev_init(struct rt_wlan_device* device, rt_wlan_mode_t mode)
+rt_err_t rt_wlan_dev_init(struct rt_wlan_device *device, rt_wlan_mode_t mode)
 {
     rt_err_t result = RT_EOK;
 
@@ -75,7 +75,7 @@ rt_err_t rt_wlan_dev_init(struct rt_wlan_device* device, rt_wlan_mode_t mode)
         LOG_E("L:%d wlan init failed", __LINE__);
         return -RT_ERROR;
     }
-    result = rt_device_control(RT_DEVICE(device), RT_WLAN_CMD_MODE, (void*)&mode);
+    result = rt_device_control(RT_DEVICE(device), RT_WLAN_CMD_MODE, (void *)&mode);
     if (result != RT_EOK)
     {
         LOG_E("L:%d wlan config mode failed", __LINE__);
@@ -85,7 +85,7 @@ rt_err_t rt_wlan_dev_init(struct rt_wlan_device* device, rt_wlan_mode_t mode)
     return result;
 }
 
-rt_err_t rt_wlan_dev_connect(struct rt_wlan_device* device, struct rt_wlan_info* info, const char* password, int password_len)
+rt_err_t rt_wlan_dev_connect(struct rt_wlan_device *device, struct rt_wlan_info *info, const char *password, int password_len)
 {
     rt_err_t result = RT_EOK;
     struct rt_sta_info sta_info;
@@ -100,7 +100,7 @@ rt_err_t rt_wlan_dev_connect(struct rt_wlan_device* device, struct rt_wlan_info*
     }
 
     if ((password_len > RT_WLAN_PASSWORD_MAX_LENGTH) ||
-        (info->ssid.len > RT_WLAN_SSID_MAX_LENGTH))
+            (info->ssid.len > RT_WLAN_SSID_MAX_LENGTH))
     {
         LOG_E("L:%d password or ssid is too long", __LINE__);
         return -RT_ERROR;
@@ -120,7 +120,42 @@ rt_err_t rt_wlan_dev_connect(struct rt_wlan_device* device, struct rt_wlan_info*
     return result;
 }
 
-rt_err_t rt_wlan_dev_disconnect(struct rt_wlan_device* device)
+rt_err_t rt_wlan_dev_fast_connect(struct rt_wlan_device *device, struct rt_wlan_info *info, const char *password, int password_len)
+{
+    rt_err_t result = RT_EOK;
+    struct rt_wlan_buff buff;
+
+    int len = 0;
+
+    if (device == RT_NULL)
+    {
+        return -RT_EIO;
+    }
+    if (info == RT_NULL)
+    {
+        return -RT_ERROR;
+    }
+
+    if ((password_len > RT_WLAN_PASSWORD_MAX_LENGTH) ||
+            (info->ssid.len > RT_WLAN_SSID_MAX_LENGTH))
+    {
+        LOG_E("L:%d password or ssid is too long", __LINE__);
+        return -RT_ERROR;
+    }
+
+    buff.len = rt_device_control(RT_DEVICE(device), RT_WLAN_CMD_GET_FAST_CONNECT_INFO, buff.data);
+    if(buff.len < 0)
+    {
+        LOG_D("L:%d Can't get fast connect info", __LINE__);
+        return buff.len;
+    }
+
+    result = rt_device_control(RT_DEVICE(device), RT_WLAN_CMD_FAST_CONNECT, &buff);
+
+    return result;
+}
+
+rt_err_t rt_wlan_dev_disconnect(struct rt_wlan_device *device)
 {
     rt_err_t result = RT_EOK;
 
@@ -133,7 +168,7 @@ rt_err_t rt_wlan_dev_disconnect(struct rt_wlan_device* device)
     return result;
 }
 
-rt_err_t rt_wlan_dev_ap_start(struct rt_wlan_device* device, struct rt_wlan_info* info, const char* password, int password_len)
+rt_err_t rt_wlan_dev_ap_start(struct rt_wlan_device *device, struct rt_wlan_info *info, const char *password, int password_len)
 {
     rt_err_t result = RT_EOK;
     struct rt_ap_info ap_info;
@@ -148,7 +183,7 @@ rt_err_t rt_wlan_dev_ap_start(struct rt_wlan_device* device, struct rt_wlan_info
     }
 
     if ((password_len > RT_WLAN_PASSWORD_MAX_LENGTH) ||
-        (info->ssid.len > RT_WLAN_SSID_MAX_LENGTH))
+            (info->ssid.len > RT_WLAN_SSID_MAX_LENGTH))
     {
         LOG_E("L:%d password or ssid is too long", __LINE__);
         return -RT_ERROR;
@@ -169,7 +204,7 @@ rt_err_t rt_wlan_dev_ap_start(struct rt_wlan_device* device, struct rt_wlan_info
     return result;
 }
 
-rt_err_t rt_wlan_dev_ap_stop(struct rt_wlan_device* device)
+rt_err_t rt_wlan_dev_ap_stop(struct rt_wlan_device *device)
 {
     rt_err_t result = RT_EOK;
 
@@ -182,7 +217,7 @@ rt_err_t rt_wlan_dev_ap_stop(struct rt_wlan_device* device)
     return result;
 }
 
-rt_err_t rt_wlan_dev_ap_deauth(struct rt_wlan_device* device, rt_uint8_t mac[6])
+rt_err_t rt_wlan_dev_ap_deauth(struct rt_wlan_device *device, rt_uint8_t mac[6])
 {
     rt_err_t result = RT_EOK;
 
@@ -195,7 +230,7 @@ rt_err_t rt_wlan_dev_ap_deauth(struct rt_wlan_device* device, rt_uint8_t mac[6])
     return result;
 }
 
-int rt_wlan_dev_get_rssi(struct rt_wlan_device* device)
+int rt_wlan_dev_get_rssi(struct rt_wlan_device *device)
 {
     int rssi = 0;
     rt_err_t result = RT_EOK;
@@ -216,7 +251,7 @@ int rt_wlan_dev_get_rssi(struct rt_wlan_device* device)
     return rssi;
 }
 
-rt_err_t rt_wlan_dev_get_mac(struct rt_wlan_device* device, rt_uint8_t mac[6])
+rt_err_t rt_wlan_dev_get_mac(struct rt_wlan_device *device, rt_uint8_t mac[6])
 {
     rt_err_t result = RT_EOK;
 
@@ -229,7 +264,7 @@ rt_err_t rt_wlan_dev_get_mac(struct rt_wlan_device* device, rt_uint8_t mac[6])
     return result;
 }
 
-rt_err_t rt_wlan_dev_set_mac(struct rt_wlan_device* device, rt_uint8_t mac[6])
+rt_err_t rt_wlan_dev_set_mac(struct rt_wlan_device *device, rt_uint8_t mac[6])
 {
     rt_err_t result = RT_EOK;
 
@@ -242,7 +277,7 @@ rt_err_t rt_wlan_dev_set_mac(struct rt_wlan_device* device, rt_uint8_t mac[6])
     return result;
 }
 
-rt_err_t rt_wlan_dev_set_powersave(struct rt_wlan_device* device, int level)
+rt_err_t rt_wlan_dev_set_powersave(struct rt_wlan_device *device, int level)
 {
     rt_err_t result = RT_EOK;
 
@@ -255,7 +290,7 @@ rt_err_t rt_wlan_dev_set_powersave(struct rt_wlan_device* device, int level)
     return result;
 }
 
-int rt_wlan_dev_get_powersave(struct rt_wlan_device* device)
+int rt_wlan_dev_get_powersave(struct rt_wlan_device *device)
 {
     int level = -1;
     rt_err_t result = RT_EOK;
@@ -275,7 +310,7 @@ int rt_wlan_dev_get_powersave(struct rt_wlan_device* device)
     return level;
 }
 
-rt_err_t rt_wlan_dev_register_event_handler(struct rt_wlan_device* device, rt_wlan_dev_event_t event, rt_wlan_dev_event_handler handler, void* parameter)
+rt_err_t rt_wlan_dev_register_event_handler(struct rt_wlan_device *device, rt_wlan_dev_event_t event, rt_wlan_dev_event_handler handler, void *parameter)
 {
     int i = 0;
     rt_base_t level;
@@ -306,7 +341,7 @@ rt_err_t rt_wlan_dev_register_event_handler(struct rt_wlan_device* device, rt_wl
     return -RT_ERROR;
 }
 
-rt_err_t rt_wlan_dev_unregister_event_handler(struct rt_wlan_device* device, rt_wlan_dev_event_t event, rt_wlan_dev_event_handler handler)
+rt_err_t rt_wlan_dev_unregister_event_handler(struct rt_wlan_device *device, rt_wlan_dev_event_t event, rt_wlan_dev_event_handler handler)
 {
     int i = 0;
     rt_base_t level;
@@ -335,9 +370,9 @@ rt_err_t rt_wlan_dev_unregister_event_handler(struct rt_wlan_device* device, rt_
     return -RT_ERROR;
 }
 
-void rt_wlan_dev_indicate_event_handle(struct rt_wlan_device* device, rt_wlan_dev_event_t event, struct rt_wlan_buff* buff)
+void rt_wlan_dev_indicate_event_handle(struct rt_wlan_device *device, rt_wlan_dev_event_t event, struct rt_wlan_buff *buff)
 {
-    void* parameter[RT_WLAN_DEV_EVENT_NUM];
+    void *parameter[RT_WLAN_DEV_EVENT_NUM];
     rt_wlan_dev_event_handler handler[RT_WLAN_DEV_EVENT_NUM];
     int i;
     rt_base_t level;
@@ -370,7 +405,7 @@ void rt_wlan_dev_indicate_event_handle(struct rt_wlan_device* device, rt_wlan_de
     }
 }
 
-rt_err_t rt_wlan_dev_enter_promisc(struct rt_wlan_device* device)
+rt_err_t rt_wlan_dev_enter_promisc(struct rt_wlan_device *device)
 {
     rt_err_t result = RT_EOK;
     int enable = 1;
@@ -384,7 +419,7 @@ rt_err_t rt_wlan_dev_enter_promisc(struct rt_wlan_device* device)
     return result;
 }
 
-rt_err_t rt_wlan_dev_exit_promisc(struct rt_wlan_device* device)
+rt_err_t rt_wlan_dev_exit_promisc(struct rt_wlan_device *device)
 {
     rt_err_t result = RT_EOK;
     int enable = 0;
@@ -398,7 +433,7 @@ rt_err_t rt_wlan_dev_exit_promisc(struct rt_wlan_device* device)
     return result;
 }
 
-rt_err_t rt_wlan_dev_set_promisc_callback(struct rt_wlan_device* device, rt_wlan_pormisc_callback_t callback)
+rt_err_t rt_wlan_dev_set_promisc_callback(struct rt_wlan_device *device, rt_wlan_pormisc_callback_t callback)
 {
     if (device == RT_NULL)
     {
@@ -409,7 +444,7 @@ rt_err_t rt_wlan_dev_set_promisc_callback(struct rt_wlan_device* device, rt_wlan
     return RT_EOK;
 }
 
-void rt_wlan_dev_promisc_handler(struct rt_wlan_device* device, void* data, int len)
+void rt_wlan_dev_promisc_handler(struct rt_wlan_device *device, void *data, int len)
 {
     rt_wlan_pormisc_callback_t callback;
 
@@ -426,7 +461,7 @@ void rt_wlan_dev_promisc_handler(struct rt_wlan_device* device, void* data, int 
     }
 }
 
-rt_err_t rt_wlan_dev_cfg_filter(struct rt_wlan_device* device, struct rt_wlan_filter* filter)
+rt_err_t rt_wlan_dev_cfg_filter(struct rt_wlan_device *device, struct rt_wlan_filter *filter)
 {
     rt_err_t result = RT_EOK;
 
@@ -443,7 +478,7 @@ rt_err_t rt_wlan_dev_cfg_filter(struct rt_wlan_device* device, struct rt_wlan_fi
     return result;
 }
 
-rt_err_t rt_wlan_dev_set_channel(struct rt_wlan_device* device, int channel)
+rt_err_t rt_wlan_dev_set_channel(struct rt_wlan_device *device, int channel)
 {
     rt_err_t result = RT_EOK;
 
@@ -460,7 +495,7 @@ rt_err_t rt_wlan_dev_set_channel(struct rt_wlan_device* device, int channel)
     return result;
 }
 
-int rt_wlan_dev_get_channel(struct rt_wlan_device* device)
+int rt_wlan_dev_get_channel(struct rt_wlan_device *device)
 {
     rt_err_t result = RT_EOK;
     int channel = -1;
@@ -481,7 +516,7 @@ int rt_wlan_dev_get_channel(struct rt_wlan_device* device)
     return channel;
 }
 
-rt_err_t rt_wlan_dev_set_country(struct rt_wlan_device* device, rt_country_code_t country_code)
+rt_err_t rt_wlan_dev_set_country(struct rt_wlan_device *device, rt_country_code_t country_code)
 {
     int result = RT_EOK;
 
@@ -494,7 +529,7 @@ rt_err_t rt_wlan_dev_set_country(struct rt_wlan_device* device, rt_country_code_
     return result;
 }
 
-rt_country_code_t rt_wlan_dev_get_country(struct rt_wlan_device* device)
+rt_country_code_t rt_wlan_dev_get_country(struct rt_wlan_device *device)
 {
     int result = RT_EOK;
     rt_country_code_t country_code = RT_COUNTRY_UNKNOWN;
@@ -515,10 +550,10 @@ rt_country_code_t rt_wlan_dev_get_country(struct rt_wlan_device* device)
     return country_code;
 }
 
-rt_err_t rt_wlan_dev_scan(struct rt_wlan_device* device, struct rt_wlan_info* info)
+rt_err_t rt_wlan_dev_scan(struct rt_wlan_device *device, struct rt_wlan_info *info)
 {
     struct rt_scan_info scan_info = { 0 };
-    struct rt_scan_info* p_scan_info = RT_NULL;
+    struct rt_scan_info *p_scan_info = RT_NULL;
     rt_err_t result = 0;
 
     if (device == RT_NULL)
@@ -552,7 +587,7 @@ rt_err_t rt_wlan_dev_scan(struct rt_wlan_device* device, struct rt_wlan_info* in
     return result;
 }
 
-rt_err_t rt_wlan_dev_scan_stop(struct rt_wlan_device* device)
+rt_err_t rt_wlan_dev_scan_stop(struct rt_wlan_device *device)
 {
     rt_err_t result = 0;
 
@@ -565,7 +600,7 @@ rt_err_t rt_wlan_dev_scan_stop(struct rt_wlan_device* device)
     return result;
 }
 
-rt_err_t rt_wlan_dev_report_data(struct rt_wlan_device* device, void* buff, int len)
+rt_err_t rt_wlan_dev_report_data(struct rt_wlan_device *device, void *buff, int len)
 {
 #ifdef RT_WLAN_PROT_ENABLE
     return rt_wlan_dev_transfer_prot(device, buff, len);
@@ -574,7 +609,7 @@ rt_err_t rt_wlan_dev_report_data(struct rt_wlan_device* device, void* buff, int 
 #endif
 }
 
-rt_err_t rt_wlan_dev_enter_mgnt_filter(struct rt_wlan_device* device)
+rt_err_t rt_wlan_dev_enter_mgnt_filter(struct rt_wlan_device *device)
 {
     rt_err_t result = RT_EOK;
     int enable = 1;
@@ -588,7 +623,7 @@ rt_err_t rt_wlan_dev_enter_mgnt_filter(struct rt_wlan_device* device)
     return result;
 }
 
-rt_err_t rt_wlan_dev_exit_mgnt_filter(struct rt_wlan_device* device)
+rt_err_t rt_wlan_dev_exit_mgnt_filter(struct rt_wlan_device *device)
 {
     rt_err_t result = RT_EOK;
     int enable = 0;
@@ -602,7 +637,7 @@ rt_err_t rt_wlan_dev_exit_mgnt_filter(struct rt_wlan_device* device)
     return result;
 }
 
-rt_err_t rt_wlan_dev_set_mgnt_filter_callback(struct rt_wlan_device* device, rt_wlan_mgnt_filter_callback_t callback)
+rt_err_t rt_wlan_dev_set_mgnt_filter_callback(struct rt_wlan_device *device, rt_wlan_mgnt_filter_callback_t callback)
 {
     if (device == RT_NULL)
     {
@@ -613,7 +648,7 @@ rt_err_t rt_wlan_dev_set_mgnt_filter_callback(struct rt_wlan_device* device, rt_
     return RT_EOK;
 }
 
-void rt_wlan_dev_mgnt_filter_handler(struct rt_wlan_device* device, void* data, int len)
+void rt_wlan_dev_mgnt_filter_handler(struct rt_wlan_device *device, void *data, int len)
 {
     rt_wlan_mgnt_filter_callback_t callback;
 
@@ -630,7 +665,7 @@ void rt_wlan_dev_mgnt_filter_handler(struct rt_wlan_device* device, void* data, 
     }
 }
 
-int rt_wlan_dev_send_raw_frame(struct rt_wlan_device* device, void* buff, int len)
+int rt_wlan_dev_send_raw_frame(struct rt_wlan_device *device, void *buff, int len)
 {
     if (device == RT_NULL)
     {
@@ -647,13 +682,13 @@ int rt_wlan_dev_send_raw_frame(struct rt_wlan_device* device, void* buff, int le
 
 static rt_err_t _rt_wlan_dev_init(rt_device_t dev)
 {
-    struct rt_wlan_device* wlan = (struct rt_wlan_device*)dev;
+    struct rt_wlan_device *wlan = (struct rt_wlan_device *)dev;
     rt_err_t result = RT_EOK;
 
-    rt_mutex_init(&wlan->lock, "wlan_dev", RT_IPC_FLAG_FIFO);
+    rt_mutex_init(&wlan->lock, "wlan_dev", RT_IPC_FLAG_PRIO);
 
     if (wlan->ops->wlan_init)
-    { result = wlan->ops->wlan_init(wlan); }
+        result = wlan->ops->wlan_init(wlan);
 
     if (result == RT_EOK)
     {
@@ -667,9 +702,9 @@ static rt_err_t _rt_wlan_dev_init(rt_device_t dev)
     return result;
 }
 
-static rt_err_t _rt_wlan_dev_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t _rt_wlan_dev_control(rt_device_t dev, int cmd, void *args)
 {
-    struct rt_wlan_device* wlan = (struct rt_wlan_device*)dev;
+    struct rt_wlan_device *wlan = (struct rt_wlan_device *)dev;
     rt_err_t err = RT_EOK;
 
     RT_ASSERT(dev != RT_NULL);
@@ -678,179 +713,208 @@ static rt_err_t _rt_wlan_dev_control(rt_device_t dev, int cmd, void* args)
 
     switch (cmd)
     {
-        case RT_WLAN_CMD_MODE:
-        {
-            rt_wlan_mode_t mode = *((rt_wlan_mode_t*)args);
+    case RT_WLAN_CMD_MODE:
+    {
+        rt_wlan_mode_t mode = *((rt_wlan_mode_t *)args);
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_MODE, "RT_WLAN_CMD_MODE");
-            if (wlan->ops->wlan_mode)
-            { err = wlan->ops->wlan_mode(wlan, mode); }
-            break;
-        }
-        case RT_WLAN_CMD_SCAN:
-        {
-            struct rt_scan_info* scan_info = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_MODE, "RT_WLAN_CMD_MODE");
+        if (wlan->ops->wlan_mode)
+            err = wlan->ops->wlan_mode(wlan, mode);
+        break;
+    }
+    case RT_WLAN_CMD_SCAN:
+    {
+        struct rt_scan_info *scan_info = args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SCAN, "RT_WLAN_CMD_SCAN");
-            if (wlan->ops->wlan_scan)
-            { err = wlan->ops->wlan_scan(wlan, scan_info); }
-            break;
-        }
-        case RT_WLAN_CMD_JOIN:
-        {
-            struct rt_sta_info* sta_info = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SCAN, "RT_WLAN_CMD_SCAN");
+        if (wlan->ops->wlan_scan)
+            err = wlan->ops->wlan_scan(wlan, scan_info);
+        break;
+    }
+    case RT_WLAN_CMD_JOIN:
+    {
+        struct rt_sta_info *sta_info = args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_JOIN, "RT_WLAN_CMD_JOIN");
-            if (wlan->ops->wlan_join)
-            { err = wlan->ops->wlan_join(wlan, sta_info); }
-            break;
-        }
-        case RT_WLAN_CMD_SOFTAP:
-        {
-            struct rt_ap_info* ap_info = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_JOIN, "RT_WLAN_CMD_JOIN");
+        if (wlan->ops->wlan_join)
+            err = wlan->ops->wlan_join(wlan, sta_info);
+        break;
+    }
+    case RT_WLAN_CMD_SOFTAP:
+    {
+        struct rt_ap_info *ap_info = args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SOFTAP, "RT_WLAN_CMD_SOFTAP");
-            if (wlan->ops->wlan_softap)
-            { err = wlan->ops->wlan_softap(wlan, ap_info); }
-            break;
-        }
-        case RT_WLAN_CMD_DISCONNECT:
-        {
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_DISCONNECT, "RT_WLAN_CMD_DISCONNECT");
-            if (wlan->ops->wlan_disconnect)
-            { err = wlan->ops->wlan_disconnect(wlan); }
-            break;
-        }
-        case RT_WLAN_CMD_AP_STOP:
-        {
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_AP_STOP, "RT_WLAN_CMD_AP_STOP");
-            if (wlan->ops->wlan_ap_stop)
-            { err = wlan->ops->wlan_ap_stop(wlan); }
-            break;
-        }
-        case RT_WLAN_CMD_AP_DEAUTH:
-        {
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_AP_DEAUTH, "RT_WLAN_CMD_AP_DEAUTH");
-            if (wlan->ops->wlan_ap_deauth)
-            { err = wlan->ops->wlan_ap_deauth(wlan, args); }
-            break;
-        }
-        case RT_WLAN_CMD_SCAN_STOP:
-        {
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SCAN_STOP, "RT_WLAN_CMD_SCAN_STOP");
-            if (wlan->ops->wlan_scan_stop)
-            { err = wlan->ops->wlan_scan_stop(wlan); }
-            break;
-        }
-        case RT_WLAN_CMD_GET_RSSI:
-        {
-            int* rssi = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SOFTAP, "RT_WLAN_CMD_SOFTAP");
+        if (wlan->ops->wlan_softap)
+            err = wlan->ops->wlan_softap(wlan, ap_info);
+        break;
+    }
+    case RT_WLAN_CMD_DISCONNECT:
+    {
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_DISCONNECT, "RT_WLAN_CMD_DISCONNECT");
+        if (wlan->ops->wlan_disconnect)
+            err = wlan->ops->wlan_disconnect(wlan);
+        break;
+    }
+    case RT_WLAN_CMD_AP_STOP:
+    {
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_AP_STOP, "RT_WLAN_CMD_AP_STOP");
+        if (wlan->ops->wlan_ap_stop)
+            err = wlan->ops->wlan_ap_stop(wlan);
+        break;
+    }
+    case RT_WLAN_CMD_AP_DEAUTH:
+    {
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_AP_DEAUTH, "RT_WLAN_CMD_AP_DEAUTH");
+        if (wlan->ops->wlan_ap_deauth)
+            err = wlan->ops->wlan_ap_deauth(wlan, args);
+        break;
+    }
+    case RT_WLAN_CMD_SCAN_STOP:
+    {
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SCAN_STOP, "RT_WLAN_CMD_SCAN_STOP");
+        if (wlan->ops->wlan_scan_stop)
+            err = wlan->ops->wlan_scan_stop(wlan);
+        break;
+    }
+    case RT_WLAN_CMD_GET_RSSI:
+    {
+        int *rssi = args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_RSSI, "RT_WLAN_CMD_GET_RSSI");
-            if (wlan->ops->wlan_get_rssi)
-            { *rssi = wlan->ops->wlan_get_rssi(wlan); }
-            break;
-        }
-        case RT_WLAN_CMD_SET_POWERSAVE:
-        {
-            int level = *((int*)args);
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_RSSI, "RT_WLAN_CMD_GET_RSSI");
+        if (wlan->ops->wlan_get_rssi)
+            *rssi = wlan->ops->wlan_get_rssi(wlan);
+        break;
+    }
+    case RT_WLAN_CMD_SET_POWERSAVE:
+    {
+        int level = *((int *)args);
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SET_POWERSAVE, "RT_WLAN_CMD_SET_POWERSAVE");
-            if (wlan->ops->wlan_set_powersave)
-            { err = wlan->ops->wlan_set_powersave(wlan, level); }
-            break;
-        }
-        case RT_WLAN_CMD_GET_POWERSAVE:
-        {
-            int* level = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SET_POWERSAVE, "RT_WLAN_CMD_SET_POWERSAVE");
+        if (wlan->ops->wlan_set_powersave)
+            err = wlan->ops->wlan_set_powersave(wlan, level);
+        break;
+    }
+    case RT_WLAN_CMD_GET_POWERSAVE:
+    {
+        int *level = args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_POWERSAVE, "RT_WLAN_CMD_GET_POWERSAVE");
-            if (wlan->ops->wlan_get_powersave)
-            { *level = wlan->ops->wlan_get_powersave(wlan); }
-            break;
-        }
-        case RT_WLAN_CMD_CFG_PROMISC:
-        {
-            rt_bool_t start = *((rt_bool_t*)args);
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_POWERSAVE, "RT_WLAN_CMD_GET_POWERSAVE");
+        if (wlan->ops->wlan_get_powersave)
+            *level = wlan->ops->wlan_get_powersave(wlan);
+        break;
+    }
+    case RT_WLAN_CMD_CFG_PROMISC:
+    {
+        rt_bool_t start = *((rt_bool_t *)args);
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_CFG_PROMISC, "RT_WLAN_CMD_CFG_PROMISC");
-            if (wlan->ops->wlan_cfg_promisc)
-            { err = wlan->ops->wlan_cfg_promisc(wlan, start); }
-            break;
-        }
-        case RT_WLAN_CMD_CFG_FILTER:
-        {
-            struct rt_wlan_filter* filter = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_CFG_PROMISC, "RT_WLAN_CMD_CFG_PROMISC");
+        if (wlan->ops->wlan_cfg_promisc)
+            err = wlan->ops->wlan_cfg_promisc(wlan, start);
+        break;
+    }
+    case RT_WLAN_CMD_CFG_FILTER:
+    {
+        struct rt_wlan_filter *filter = args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_CFG_FILTER, "RT_WLAN_CMD_CFG_FILTER");
-            if (wlan->ops->wlan_cfg_filter)
-            { err = wlan->ops->wlan_cfg_filter(wlan, filter); }
-            break;
-        }
-        case RT_WLAN_CMD_CFG_MGNT_FILTER:
-        {
-            rt_bool_t start = *((rt_bool_t*)args);
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_CFG_FILTER, "RT_WLAN_CMD_CFG_FILTER");
+        if (wlan->ops->wlan_cfg_filter)
+            err = wlan->ops->wlan_cfg_filter(wlan, filter);
+        break;
+    }
+    case RT_WLAN_CMD_CFG_MGNT_FILTER:
+    {
+        rt_bool_t start = *((rt_bool_t *)args);
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_CFG_MGNT_FILTER, "RT_WLAN_CMD_CFG_MGNT_FILTER");
-            if (wlan->ops->wlan_cfg_mgnt_filter)
-            { err = wlan->ops->wlan_cfg_mgnt_filter(wlan, start); }
-            break;
-        }
-        case RT_WLAN_CMD_SET_CHANNEL:
-        {
-            int channel = *(int*)args;
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SET_CHANNEL, "RT_WLAN_CMD_SET_CHANNEL");
-            if (wlan->ops->wlan_set_channel)
-            { err = wlan->ops->wlan_set_channel(wlan, channel); }
-            break;
-        }
-        case RT_WLAN_CMD_GET_CHANNEL:
-        {
-            int* channel = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_CFG_MGNT_FILTER, "RT_WLAN_CMD_CFG_MGNT_FILTER");
+        if (wlan->ops->wlan_cfg_mgnt_filter)
+            err = wlan->ops->wlan_cfg_mgnt_filter(wlan, start);
+        break;
+    }
+    case RT_WLAN_CMD_SET_CHANNEL:
+    {
+        int channel = *(int *)args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SET_CHANNEL, "RT_WLAN_CMD_SET_CHANNEL");
+        if (wlan->ops->wlan_set_channel)
+            err = wlan->ops->wlan_set_channel(wlan, channel);
+        break;
+    }
+    case RT_WLAN_CMD_GET_CHANNEL:
+    {
+        int *channel = args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_CHANNEL, "RT_WLAN_CMD_GET_CHANNEL");
-            if (wlan->ops->wlan_get_channel)
-            { *channel = wlan->ops->wlan_get_channel(wlan); }
-            break;
-        }
-        case RT_WLAN_CMD_SET_COUNTRY:
-        {
-            rt_country_code_t country = *(rt_country_code_t*)args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_CHANNEL, "RT_WLAN_CMD_GET_CHANNEL");
+        if (wlan->ops->wlan_get_channel)
+            *channel = wlan->ops->wlan_get_channel(wlan);
+        break;
+    }
+    case RT_WLAN_CMD_SET_COUNTRY:
+    {
+        rt_country_code_t country = *(rt_country_code_t *)args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SET_COUNTRY, "RT_WLAN_CMD_SET_COUNTRY");
-            if (wlan->ops->wlan_set_country)
-            { err = wlan->ops->wlan_set_country(wlan, country); }
-            break;
-        }
-        case RT_WLAN_CMD_GET_COUNTRY:
-        {
-            rt_country_code_t* country = args;
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_COUNTRY, "RT_WLAN_CMD_GET_COUNTRY");
-            if (wlan->ops->wlan_get_country)
-            { *country = wlan->ops->wlan_get_country(wlan); }
-            break;
-        }
-        case RT_WLAN_CMD_SET_MAC:
-        {
-            rt_uint8_t* mac = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SET_COUNTRY, "RT_WLAN_CMD_SET_COUNTRY");
+        if (wlan->ops->wlan_set_country)
+            err = wlan->ops->wlan_set_country(wlan, country);
+        break;
+    }
+    case RT_WLAN_CMD_GET_COUNTRY:
+    {
+        rt_country_code_t *country = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_COUNTRY, "RT_WLAN_CMD_GET_COUNTRY");
+        if (wlan->ops->wlan_get_country)
+            *country = wlan->ops->wlan_get_country(wlan);
+        break;
+    }
+    case RT_WLAN_CMD_SET_MAC:
+    {
+        rt_uint8_t *mac = args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SET_MAC, "RT_WLAN_CMD_SET_MAC");
-            if (wlan->ops->wlan_set_mac)
-            { err = wlan->ops->wlan_set_mac(wlan, mac); }
-            break;
-        }
-        case RT_WLAN_CMD_GET_MAC:
-        {
-            rt_uint8_t* mac = args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_SET_MAC, "RT_WLAN_CMD_SET_MAC");
+        if (wlan->ops->wlan_set_mac)
+            err = wlan->ops->wlan_set_mac(wlan, mac);
+        break;
+    }
+    case RT_WLAN_CMD_GET_MAC:
+    {
+        rt_uint8_t *mac = args;
 
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_MAC, "RT_WLAN_CMD_GET_MAC");
-            if (wlan->ops->wlan_get_mac)
-            { err = wlan->ops->wlan_get_mac(wlan, mac); }
-            break;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_MAC, "RT_WLAN_CMD_GET_MAC");
+        if (wlan->ops->wlan_get_mac)
+            err = wlan->ops->wlan_get_mac(wlan, mac);
+        break;
+    }
+    case RT_WLAN_CMD_GET_FAST_CONNECT_INFO:
+    {
+
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_GET_FAST_INFO, "RT_WLAN_CMD_GET_FAST_INFO");
+        if (wlan->ops->wlan_get_fast_info)
+        {
+            err = wlan->ops->wlan_get_fast_info(args);
         }
-        default:
-            LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, -1, "UNKUOWN");
-            break;
+        else
+        {
+            err = -RT_EEMPTY;
+        }
+        break;
+    }
+    case RT_WLAN_CMD_FAST_CONNECT:
+    {
+        struct rt_wlan_buff *buff = (struct rt_wlan_buff *)args;
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, RT_WLAN_CMD_FAST_CONNECT, "RT_WLAN_CMD_FAST_CONNECT");
+        if (wlan->ops->wlan_get_fast_info)
+        {
+            err = wlan->ops->wlan_fast_connect(buff->data,buff->len);
+        }
+        else
+        {
+            err = -RT_EEMPTY;
+        }
+        break;
+    }
+
+    default:
+        LOG_D("%s %d cmd[%d]:%s  run......", __FUNCTION__, __LINE__, -1, "UNKUOWN");
+        break;
     }
 
     WLAN_DEV_UNLOCK(wlan);
@@ -870,7 +934,7 @@ const static struct rt_device_ops wlan_ops =
 };
 #endif
 
-rt_err_t rt_wlan_dev_register(struct rt_wlan_device* wlan, const char* name, const struct rt_wlan_dev_ops* ops, rt_uint32_t flag, void* user_data)
+rt_err_t rt_wlan_dev_register(struct rt_wlan_device *wlan, const char *name, const struct rt_wlan_dev_ops *ops, rt_uint32_t flag, void *user_data)
 {
     rt_err_t err = RT_EOK;
 

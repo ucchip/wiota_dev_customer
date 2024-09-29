@@ -10,12 +10,12 @@
 
 #include <drivers/spi.h>
 
-rt_err_t rt_qspi_configure(struct rt_qspi_device* device, struct rt_qspi_configuration* cfg)
+rt_err_t rt_qspi_configure(struct rt_qspi_device *device, struct rt_qspi_configuration *cfg)
 {
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(cfg != RT_NULL);
 
-    struct rt_qspi_device* qspi_device = (struct rt_qspi_device*)device;
+    struct rt_qspi_device *qspi_device = (struct rt_qspi_device *)device;
     rt_err_t result = RT_EOK;
 
     /* copy configuration items */
@@ -32,12 +32,12 @@ rt_err_t rt_qspi_configure(struct rt_qspi_device* device, struct rt_qspi_configu
     return result;
 }
 
-rt_err_t rt_qspi_bus_register(struct rt_spi_bus* bus, const char* name, const struct rt_spi_ops* ops)
+rt_err_t rt_qspi_bus_register(struct rt_spi_bus *bus, const char *name, const struct rt_spi_ops *ops)
 {
     rt_err_t result = RT_EOK;
 
     result = rt_spi_bus_register(bus, name, ops);
-    if (result == RT_EOK)
+    if(result == RT_EOK)
     {
         /* set SPI bus to qspi modes */
         bus->mode = RT_SPI_BUS_MODE_QSPI;
@@ -46,7 +46,7 @@ rt_err_t rt_qspi_bus_register(struct rt_spi_bus* bus, const char* name, const st
     return result;
 }
 
-rt_size_t rt_qspi_transfer_message(struct rt_qspi_device*  device, struct rt_qspi_message* message)
+rt_size_t rt_qspi_transfer_message(struct rt_qspi_device  *device, struct rt_qspi_message *message)
 {
     rt_err_t result;
 
@@ -97,14 +97,14 @@ __exit:
     return result;
 }
 
-rt_err_t rt_qspi_send_then_recv(struct rt_qspi_device* device, const void* send_buf, rt_size_t send_length, void* recv_buf, rt_size_t recv_length)
+rt_err_t rt_qspi_send_then_recv(struct rt_qspi_device *device, const void *send_buf, rt_size_t send_length, void *recv_buf, rt_size_t recv_length)
 {
     RT_ASSERT(send_buf);
     RT_ASSERT(recv_buf);
     RT_ASSERT(send_length != 0);
 
     struct rt_qspi_message message;
-    unsigned char* ptr = (unsigned char*)send_buf;
+    unsigned char *ptr = (unsigned char *)send_buf;
     rt_size_t count = 0;
     rt_err_t result = 0;
 
@@ -180,13 +180,13 @@ rt_err_t rt_qspi_send_then_recv(struct rt_qspi_device* device, const void* send_
     return result;
 }
 
-rt_err_t rt_qspi_send(struct rt_qspi_device* device, const void* send_buf, rt_size_t length)
+rt_err_t rt_qspi_send(struct rt_qspi_device *device, const void *send_buf, rt_size_t length)
 {
     RT_ASSERT(send_buf);
     RT_ASSERT(length != 0);
 
     struct rt_qspi_message message;
-    char* ptr = (char*)send_buf;
+    unsigned char *ptr = (unsigned char *)send_buf;
     rt_size_t  count = 0;
     rt_err_t result = 0;
 
@@ -241,7 +241,6 @@ rt_err_t rt_qspi_send(struct rt_qspi_device* device, const void* send_buf, rt_si
     else
     {
         message.qspi_data_lines = 0;
-
     }
 
     /* set send buf and send size */

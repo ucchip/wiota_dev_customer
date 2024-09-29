@@ -1,17 +1,9 @@
-
-//#include <interrupt.h>
 #include <rthw.h>
-
 #include <board.h>
-//#include <platform.h>
-//#include <encoding.h>
-//#include <interrupt.h>
 
-#include "uc_pulpino.h"
-#include <uc_utils.h>
-#include <uc_event.h>
-#include "uc_timer.h"
-#include "uc_spi_flash.h"
+#ifdef RT_USING_SERIAL
+#include "drv_usart.h"
+#endif
 
 #if 0
 extern void use_default_clocks(void);
@@ -50,7 +42,7 @@ static void rt_hw_timer_init(void)
 }
 #else
 /* fixed misaligned bug for qemu */
-void* __wrap_memset(void* s, int c, size_t n)
+void *__wrap_memset(void *s, int c, size_t n)
 {
     return rt_memset(s, c, n);
 }
@@ -58,16 +50,14 @@ void* __wrap_memset(void* s, int c, size_t n)
 
 void timer0_compare_handler(void)
 {
-    //timer_int_clear_pending(UC_TIMER0, TIMER_IT_CMP);
+    // timer_int_clear_pending(UC_TIMER0, TIMER_IT_CMP);
 
     rt_tick_increase();
     timer_set_count(UC_TIMER0, 0);
 }
 
-//#define configCPU_CLOCK_HZ            ( ( unsigned long ) 4860000)
-//#define configTICK_RATE_DIV           ( 500 )   //Div=Tick*PreScalar 2500?
-#define configCPU_CLOCK_HZ          ( ( unsigned long ) BSP_CLOCK_SYSTEM_FREQ_HZ)
-#define configTICK_RATE_DIV         ( RT_TICK_PER_SECOND )
+#define configCPU_CLOCK_HZ ((unsigned long)BSP_CLOCK_SYSTEM_FREQ_HZ)
+#define configTICK_RATE_DIV (RT_TICK_PER_SECOND)
 
 void rt_hw_systick_reinit(uint32_t freq_div)
 {
@@ -113,31 +103,16 @@ static void rt_hw_systick_init(void)
 
 void rt_hw_board_init(void)
 {
-    /* initialize the system clock */
-    //rt_hw_clock_init();
-
-    /* initialize hardware interrupt */
-    //rt_hw_interrupt_init();
-
-#ifdef RT_USING_HEAP
-    rt_memset((void*)HEAP_BEGIN, 0x00, (uint32_t)HEAP_END - (uint32_t)HEAP_BEGIN);
-    rt_system_heap_init((void*)HEAP_BEGIN, (void*)HEAP_END);
-#endif
-
     /* initialize timer0 */
     rt_hw_systick_init();
 
-    /* Pin driver initialization is open by default */
-#ifdef RT_USING_PIN
-    extern int rt_hw_pin_init(void);
-    rt_hw_pin_init();
+#ifdef RT_USING_HEAP
+    rt_memset((void *)HEAP_BEGIN, 0x00, (uint32_t)HEAP_END - (uint32_t)HEAP_BEGIN);
+    rt_system_heap_init((void *)HEAP_BEGIN, (void *)HEAP_END);
 #endif
 
 #ifdef RT_USING_SERIAL
-    extern int rt_hw_usart_init(void);
     rt_hw_usart_init();
-    //extern int virtual_usart_init(void);
-    //virtual_usart_init();
 #endif
 
 #ifdef RT_USING_CONSOLE
@@ -153,21 +128,20 @@ void rt_hw_board_init(void)
 
 void rt_hw_cpu_reset(void)
 {
-    volatile uint32_t* pmu_ctrl = (uint32_t*)(PMU_BASE_ADDR + 0x000);
-    volatile uint32_t* reg_xip_ctrl = (volatile uint32_t*)0x1a10c02c;
+    volatile uint32_t *pmu_ctrl = (uint32_t *)(PMU_BASE_ADDR + 0x000);
+    volatile uint32_t *reg_xip_ctrl = (volatile uint32_t *)0x1a10c02c;
 
-    //WAIT_XIP_FREE
-    while ((*reg_xip_ctrl) & 0x1);
+    // WAIT_XIP_FREE
+    while ((*reg_xip_ctrl) & 0x1)
+        ;
     *pmu_ctrl |= 1 << 14;
 }
 
 #ifdef RT_USING_FINSH
 #include <finsh.h>
-static void reboot(uint8_t argc, char** argv)
+static void reboot(uint8_t argc, char **argv)
 {
     rt_hw_cpu_reset();
 }
-FINSH_FUNCTION_EXPORT_ALIAS(reboot, __cmd_reboot, Reboot System);
+MSH_CMD_EXPORT(reboot, Reboot System);
 #endif /* RT_USING_FINSH */
-
-

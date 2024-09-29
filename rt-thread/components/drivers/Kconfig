@@ -5,10 +5,6 @@ config RT_USING_DEVICE_IPC
     default y
 
 if RT_USING_DEVICE_IPC
-    config RT_PIPE_BUFSZ
-        int "Set pipe buffer size"
-        default 512
-    
     config RT_USING_SYSTEM_WORKQUEUE
         bool "Using system default workqueue"
         default n
@@ -18,28 +14,36 @@ if RT_USING_DEVICE_IPC
             int "The stack size for system workqueue thread"
             default 2048
 
-    config RT_SYSTEM_WORKQUEUE_PRIORITY
+        config RT_SYSTEM_WORKQUEUE_PRIORITY
             int "The priority level of system workqueue thread"
             default 23
     endif
 endif
 
-config RT_USING_SERIAL
-    bool "Using serial device drivers"
+menuconfig RT_USING_SERIAL
+    bool "USING Serial device drivers"
     select RT_USING_DEVICE_IPC
     select RT_USING_DEVICE
     default y
 
-if RT_USING_SERIAL
-    config RT_SERIAL_USING_DMA
-        bool "Enable serial DMA mode"
-        default y
+    if RT_USING_SERIAL
+        choice
+            prompt "Choice Serial version"
+            default RT_USING_SERIAL_V1
+            config RT_USING_SERIAL_V1
+                bool "RT_USING_SERIAL_V1"
+            config RT_USING_SERIAL_V2
+                bool "RT_USING_SERIAL_V2"
+        endchoice
+        config RT_SERIAL_USING_DMA
+            bool "Enable serial DMA mode"
+            default y
 
-    config RT_SERIAL_RB_BUFSZ
-        int "Set RX buffer size"
-        default 64
-
-endif
+        config RT_SERIAL_RB_BUFSZ
+            int "Set RX buffer size"
+            depends on !RT_USING_SERIAL_V2
+            default 64
+    endif
 
 config RT_USING_CAN
     bool "Using CAN device drivers"
@@ -48,6 +52,9 @@ config RT_USING_CAN
 if RT_USING_CAN
     config RT_CAN_USING_HDR
         bool "Enable CAN hardware filter"
+        default n
+    config RT_CAN_USING_CANFD
+        bool "Enable CANFD support"
         default n
 endif
 
@@ -75,12 +82,10 @@ config RT_USING_CPUTIME
 
 if RT_USING_CPUTIME
     config RT_USING_CPUTIME_CORTEXM
-        bool "Use DWT for CPU time"
+        bool "Support Cortex-M CPU"
         default y
-        depends on ARCH_ARM_CORTEX_M3 || ARCH_ARM_CORTEX_M4 || ARCH_ARM_CORTEX_M7
-        help
-            Some Cortex-M3/4/7 MCU has Data Watchpoint and Trace Register, use
-            the cycle counter in DWT for CPU time.
+        depends on ARCH_ARM_CORTEX_M0 || ARCH_ARM_CORTEX_M3 || ARCH_ARM_CORTEX_M4 || ARCH_ARM_CORTEX_M7
+        select PKG_USING_PERF_COUNTER
 endif
 
 config RT_USING_I2C
@@ -141,6 +146,42 @@ config RT_USING_PM
     bool "Using Power Management device drivers"
     default n
 
+    if RT_USING_PM
+        config PM_TICKLESS_THRESHOLD_TIME
+            int "PM tickless threashold time"
+            default 2
+
+        config PM_USING_CUSTOM_CONFIG
+            bool "PM using custom pm config"
+            default n
+
+        config PM_ENABLE_DEBUG
+            bool "PM Enable Debug"
+            default n
+
+        config PM_ENABLE_SUSPEND_SLEEP_MODE
+            bool "PM Device suspend change sleep mode"
+            default n
+
+        config PM_ENABLE_THRESHOLD_SLEEP_MODE
+            bool "PM using threshold time change sleep mode"
+            default n
+
+        if PM_ENABLE_THRESHOLD_SLEEP_MODE
+            config PM_LIGHT_THRESHOLD_TIME
+                int "PM light mode threashold time"
+                default 5
+
+            config PM_DEEP_THRESHOLD_TIME
+                int "PM deep mode threashold time"
+                default 20
+
+            config PM_STANDBY_THRESHOLD_TIME
+                int "PM standby mode threashold time"
+                default 100
+        endif
+    endif
+
 config RT_USING_RTC
     bool "Using RTC device drivers"
     default n
@@ -153,20 +194,6 @@ config RT_USING_RTC
         config RT_USING_SOFT_RTC
             bool "Using software simulation RTC device"
             default n
-
-        config RTC_SYNC_USING_NTP
-            bool "Using NTP auto sync RTC time"
-            depends on PKG_NETUTILS_NTP
-            default y
-
-            if RTC_SYNC_USING_NTP
-                config RTC_NTP_FIRST_SYNC_DELAY
-                    int "NTP first sync delay time(second) for network connect"
-                    default 30
-                config RTC_NTP_SYNC_PERIOD
-                    int "NTP auto sync period(second)"
-                    default 3600
-           endif
     endif
 
 config RT_USING_SDIO
@@ -202,7 +229,18 @@ config RT_USING_SPI
     bool "Using SPI Bus/Device device drivers"
     default n
 
-    if RT_USING_SPI  
+    if RT_USING_SPI
+        config RT_USING_SPI_BITOPS
+            select RT_USING_PIN
+            bool "Use GPIO to simulate SPI"
+            default n
+
+        if RT_USING_SPI_BITOPS
+            config RT_SPI_BITOPS_DEBUG
+                bool "Use simulate SPI debug message"
+                default n
+        endif
+
         config RT_USING_QSPI
             bool "Enable QSPI mode"
             default n
@@ -253,16 +291,6 @@ config RT_USING_SPI
             bool "Using RW009/007 SPI Wi-Fi wireless interface"
             select RT_USING_LWIP
             default n
-
-        config RT_USING_SPI_LCD
-            bool "Using ILI9341 SPI LCD"
-            default n
-            if RT_USING_SPI_LCD
-                config LCD_USING_SPI_NAME
-                    string "the spi device name for lcd"
-                    default "spi50"
-            endif
-        
     endif
 
 config RT_USING_WDT
@@ -639,9 +667,14 @@ menuconfig RT_USING_WIFI
     endif
 
 menu "Using USB"
+    config RT_USING_USB
+        bool
+        default n
+
     config RT_USING_USB_HOST
         bool "Using USB host"
         default n
+        select RT_USING_USB
 
         if RT_USING_USB_HOST
             config RT_USBH_MSTORAGE
@@ -664,6 +697,8 @@ menu "Using USB"
     config RT_USING_USB_DEVICE
         bool "Using USB device"
         default n
+        select RT_USING_USB
+
         if RT_USING_USB_DEVICE || RT_USING_USB_HOST
             config RT_USBD_THREAD_STACK_SZ
                 int "usb thread stack size"

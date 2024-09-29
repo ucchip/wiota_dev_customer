@@ -1,0 +1,47 @@
+menu "Application Example Config"
+
+    config APP_EXAMPLE_PIN
+        bool "Enable PIN Example"
+        default n
+    
+    config APP_EXAMPLE_UART
+        bool "Enable UART Example"
+        default n
+
+    config APP_EXAMPLE_I2C
+        bool "Enable I2C Example"
+        default n
+
+    config APP_EXAMPLE_SPI
+        bool "Enable SPI Example"
+        default n
+
+    config APP_EXAMPLE_ADC
+        bool "Enable ADC Example"
+        default n
+
+    config APP_EXAMPLE_DAC
+        bool "Enable DAC Example"
+        default n
+
+    config APP_EXAMPLE_RTC
+        bool "Enable RTC Example"
+        default n
+    
+    config APP_EXAMPLE_WATCHDOG
+        bool "Enable Watchdog Example"
+        default n
+
+    config APP_EXAMPLE_PWM
+        bool "Enable PWM Example"
+        default n
+
+    config APP_EXAMPLE_FLASH
+        bool "Enable Flash Example"
+        default n
+
+    config APP_EXAMPLE_HWTIMER
+        bool "Enable HwTimer Example"
+        default n
+
+endmenu

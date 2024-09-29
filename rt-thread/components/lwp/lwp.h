@@ -31,15 +31,15 @@ struct rt_lwp
 
     rt_list_t hlist;                                    /**< headp list */
 
-    uint8_t* text_entry;
+    uint8_t *text_entry;
     uint32_t text_size;
 
-    uint8_t* data;
+    uint8_t *data;
     uint32_t data_size;
 
-    uint32_t* kernel_sp;                                /**< kernel stack point */
+    uint32_t *kernel_sp;                                /**< kernel stack point */
     struct dfs_fdtable fdt;
-    void* args;
+    void *args;
 };
 
 struct lwp_header
@@ -60,12 +60,12 @@ struct lwp_chunk
     uint32_t data_len_space;
 };
 
-extern struct rt_lwp* rt_lwp_self(void);
+extern struct rt_lwp *rt_lwp_self(void);
 
-extern void rt_lwp_mem_init(struct rt_lwp* lwp);
-extern void rt_lwp_mem_deinit(struct rt_lwp* lwp);
-extern void* rt_lwp_mem_malloc(rt_uint32_t size);
-extern void rt_lwp_mem_free(void* addr);
-extern void* rt_lwp_mem_realloc(void* rmem, rt_size_t newsize);
+extern void rt_lwp_mem_init(struct rt_lwp *lwp);
+extern void rt_lwp_mem_deinit(struct rt_lwp *lwp);
+extern void *rt_lwp_mem_malloc(rt_uint32_t size);
+extern void rt_lwp_mem_free(void *addr);
+extern void *rt_lwp_mem_realloc(void *rmem, rt_size_t newsize);
 
 #endif

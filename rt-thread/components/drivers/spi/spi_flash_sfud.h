@@ -24,7 +24,7 @@
  *
  * @return probed SPI flash device, probe failed will return RT_NULL
  */
-rt_spi_flash_device_t rt_sfud_flash_probe(const char* spi_flash_dev_name, const char* spi_dev_name);
+rt_spi_flash_device_t rt_sfud_flash_probe(const char *spi_flash_dev_name, const char *spi_dev_name);
 
 /**
  * Probe SPI flash by SFUD (Serial Flash Universal Driver) driver library and though SPI device by specified configuration.
@@ -36,8 +36,8 @@ rt_spi_flash_device_t rt_sfud_flash_probe(const char* spi_flash_dev_name, const 
  *
  * @return probed SPI flash device, probe failed will return RT_NULL
  */
-rt_spi_flash_device_t rt_sfud_flash_probe_ex(const char* spi_flash_dev_name, const char* spi_dev_name,
-                                             struct rt_spi_configuration* spi_cfg, struct rt_qspi_configuration* qspi_cfg);
+rt_spi_flash_device_t rt_sfud_flash_probe_ex(const char *spi_flash_dev_name, const char *spi_dev_name,
+        struct rt_spi_configuration *spi_cfg, struct rt_qspi_configuration *qspi_cfg);
 
 /**
  * Delete SPI flash device
@@ -55,7 +55,7 @@ rt_err_t rt_sfud_flash_delete(rt_spi_flash_device_t spi_flash_dev);
  *
  * @return sfud flash device if success, otherwise return RT_NULL
  */
-sfud_flash_t rt_sfud_flash_find(const char* spi_dev_name);
+sfud_flash_t rt_sfud_flash_find(const char *spi_dev_name);
 
 /**
  * Find sfud flash device by flash device name
@@ -64,6 +64,6 @@ sfud_flash_t rt_sfud_flash_find(const char* spi_dev_name);
  *
  * @return sfud flash device if success, otherwise return RT_NULL
  */
-sfud_flash_t rt_sfud_flash_find_by_dev_name(const char* flash_dev_name);
+sfud_flash_t rt_sfud_flash_find_by_dev_name(const char *flash_dev_name);
 
 #endif /* _SPI_FLASH_SFUD_H_ */

@@ -28,21 +28,21 @@
  *
  * @return 0 on successful, -1 on failed.
  */
-int dfs_register(const struct dfs_filesystem_ops* ops)
+int dfs_register(const struct dfs_filesystem_ops *ops)
 {
     int ret = RT_EOK;
-    const struct dfs_filesystem_ops** empty = NULL;
-    const struct dfs_filesystem_ops** iter;
+    const struct dfs_filesystem_ops **empty = NULL;
+    const struct dfs_filesystem_ops **iter;
 
     /* lock filesystem */
     dfs_lock();
     /* check if this filesystem was already registered */
     for (iter = &filesystem_operation_table[0];
-         iter < &filesystem_operation_table[DFS_FILESYSTEM_TYPES_MAX]; iter ++)
+            iter < &filesystem_operation_table[DFS_FILESYSTEM_TYPES_MAX]; iter ++)
     {
         /* find out an empty filesystem type entry */
         if (*iter == NULL)
-        { (empty == NULL) ? (empty = iter) : 0; }
+            (empty == NULL) ? (empty = iter) : 0;
         else if (strcmp((*iter)->name, ops->name) == 0)
         {
             rt_set_errno(-EEXIST);
@@ -75,10 +75,10 @@ int dfs_register(const struct dfs_filesystem_ops* ops)
  * @return the found file system or NULL if no file system mounted on
  * specified path
  */
-struct dfs_filesystem* dfs_filesystem_lookup(const char* path)
+struct dfs_filesystem *dfs_filesystem_lookup(const char *path)
 {
-    struct dfs_filesystem* iter;
-    struct dfs_filesystem* fs = NULL;
+    struct dfs_filesystem *iter;
+    struct dfs_filesystem *fs = NULL;
     uint32_t fspath, prefixlen;
 
     prefixlen = 0;
@@ -90,19 +90,19 @@ struct dfs_filesystem* dfs_filesystem_lookup(const char* path)
 
     /* lookup it in the filesystem table */
     for (iter = &filesystem_table[0];
-         iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
+            iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
     {
         if ((iter->path == NULL) || (iter->ops == NULL))
-        { continue; }
+            continue;
 
         fspath = strlen(iter->path);
         if ((fspath < prefixlen)
             || (strncmp(iter->path, path, fspath) != 0))
-        { continue; }
+            continue;
 
         /* check next path separator */
         if (fspath > 1 && (strlen(path) > fspath) && (path[fspath] != '/'))
-        { continue; }
+            continue;
 
         fs = iter;
         prefixlen = fspath;
@@ -120,20 +120,17 @@ struct dfs_filesystem* dfs_filesystem_lookup(const char* path)
  *
  * @return the mounted path or NULL if none device mounted.
  */
-const char* dfs_filesystem_get_mounted_path(struct rt_device* device)
+const char *dfs_filesystem_get_mounted_path(struct rt_device *device)
 {
-    const char* path = NULL;
-    struct dfs_filesystem* iter;
+    const char *path = NULL;
+    struct dfs_filesystem *iter;
 
     dfs_lock();
     for (iter = &filesystem_table[0];
-         iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
+            iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
     {
         /* find the mounted device */
-        if (iter->ops == NULL)
-        {
-            continue;
-        }
+        if (iter->ops == NULL) continue;
         else if (iter->dev_id == device)
         {
             path = iter->path;
@@ -156,14 +153,14 @@ const char* dfs_filesystem_get_mounted_path(struct rt_device* device)
  *
  * @return RT_EOK on successful or -RT_ERROR on failed.
  */
-int dfs_filesystem_get_partition(struct dfs_partition* part,
-                                 uint8_t*         buf,
+int dfs_filesystem_get_partition(struct dfs_partition *part,
+                                 uint8_t         *buf,
                                  uint32_t        pindex)
 {
 #define DPT_ADDRESS     0x1be       /* device partition offset in Boot Sector */
 #define DPT_ITEM_SIZE   16          /* partition item size */
 
-    uint8_t* dpt;
+    uint8_t *dpt;
     uint8_t type;
 
     RT_ASSERT(part != NULL);
@@ -173,12 +170,12 @@ int dfs_filesystem_get_partition(struct dfs_partition* part,
 
     /* check if it is a valid partition table */
     if ((*dpt != 0x80) && (*dpt != 0x00))
-    { return -EIO; }
+        return -EIO;
 
     /* get partition type */
     type = *(dpt + 4);
     if (type == 0)
-    { return -EIO; }
+        return -EIO;
 
     /* set partition information
      *    size is the number of 512-Byte */
@@ -189,15 +186,15 @@ int dfs_filesystem_get_partition(struct dfs_partition* part,
     rt_kprintf("found part[%d], begin: %d, size: ",
                pindex, part->offset * 512);
     if ((part->size >> 11) == 0)
-    { rt_kprintf("%d%s", part->size >> 1, "KB\n"); } /* KB */
+        rt_kprintf("%d%s", part->size >> 1, "KB\n"); /* KB */
     else
     {
         unsigned int part_size;
         part_size = part->size >> 11;                /* MB */
         if ((part_size >> 10) == 0)
-        { rt_kprintf("%d.%d%s", part_size, (part->size >> 1) & 0x3FF, "MB\n"); }
+            rt_kprintf("%d.%d%s", part_size, (part->size >> 1) & 0x3FF, "MB\n");
         else
-        { rt_kprintf("%d.%d%s", part_size >> 10, part_size & 0x3FF, "GB\n"); }
+            rt_kprintf("%d.%d%s", part_size >> 10, part_size & 0x3FF, "GB\n");
     }
 
     return RT_EOK;
@@ -214,16 +211,16 @@ int dfs_filesystem_get_partition(struct dfs_partition* part,
  *
  * @return 0 on successful or -1 on failed.
  */
-int dfs_mount(const char*   device_name,
-              const char*   path,
-              const char*   filesystemtype,
+int dfs_mount(const char   *device_name,
+              const char   *path,
+              const char   *filesystemtype,
               unsigned long rwflag,
-              const void*   data)
+              const void   *data)
 {
-    const struct dfs_filesystem_ops** ops;
-    struct dfs_filesystem* iter;
-    struct dfs_filesystem* fs = NULL;
-    char* fullpath = NULL;
+    const struct dfs_filesystem_ops **ops;
+    struct dfs_filesystem *iter;
+    struct dfs_filesystem *fs = NULL;
+    char *fullpath = NULL;
     rt_device_t dev_id;
 
     /* open specific device */
@@ -243,9 +240,9 @@ int dfs_mount(const char*   device_name,
     dfs_lock();
 
     for (ops = &filesystem_operation_table[0];
-         ops < &filesystem_operation_table[DFS_FILESYSTEM_TYPES_MAX]; ops++)
+            ops < &filesystem_operation_table[DFS_FILESYSTEM_TYPES_MAX]; ops++)
         if ((*ops != NULL) && (strcmp((*ops)->name, filesystemtype) == 0))
-        { break; }
+            break;
 
     dfs_unlock();
 
@@ -291,11 +288,11 @@ int dfs_mount(const char*   device_name,
     dfs_lock();
 
     for (iter = &filesystem_table[0];
-         iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
+            iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
     {
         /* check if it is an empty filesystem table entry? if it is, save fs */
         if (iter->ops == NULL)
-        { (fs == NULL) ? (fs = iter) : 0; }
+            (fs == NULL) ? (fs = iter) : 0;
         /* check if the PATH is mounted */
         else if (strcmp(iter->path, path) == 0)
         {
@@ -326,7 +323,7 @@ int dfs_mount(const char*   device_name,
         {
             /* The underlying device has error, clear the entry. */
             dfs_lock();
-            memset(fs, 0, sizeof(struct dfs_filesystem));
+            rt_memset(fs, 0, sizeof(struct dfs_filesystem));
 
             goto err1;
         }
@@ -337,12 +334,12 @@ int dfs_mount(const char*   device_name,
     {
         /* close device */
         if (dev_id != NULL)
-        { rt_device_close(fs->dev_id); }
+            rt_device_close(fs->dev_id);
 
         /* mount failed */
         dfs_lock();
         /* clear filesystem table entry */
-        memset(fs, 0, sizeof(struct dfs_filesystem));
+        rt_memset(fs, 0, sizeof(struct dfs_filesystem));
 
         goto err1;
     }
@@ -363,11 +360,11 @@ err1:
  *
  * @return 0 on successful or -1 on failed.
  */
-int dfs_unmount(const char* specialfile)
+int dfs_unmount(const char *specialfile)
 {
-    char* fullpath;
-    struct dfs_filesystem* iter;
-    struct dfs_filesystem* fs = NULL;
+    char *fullpath;
+    struct dfs_filesystem *iter;
+    struct dfs_filesystem *fs = NULL;
 
     fullpath = dfs_normalize_path(NULL, specialfile);
     if (fullpath == NULL)
@@ -381,7 +378,7 @@ int dfs_unmount(const char* specialfile)
     dfs_lock();
 
     for (iter = &filesystem_table[0];
-         iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
+            iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
     {
         /* check if the PATH is mounted */
         if ((iter->path != NULL) && (strcmp(iter->path, fullpath) == 0))
@@ -400,13 +397,13 @@ int dfs_unmount(const char* specialfile)
 
     /* close device, but do not check the status of device */
     if (fs->dev_id != NULL)
-    { rt_device_close(fs->dev_id); }
+        rt_device_close(fs->dev_id);
 
     if (fs->path != NULL)
-    { rt_free(fs->path); }
+        rt_free(fs->path);
 
     /* clear this filesystem table entry */
-    memset(fs, 0, sizeof(struct dfs_filesystem));
+    rt_memset(fs, 0, sizeof(struct dfs_filesystem));
 
     dfs_unlock();
     rt_free(fullpath);
@@ -428,14 +425,14 @@ err1:
  *
  * @return 0 on successful, otherwise failed.
  */
-int dfs_mkfs(const char* fs_name, const char* device_name)
+int dfs_mkfs(const char *fs_name, const char *device_name)
 {
     int index;
     rt_device_t dev_id = NULL;
 
     /* check device name, and it should not be NULL */
     if (device_name != NULL)
-    { dev_id = rt_device_find(device_name); }
+        dev_id = rt_device_find(device_name);
 
     if (dev_id == NULL)
     {
@@ -451,14 +448,14 @@ int dfs_mkfs(const char* fs_name, const char* device_name)
     {
         if (filesystem_operation_table[index] != NULL &&
             strcmp(filesystem_operation_table[index]->name, fs_name) == 0)
-        { break; }
+            break;
     }
     dfs_unlock();
 
     if (index < DFS_FILESYSTEM_TYPES_MAX)
     {
         /* find file system operation */
-        const struct dfs_filesystem_ops* ops = filesystem_operation_table[index];
+        const struct dfs_filesystem_ops *ops = filesystem_operation_table[index];
         if (ops->mkfs == NULL)
         {
             LOG_E("The file system (%s) mkfs function was not implement", fs_name);
@@ -482,15 +479,15 @@ int dfs_mkfs(const char* fs_name, const char* device_name)
  *
  * @return 0 on successful, others on failed.
  */
-int dfs_statfs(const char* path, struct statfs* buffer)
+int dfs_statfs(const char *path, struct statfs *buffer)
 {
-    struct dfs_filesystem* fs;
+    struct dfs_filesystem *fs;
 
     fs = dfs_filesystem_lookup(path);
     if (fs != NULL)
     {
         if (fs->ops->statfs != NULL)
-        { return fs->ops->statfs(fs, buffer); }
+            return fs->ops->statfs(fs, buffer);
     }
 
     return -1;
@@ -503,10 +500,7 @@ int dfs_mount_table(void)
 
     while (1)
     {
-        if (mount_table[index].path == NULL)
-        {
-            break;
-        }
+        if (mount_table[index].path == NULL) break;
 
         if (dfs_mount(mount_table[index].device_name,
                       mount_table[index].path,
@@ -515,7 +509,7 @@ int dfs_mount_table(void)
                       mount_table[index].data) != 0)
         {
             LOG_E("mount fs[%s] on %s failed.\n", mount_table[index].filesystemtype,
-                  mount_table[index].path);
+                       mount_table[index].path);
             return -RT_ERROR;
         }
 
@@ -527,58 +521,51 @@ INIT_ENV_EXPORT(dfs_mount_table);
 
 int dfs_mount_device(rt_device_t dev)
 {
-    int index = 0;
+  int index = 0;
 
-    if (dev == RT_NULL)
-    {
-        rt_kprintf("the device is NULL to be mounted.\n");
-        return -RT_ERROR;
-    }
-
-    while (1)
-    {
-        if (mount_table[index].path == NULL)
-        {
-            break;
-        }
-
-        if (strcmp(mount_table[index].device_name, dev->parent.name) == 0)
-        {
-            if (dfs_mount(mount_table[index].device_name,
-                          mount_table[index].path,
-                          mount_table[index].filesystemtype,
-                          mount_table[index].rwflag,
-                          mount_table[index].data) != 0)
-            {
-                LOG_E("mount fs[%s] device[%s] to %s failed.\n", mount_table[index].filesystemtype, dev->parent.name,
-                      mount_table[index].path);
-                return -RT_ERROR;
-            }
-            else
-            {
-                LOG_D("mount fs[%s] device[%s] to %s ok.\n", mount_table[index].filesystemtype, dev->parent.name,
-                      mount_table[index].path);
-                return RT_EOK;
-            }
-        }
-
-        index ++;
-    }
-
-    rt_kprintf("can't find device:%s to be mounted.\n", dev->parent.name);
+  if(dev == RT_NULL) {
+    rt_kprintf("the device is NULL to be mounted.\n");
     return -RT_ERROR;
+  }
+
+  while (1)
+  {
+    if (mount_table[index].path == NULL) break;
+
+    if(strcmp(mount_table[index].device_name, dev->parent.name) == 0) {
+      if (dfs_mount(mount_table[index].device_name,
+                    mount_table[index].path,
+                    mount_table[index].filesystemtype,
+                    mount_table[index].rwflag,
+                    mount_table[index].data) != 0)
+      {
+        LOG_E("mount fs[%s] device[%s] to %s failed.\n", mount_table[index].filesystemtype, dev->parent.name,
+                   mount_table[index].path);
+        return -RT_ERROR;
+      } else {
+        LOG_D("mount fs[%s] device[%s] to %s ok.\n", mount_table[index].filesystemtype, dev->parent.name,
+                   mount_table[index].path);
+        return RT_EOK;
+      }
+    }
+
+    index ++;
+  }
+
+  rt_kprintf("can't find device:%s to be mounted.\n", dev->parent.name);
+  return -RT_ERROR;
 }
 
 int dfs_unmount_device(rt_device_t dev)
 {
-    struct dfs_filesystem* iter;
-    struct dfs_filesystem* fs = NULL;
+    struct dfs_filesystem *iter;
+    struct dfs_filesystem *fs = NULL;
 
     /* lock filesystem */
     dfs_lock();
 
     for (iter = &filesystem_table[0];
-         iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
+            iter < &filesystem_table[DFS_FILESYSTEMS_MAX]; iter++)
     {
         /* check if the PATH is mounted */
         if (strcmp(iter->dev_id->parent.name, dev->parent.name) == 0)
@@ -597,13 +584,13 @@ int dfs_unmount_device(rt_device_t dev)
 
     /* close device, but do not check the status of device */
     if (fs->dev_id != NULL)
-    { rt_device_close(fs->dev_id); }
+        rt_device_close(fs->dev_id);
 
     if (fs->path != NULL)
-    { rt_free(fs->path); }
+        rt_free(fs->path);
 
     /* clear this filesystem table entry */
-    memset(fs, 0, sizeof(struct dfs_filesystem));
+    rt_memset(fs, 0, sizeof(struct dfs_filesystem));
 
     dfs_unlock();
 
@@ -619,13 +606,13 @@ err1:
 
 #ifdef RT_USING_FINSH
 #include <finsh.h>
-void mkfs(const char* fs_name, const char* device_name)
+void mkfs(const char *fs_name, const char *device_name)
 {
     dfs_mkfs(fs_name, device_name);
 }
 FINSH_FUNCTION_EXPORT(mkfs, make a file system);
 
-int df(const char* path)
+int df(const char *path)
 {
     int result;
     int minor = 0;
@@ -633,7 +620,7 @@ int df(const char* path)
     struct statfs buffer;
 
     int unit_index = 0;
-    char* unit_str[] = {"KB", "MB", "GB"};
+    char *unit_str[] = {"KB", "MB", "GB"};
 
     result = dfs_statfs(path ? path : NULL, &buffer);
     if (result != 0)
@@ -645,10 +632,7 @@ int df(const char* path)
     cap = ((long long)buffer.f_bsize) * ((long long)buffer.f_bfree) / 1024LL;
     for (unit_index = 0; unit_index < 2; unit_index ++)
     {
-        if (cap < 1024)
-        {
-            break;
-        }
+        if (cap < 1024) break;
 
         minor = (cap % 1024) * 10 / 1024; /* only one decimal point */
         cap = cap / 1024;

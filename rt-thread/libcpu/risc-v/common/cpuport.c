@@ -100,24 +100,24 @@ struct rt_hw_stack_frame
  *
  * @return stack address
  */
-rt_uint8_t* rt_hw_stack_init(void*       tentry,
-                             void*       parameter,
-                             rt_uint8_t* stack_addr,
-                             void*       texit)
+rt_uint8_t *rt_hw_stack_init(void       *tentry,
+                             void       *parameter,
+                             rt_uint8_t *stack_addr,
+                             void       *texit)
 {
-    struct rt_hw_stack_frame* frame;
-    rt_uint8_t*         stk;
+    struct rt_hw_stack_frame *frame;
+    rt_uint8_t         *stk;
     int                i;
 
     stk  = stack_addr + sizeof(rt_ubase_t);
-    stk  = (rt_uint8_t*)RT_ALIGN_DOWN((rt_ubase_t)stk, REGBYTES);
+    stk  = (rt_uint8_t *)RT_ALIGN_DOWN((rt_ubase_t)stk, REGBYTES);
     stk -= sizeof(struct rt_hw_stack_frame);
 
-    frame = (struct rt_hw_stack_frame*)stk;
+    frame = (struct rt_hw_stack_frame *)stk;
 
     for (i = 0; i < sizeof(struct rt_hw_stack_frame) / sizeof(rt_ubase_t); i++)
     {
-        ((rt_ubase_t*)frame)[i] = 0xdeadbeef;
+        ((rt_ubase_t *)frame)[i] = 0xdeadbeef;
     }
 
     frame->ra      = (rt_ubase_t)texit;
@@ -138,10 +138,10 @@ rt_uint8_t* rt_hw_stack_init(void*       tentry,
  * #endif
  */
 #ifndef RT_USING_SMP
-void rt_hw_context_switch_interrupt(rt_ubase_t from, rt_ubase_t to)
+RT_WEAK void rt_hw_context_switch_interrupt(rt_ubase_t from, rt_ubase_t to)
 {
     if (rt_thread_switch_interrupt_flag == 0)
-    { rt_interrupt_from_thread = from; }
+        rt_interrupt_from_thread = from;
 
     rt_interrupt_to_thread = to;
     rt_thread_switch_interrupt_flag = 1;
@@ -153,7 +153,7 @@ void rt_hw_context_switch_interrupt(rt_ubase_t from, rt_ubase_t to)
 /** shutdown CPU */
 RT_WEAK void rt_hw_cpu_shutdown()
 {
-    rt_uint32_t level;
+    rt_base_t level;
     rt_kprintf("shutdown...\n");
 
     level = rt_hw_interrupt_disable();

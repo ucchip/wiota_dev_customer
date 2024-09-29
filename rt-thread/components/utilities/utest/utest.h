@@ -54,7 +54,7 @@ struct utest
     uint32_t passed_num;
     uint32_t failed_num;
 };
-typedef struct utest* utest_t;
+typedef struct utest *utest_t;
 
 /**
  * utest_tc_export
@@ -69,15 +69,14 @@ typedef struct utest* utest_t;
  * @member cleanup     Total number of tests failed.
  *
 */
-struct utest_tc_export
-{
-    const char*  name;
+struct utest_tc_export {
+    const char  *name;
     uint32_t     run_timeout;
     rt_err_t   (*init)(void);
     void       (*tc)(void);
     rt_err_t   (*cleanup)(void);
 };
-typedef struct utest_tc_export* utest_tc_export_t;
+typedef struct utest_tc_export *utest_tc_export_t;
 
 /**
  * test_unit_func
@@ -99,7 +98,7 @@ typedef void (*test_unit_func)(void);
  * @return void
  *
 */
-void utest_unit_run(test_unit_func func, const char* unit_func_name);
+void utest_unit_run(test_unit_func func, const char *unit_func_name);
 
 /**
  * utest_handle_get
@@ -140,13 +139,13 @@ utest_t utest_handle_get(void);
 #define UTEST_TC_EXPORT(testcase, name, init, cleanup, timeout)                \
     RT_USED static const struct utest_tc_export _utest_testcase                \
     RT_SECTION("UtestTcTab") =                                                    \
-                                                                                  {                                                                          \
-                                                                                                                                                             name,                                                                  \
-                                                                                                                                                             timeout,                                                               \
-                                                                                                                                                             init,                                                                  \
-                                                                                                                                                             testcase,                                                              \
-                                                                                                                                                             cleanup                                                                \
-                                                                                  }
+    {                                                                          \
+        name,                                                                  \
+        timeout,                                                               \
+        init,                                                                  \
+        testcase,                                                              \
+        cleanup                                                                \
+    }
 
 /**
  * UTEST_UNIT_RUN

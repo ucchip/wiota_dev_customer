@@ -18,7 +18,7 @@
 #define RT_WQ_FLAG_WAKEUP   0x01
 
 struct rt_wqueue_node;
-typedef int (*rt_wqueue_func_t)(struct rt_wqueue_node* wait, void* key);
+typedef int (*rt_wqueue_func_t)(struct rt_wqueue_node *wait, void *key);
 
 struct rt_wqueue_node
 {
@@ -30,9 +30,9 @@ struct rt_wqueue_node
 };
 typedef struct rt_wqueue_node rt_wqueue_node_t;
 
-int __wqueue_default_wake(struct rt_wqueue_node* wait, void* key);
+int __wqueue_default_wake(struct rt_wqueue_node *wait, void *key);
 
-rt_inline void rt_wqueue_init(rt_wqueue_t* queue)
+rt_inline void rt_wqueue_init(rt_wqueue_t *queue)
 {
     RT_ASSERT(queue != RT_NULL);
 
@@ -40,16 +40,16 @@ rt_inline void rt_wqueue_init(rt_wqueue_t* queue)
     rt_list_init(&(queue->waiting_list));
 }
 
-void rt_wqueue_add(rt_wqueue_t* queue, struct rt_wqueue_node* node);
-void rt_wqueue_remove(struct rt_wqueue_node* node);
-int  rt_wqueue_wait(rt_wqueue_t* queue, int condition, int timeout);
-void rt_wqueue_wakeup(rt_wqueue_t* queue, void* key);
+void rt_wqueue_add(rt_wqueue_t *queue, struct rt_wqueue_node *node);
+void rt_wqueue_remove(struct rt_wqueue_node *node);
+int  rt_wqueue_wait(rt_wqueue_t *queue, int condition, int timeout);
+void rt_wqueue_wakeup(rt_wqueue_t *queue, void *key);
 
 #define DEFINE_WAIT_FUNC(name, function)                \
     struct rt_wqueue_node name = {                      \
         rt_current_thread,                              \
         RT_LIST_OBJECT_INIT(((name).list)),             \
-        \
+                                                        \
         function,                                       \
         0                                               \
     }

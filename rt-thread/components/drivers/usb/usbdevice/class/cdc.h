@@ -145,14 +145,14 @@ typedef struct ucdc_comm_descriptor* ucdc_comm_desc_t;
 
 struct ucdc_enet_descriptor
 {
-    rt_uint8_t    bFunctionLength;
-    rt_uint8_t    bDescriptorType;
-    rt_uint8_t    bDescriptorSubtype;
-    rt_uint8_t    iMACAddress;
-    rt_uint8_t    bmEthernetStatistics[4];
-    rt_uint16_t   wMaxSegmentSize;
-    rt_uint16_t   wMCFilters;
-    rt_uint8_t    bNumberPowerFilters;
+  rt_uint8_t    bFunctionLength;
+  rt_uint8_t    bDescriptorType;
+  rt_uint8_t    bDescriptorSubtype;
+  rt_uint8_t    iMACAddress;
+  rt_uint8_t    bmEthernetStatistics[4];
+  rt_uint16_t   wMaxSegmentSize;
+  rt_uint16_t   wMCFilters;
+  rt_uint8_t    bNumberPowerFilters;
 };
 struct ucdc_eth_descriptor
 {
@@ -202,14 +202,14 @@ struct ucdc_management_element_notifications
     rt_uint16_t wIndex;
     rt_uint16_t wLength;
 };
-typedef struct ucdc_management_element_notifications* ucdc_mg_notifications_t;
+typedef struct ucdc_management_element_notifications * ucdc_mg_notifications_t;
 
 struct ucdc_connection_speed_change_data
 {
     rt_uint32_t down_bit_rate;
     rt_uint32_t up_bit_rate;
 };
-typedef struct connection_speed_change_data* connect_speed_data_t;
+typedef struct connection_speed_change_data * connect_speed_data_t;
 
 enum ucdc_notification_code
 {

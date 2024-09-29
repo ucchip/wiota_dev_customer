@@ -20,8 +20,7 @@ extern "C" {
 #define SD_SCR_BUS_WIDTH_1  (1 << 0)
 #define SD_SCR_BUS_WIDTH_4  (1 << 2)
 
-struct rt_mmcsd_cid
-{
+struct rt_mmcsd_cid {
     rt_uint8_t  mid;       /* ManufacturerID */
     rt_uint8_t  prv;       /* Product Revision */
     rt_uint16_t oid;       /* OEM/Application ID */
@@ -33,8 +32,7 @@ struct rt_mmcsd_cid
     rt_uint8_t  reserved2;/* not used, always 1 */
 };
 
-struct rt_mmcsd_csd
-{
+struct rt_mmcsd_csd {
     rt_uint8_t      csd_structure;  /* CSD register version */
     rt_uint8_t      taac;
     rt_uint8_t      nsac;
@@ -54,41 +52,38 @@ struct rt_mmcsd_csd
 
 };
 
-struct rt_sd_scr
-{
+struct rt_sd_scr {
     rt_uint8_t      sd_version;
     rt_uint8_t      sd_bus_widths;
 };
 
-struct rt_sdio_cccr
-{
+struct rt_sdio_cccr {
     rt_uint8_t      sdio_version;
     rt_uint8_t      sd_version;
-    rt_uint8_t      direct_cmd: 1,     /*  Card Supports Direct Commands during data transfer
+    rt_uint8_t      direct_cmd:1,     /*  Card Supports Direct Commands during data transfer
                                                    only SD mode, not used for SPI mode */
-                    multi_block: 1,   /*  Card Supports Multi-Block */
-                    read_wait: 1,      /*  Card Supports Read Wait
+                multi_block:1,    /*  Card Supports Multi-Block */
+                read_wait:1,      /*  Card Supports Read Wait
                                        only SD mode, not used for SPI mode */
-                    suspend_resume: 1, /*  Card supports Suspend/Resume
+                suspend_resume:1, /*  Card supports Suspend/Resume
                                        only SD mode, not used for SPI mode */
-                    s4mi: 1,            /* generate interrupts during a 4-bit
+                s4mi:1,            /* generate interrupts during a 4-bit
                                       multi-block data transfer */
-                    e4mi: 1,            /*  Enable the multi-block IRQ during
+                e4mi:1,            /*  Enable the multi-block IRQ during
                                        4-bit transfer for the SDIO card */
-                    low_speed: 1,     /*  Card  is  a  Low-Speed  card */
-                    low_speed_4: 1;   /*  4-bit support for Low-Speed cards */
+                low_speed:1,      /*  Card  is  a  Low-Speed  card */
+                low_speed_4:1;    /*  4-bit support for Low-Speed cards */
 
-    rt_uint8_t      bus_width: 1,    /* Support SDIO bus width, 1:4bit, 0:1bit */
-                    cd_disable: 1,    /*  Connect[0]/Disconnect[1] the 10K-90K ohm pull-up
+    rt_uint8_t      bus_width:1,     /* Support SDIO bus width, 1:4bit, 0:1bit */
+                cd_disable:1,    /*  Connect[0]/Disconnect[1] the 10K-90K ohm pull-up
                                      resistor on CD/DAT[3] (pin 1) of the card */
-                    power_ctrl: 1,   /* Support Master Power Control */
-                    high_speed: 1;   /* Support High-Speed  */
+                power_ctrl:1,    /* Support Master Power Control */
+                high_speed:1;    /* Support High-Speed  */
 
 
 };
 
-struct rt_sdio_cis
-{
+struct rt_sdio_cis {
     rt_uint16_t     manufacturer;
     rt_uint16_t     product;
     rt_uint16_t     func0_blk_size;
@@ -98,24 +93,22 @@ struct rt_sdio_cis
 /*
  * SDIO function CIS tuple (unknown to the core)
  */
-struct rt_sdio_function_tuple
-{
-    struct rt_sdio_function_tuple* next;
+struct rt_sdio_function_tuple {
+    struct rt_sdio_function_tuple *next;
     rt_uint8_t code;
     rt_uint8_t size;
-    rt_uint8_t* data;
+    rt_uint8_t *data;
 };
 
 struct rt_sdio_function;
-typedef void (rt_sdio_irq_handler_t)(struct rt_sdio_function*);
+typedef void (rt_sdio_irq_handler_t)(struct rt_sdio_function *);
 
 /*
  * SDIO function devices
  */
-struct rt_sdio_function
-{
-    struct rt_mmcsd_card*        card;      /* the card this device belongs to */
-    rt_sdio_irq_handler_t*   irq_handler;   /* IRQ callback */
+struct rt_sdio_function {
+    struct rt_mmcsd_card        *card;      /* the card this device belongs to */
+    rt_sdio_irq_handler_t   *irq_handler;   /* IRQ callback */
     rt_uint8_t      num;        /* function number */
 
     rt_uint8_t      func_code;   /*  Standard SDIO Function interface code  */
@@ -127,18 +120,17 @@ struct rt_sdio_function
 
     rt_uint32_t     enable_timeout_val; /* max enable timeout in msec */
 
-    struct rt_sdio_function_tuple* tuples;
+    struct rt_sdio_function_tuple *tuples;
 
-    void*            priv;
+    void            *priv;
 };
 
 #define SDIO_MAX_FUNCTIONS      7
 
 
 
-struct rt_mmcsd_card
-{
-    struct rt_mmcsd_host* host;
+struct rt_mmcsd_card {
+    struct rt_mmcsd_host *host;
     rt_uint32_t rca;        /* card addr */
     rt_uint32_t resp_cid[4];    /* card CID register */
     rt_uint32_t resp_csd[4];    /* card CSD register */
@@ -168,8 +160,8 @@ struct rt_mmcsd_card
     rt_uint8_t      sdio_function_num;  /* totol number of SDIO functions */
     struct rt_sdio_cccr    cccr;  /* common card info */
     struct rt_sdio_cis     cis;  /* common tuple info */
-    struct rt_sdio_function* sdio_function[SDIO_MAX_FUNCTIONS + 1]; /* SDIO functions (devices) */
-
+    struct rt_sdio_function *sdio_function[SDIO_MAX_FUNCTIONS + 1]; /* SDIO functions (devices) */
+    rt_list_t blk_devices;  /* for block device list */
 };
 
 #ifdef __cplusplus

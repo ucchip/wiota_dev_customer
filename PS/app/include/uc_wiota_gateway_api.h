@@ -45,6 +45,7 @@ typedef enum
     GATEWAY_END = 3,
     GATEWAY_RECONNECT = 4,
     GATEWAY_OTA_UPGRADE = 5,
+    GATEWAY_OTA_PROGRAMING = 6
 } uc_gateway_state_t;
 
 typedef void (*uc_wiota_gateway_user_recv_cb)(void *data, unsigned int len, unsigned char data_type);
@@ -67,7 +68,8 @@ int uc_gateway_get_random(void);
 unsigned int uc_wiota_gateway_get_dev_address(void);
 void uc_wiota_gateway_set_verity(unsigned char is_open);
 unsigned char uc_wiota_gateway_get_verity(void);
-unsigned char uc_wiota_gateway_is_ex_mcu_read(void);
+unsigned char uc_wiota_gateway_get_ota_state(void);
+unsigned int uc_wiota_gateway_get_ota_recved_len(void);
 void uc_gateway_enter_sync_paging_by_time_slot(void);
 void uc_gateway_set_send_sleep_flag(unsigned char is_send_sleep);
 void uc_gateway_set_force_actice(unsigned char is_force_active);

@@ -26,11 +26,10 @@ extern "C" {
 #define mmcsd_dbg(fmt, ...)
 #endif
 
-struct rt_mmcsd_data
-{
+struct rt_mmcsd_data {
     rt_uint32_t  blksize;
     rt_uint32_t  blks;
-    rt_uint32_t*  buf;
+    rt_uint32_t  *buf;
     rt_int32_t  err;
     rt_uint32_t  flags;
 #define DATA_DIR_WRITE  (1 << 0)
@@ -39,22 +38,21 @@ struct rt_mmcsd_data
 
     unsigned int        bytes_xfered;
 
-    struct rt_mmcsd_cmd* stop;      /* stop command */
-    struct rt_mmcsd_req* mrq;       /* associated request */
+    struct rt_mmcsd_cmd *stop;      /* stop command */
+    struct rt_mmcsd_req *mrq;       /* associated request */
 
     rt_uint32_t  timeout_ns;
     rt_uint32_t  timeout_clks;
 };
 
-struct rt_mmcsd_cmd
-{
+struct rt_mmcsd_cmd {
     rt_uint32_t  cmd_code;
     rt_uint32_t  arg;
     rt_uint32_t  resp[4];
     rt_uint32_t  flags;
-    /*rsponse types
-     *bits:0~3
-     */
+/*rsponse types
+ *bits:0~3
+ */
 #define RESP_MASK   (0xF)
 #define RESP_NONE   (0)
 #define RESP_R1     (1 << 0)
@@ -65,9 +63,9 @@ struct rt_mmcsd_cmd
 #define RESP_R6     (6 << 0)
 #define RESP_R7     (7 << 0)
 #define RESP_R5     (8 << 0)    /*SDIO command response type*/
-    /*command types
-     *bits:4~5
-     */
+/*command types
+ *bits:4~5
+ */
 #define CMD_MASK    (3 << 4)        /* command type */
 #define CMD_AC      (0 << 4)
 #define CMD_ADTC    (1 << 4)
@@ -76,9 +74,9 @@ struct rt_mmcsd_cmd
 
 #define resp_type(cmd)  ((cmd)->flags & RESP_MASK)
 
-    /*spi rsponse types
-     *bits:6~8
-     */
+/*spi rsponse types
+ *bits:6~8
+ */
 #define RESP_SPI_MASK   (0x7 << 6)
 #define RESP_SPI_R1 (1 << 6)
 #define RESP_SPI_R1B    (2 << 6)
@@ -89,23 +87,22 @@ struct rt_mmcsd_cmd
 #define RESP_SPI_R7 (7 << 6)
 
 #define spi_resp_type(cmd)  ((cmd)->flags & RESP_SPI_MASK)
-    /*
-     * These are the command types.
-     */
+/*
+ * These are the command types.
+ */
 #define cmd_type(cmd)   ((cmd)->flags & CMD_MASK)
 
     rt_int32_t  retries;    /* max number of retries */
     rt_int32_t  err;
 
-    struct rt_mmcsd_data* data;
-    struct rt_mmcsd_req* mrq;       /* associated request */
+    struct rt_mmcsd_data *data;
+    struct rt_mmcsd_req *mrq;       /* associated request */
 };
 
-struct rt_mmcsd_req
-{
-    struct rt_mmcsd_data*  data;
-    struct rt_mmcsd_cmd*   cmd;
-    struct rt_mmcsd_cmd*   stop;
+struct rt_mmcsd_req {
+    struct rt_mmcsd_data  *data;
+    struct rt_mmcsd_cmd   *cmd;
+    struct rt_mmcsd_cmd   *stop;
 };
 
 /*the following is response bit*/
@@ -179,7 +176,7 @@ rt_inline rt_uint32_t __rt_fls(rt_uint32_t val)
     rt_uint32_t  bit = 32;
 
     if (!val)
-    { return 0; }
+        return 0;
     if (!(val & 0xffff0000u))
     {
         val <<= 16;
@@ -212,34 +209,33 @@ rt_inline rt_uint32_t __rt_fls(rt_uint32_t val)
 #define MMCSD_HOST_UNPLUGED     1
 
 int mmcsd_wait_cd_changed(rt_int32_t timeout);
-void mmcsd_host_lock(struct rt_mmcsd_host* host);
-void mmcsd_host_unlock(struct rt_mmcsd_host* host);
-void mmcsd_req_complete(struct rt_mmcsd_host* host);
-void mmcsd_send_request(struct rt_mmcsd_host* host, struct rt_mmcsd_req* req);
-rt_int32_t mmcsd_send_cmd(struct rt_mmcsd_host* host, struct rt_mmcsd_cmd* cmd, int retries);
-rt_int32_t mmcsd_go_idle(struct rt_mmcsd_host* host);
-rt_int32_t mmcsd_spi_read_ocr(struct rt_mmcsd_host* host, rt_int32_t high_capacity, rt_uint32_t* ocr);
-rt_int32_t mmcsd_all_get_cid(struct rt_mmcsd_host* host, rt_uint32_t* cid);
-rt_int32_t mmcsd_get_cid(struct rt_mmcsd_host* host, rt_uint32_t* cid);
-rt_int32_t mmcsd_get_csd(struct rt_mmcsd_card* card, rt_uint32_t* csd);
-rt_int32_t mmcsd_select_card(struct rt_mmcsd_card* card);
-rt_int32_t mmcsd_deselect_cards(struct rt_mmcsd_card* host);
-rt_int32_t mmcsd_spi_use_crc(struct rt_mmcsd_host* host, rt_int32_t use_crc);
-void mmcsd_set_chip_select(struct rt_mmcsd_host* host, rt_int32_t mode);
-void mmcsd_set_clock(struct rt_mmcsd_host* host, rt_uint32_t clk);
-void mmcsd_set_bus_mode(struct rt_mmcsd_host* host, rt_uint32_t mode);
-void mmcsd_set_bus_width(struct rt_mmcsd_host* host, rt_uint32_t width);
-void mmcsd_set_data_timeout(struct rt_mmcsd_data* data, const struct rt_mmcsd_card* card);
-rt_uint32_t mmcsd_select_voltage(struct rt_mmcsd_host* host, rt_uint32_t ocr);
-void mmcsd_change(struct rt_mmcsd_host* host);
-void mmcsd_detect(void* param);
-struct rt_mmcsd_host* mmcsd_alloc_host(void);
-void mmcsd_free_host(struct rt_mmcsd_host* host);
+void mmcsd_host_lock(struct rt_mmcsd_host *host);
+void mmcsd_host_unlock(struct rt_mmcsd_host *host);
+void mmcsd_req_complete(struct rt_mmcsd_host *host);
+void mmcsd_send_request(struct rt_mmcsd_host *host, struct rt_mmcsd_req *req);
+rt_int32_t mmcsd_send_cmd(struct rt_mmcsd_host *host, struct rt_mmcsd_cmd *cmd, int retries);
+rt_int32_t mmcsd_go_idle(struct rt_mmcsd_host *host);
+rt_int32_t mmcsd_spi_read_ocr(struct rt_mmcsd_host *host, rt_int32_t high_capacity, rt_uint32_t *ocr);
+rt_int32_t mmcsd_all_get_cid(struct rt_mmcsd_host *host, rt_uint32_t *cid);
+rt_int32_t mmcsd_get_cid(struct rt_mmcsd_host *host, rt_uint32_t *cid);
+rt_int32_t mmcsd_get_csd(struct rt_mmcsd_card *card, rt_uint32_t *csd);
+rt_int32_t mmcsd_select_card(struct rt_mmcsd_card *card);
+rt_int32_t mmcsd_deselect_cards(struct rt_mmcsd_card *host);
+rt_int32_t mmcsd_spi_use_crc(struct rt_mmcsd_host *host, rt_int32_t use_crc);
+void mmcsd_set_chip_select(struct rt_mmcsd_host *host, rt_int32_t mode);
+void mmcsd_set_clock(struct rt_mmcsd_host *host, rt_uint32_t clk);
+void mmcsd_set_bus_mode(struct rt_mmcsd_host *host, rt_uint32_t mode);
+void mmcsd_set_bus_width(struct rt_mmcsd_host *host, rt_uint32_t width);
+void mmcsd_set_data_timeout(struct rt_mmcsd_data *data, const struct rt_mmcsd_card *card);
+rt_uint32_t mmcsd_select_voltage(struct rt_mmcsd_host *host, rt_uint32_t ocr);
+void mmcsd_change(struct rt_mmcsd_host *host);
+void mmcsd_detect(void *param);
+struct rt_mmcsd_host *mmcsd_alloc_host(void);
+void mmcsd_free_host(struct rt_mmcsd_host *host);
 int rt_mmcsd_core_init(void);
 
-int rt_mmcsd_blk_init(void);
-rt_int32_t rt_mmcsd_blk_probe(struct rt_mmcsd_card* card);
-void rt_mmcsd_blk_remove(struct rt_mmcsd_card* card);
+rt_int32_t rt_mmcsd_blk_probe(struct rt_mmcsd_card *card);
+void rt_mmcsd_blk_remove(struct rt_mmcsd_card *card);
 
 
 #ifdef __cplusplus

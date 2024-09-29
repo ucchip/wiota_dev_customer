@@ -20,8 +20,8 @@ struct romfs_dirent
 {
     rt_uint32_t      type;  /* dirent type */
 
-    const char*       name; /* dirent name */
-    const rt_uint8_t* data; /* file date ptr */
+    const char       *name; /* dirent name */
+    const rt_uint8_t *data; /* file date ptr */
     rt_size_t        size;  /* file size */
 };
 

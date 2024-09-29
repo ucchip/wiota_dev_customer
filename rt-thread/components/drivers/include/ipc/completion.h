@@ -23,9 +23,9 @@ struct rt_completion
     rt_list_t suspended_list;
 };
 
-void rt_completion_init(struct rt_completion* completion);
-rt_err_t rt_completion_wait(struct rt_completion* completion,
+void rt_completion_init(struct rt_completion *completion);
+rt_err_t rt_completion_wait(struct rt_completion *completion,
                             rt_int32_t            timeout);
-void rt_completion_done(struct rt_completion* completion);
+void rt_completion_done(struct rt_completion *completion);
 
 #endif

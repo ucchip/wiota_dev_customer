@@ -35,7 +35,7 @@ static rt_err_t _pipe_check(struct uhintf* intf, upipe_t pipe)
     int size = 0;
     struct ustorage_csw csw;
 
-    if (intf == RT_NULL || pipe == RT_NULL)
+    if(intf == RT_NULL || pipe == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
@@ -48,25 +48,19 @@ static rt_err_t _pipe_check(struct uhintf* intf, upipe_t pipe)
     stor = (ustor_t)intf->user_data;
 
     /* check pipe status */
-    if (pipe->status == UPIPE_STATUS_OK)
-    {
-        return RT_EOK;
-    }
+    if(pipe->status == UPIPE_STATUS_OK) return RT_EOK;
 
-    if (pipe->status == UPIPE_STATUS_ERROR)
+    if(pipe->status == UPIPE_STATUS_ERROR)
     {
         rt_kprintf("pipe status error\n");
         return -RT_EIO;
     }
-    if (pipe->status == UPIPE_STATUS_STALL)
+    if(pipe->status == UPIPE_STATUS_STALL)
     {
         /* clear the pipe stall status */
         ret = rt_usbh_clear_feature(device, pipe->ep.bEndpointAddress,
-                                    USB_FEATURE_ENDPOINT_HALT);
-        if (ret != RT_EOK)
-        {
-            return ret;
-        }
+            USB_FEATURE_ENDPOINT_HALT);
+        if(ret != RT_EOK) return ret;
     }
 
 
@@ -80,8 +74,8 @@ static rt_err_t _pipe_check(struct uhintf* intf, upipe_t pipe)
 
     /* it should receive csw after clear the stall feature */
     size = rt_usb_hcd_pipe_xfer(stor->pipe_in->inst->hcd,
-                                stor->pipe_in, &csw, SIZEOF_CSW, 100);
-    if (size != SIZEOF_CSW)
+        stor->pipe_in, &csw, SIZEOF_CSW, 100);
+    if(size != SIZEOF_CSW)
     {
         rt_kprintf("receive the csw after stall failed\n");
         return -RT_EIO;
@@ -99,7 +93,7 @@ static rt_err_t _pipe_check(struct uhintf* intf, upipe_t pipe)
  * @return the error code, RT_EOK on successfully.
  */
 static rt_err_t rt_usb_bulk_only_xfer(struct uhintf* intf,
-                                      ustorage_cbw_t cmd, rt_uint8_t* buffer, int timeout)
+    ustorage_cbw_t cmd, rt_uint8_t* buffer, int timeout)
 {
     rt_size_t size;
     rt_err_t ret;
@@ -109,7 +103,7 @@ static rt_err_t rt_usb_bulk_only_xfer(struct uhintf* intf,
 
     RT_ASSERT(cmd != RT_NULL);
 
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
@@ -122,39 +116,39 @@ static rt_err_t rt_usb_bulk_only_xfer(struct uhintf* intf,
     {
         /* send the cbw */
         size = rt_usb_hcd_pipe_xfer(stor->pipe_out->inst->hcd, stor->pipe_out,
-                                    cmd, SIZEOF_CBW, timeout);
-        if (size != SIZEOF_CBW)
+            cmd, SIZEOF_CBW, timeout);
+        if(size != SIZEOF_CBW)
         {
             rt_kprintf("CBW size error\n");
             return -RT_EIO;
         }
-        if (cmd->xfer_len != 0)
+        if(cmd->xfer_len != 0)
         {
             pipe = (cmd->dflags == CBWFLAGS_DIR_IN) ? stor->pipe_in :
-                   stor->pipe_out;
+                stor->pipe_out;
             size = rt_usb_hcd_pipe_xfer(pipe->inst->hcd, pipe, (void*)buffer,
-                                        cmd->xfer_len, timeout);
-            if (size != cmd->xfer_len)
+                cmd->xfer_len, timeout);
+            if(size != cmd->xfer_len)
             {
                 rt_kprintf("request size %d, transfer size %d\n",
-                           cmd->xfer_len, size);
+                    cmd->xfer_len, size);
                 break;
             }
         }
 
         /* receive the csw */
         size = rt_usb_hcd_pipe_xfer(stor->pipe_in->inst->hcd, stor->pipe_in,
-                                    &csw, SIZEOF_CSW, timeout);
-        if (size != SIZEOF_CSW)
+            &csw, SIZEOF_CSW, timeout);
+        if(size != SIZEOF_CSW)
         {
             rt_kprintf("csw size error\n");
             return -RT_EIO;
         }
-    } while (0);
+    }while(0);
 
     /* check in pipes status */
     ret = _pipe_check(intf, stor->pipe_in);
-    if (ret != RT_EOK)
+    if(ret != RT_EOK)
     {
         rt_kprintf("in pipe error\n");
         return ret;
@@ -162,20 +156,20 @@ static rt_err_t rt_usb_bulk_only_xfer(struct uhintf* intf,
 
     /* check out pipes status */
     ret = _pipe_check(intf, stor->pipe_out);
-    if (ret != RT_EOK)
+    if(ret != RT_EOK)
     {
         rt_kprintf("out pipe error\n");
         return ret;
     }
 
     /* check csw status */
-    if (csw.signature != CSW_SIGNATURE || csw.tag != CBW_TAG_VALUE)
+    if(csw.signature != CSW_SIGNATURE || csw.tag != CBW_TAG_VALUE)
     {
         rt_kprintf("csw signature error\n");
         return -RT_EIO;
     }
 
-    if (csw.status != 0)
+    if(csw.status != 0)
     {
         //rt_kprintf("csw status error:%d\n",csw.status);
         return -RT_ERROR;
@@ -198,7 +192,7 @@ rt_err_t rt_usbh_storage_get_max_lun(struct uhintf* intf, rt_uint8_t* max_lun)
     struct urequest setup;
     int timeout = USB_TIMEOUT_BASIC;
 
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
@@ -213,22 +207,22 @@ rt_err_t rt_usbh_storage_get_max_lun(struct uhintf* intf, rt_uint8_t* max_lun)
 
     /* construct the request */
     setup.request_type = USB_REQ_TYPE_DIR_IN | USB_REQ_TYPE_CLASS |
-                         USB_REQ_TYPE_INTERFACE;
+        USB_REQ_TYPE_INTERFACE;
     setup.bRequest = USBREQ_GET_MAX_LUN;
     setup.wValue = intf->intf_desc->bInterfaceNumber;
     setup.wIndex = 0;
     setup.wLength = 1;
 
     /* do control transfer request */
-    if (rt_usb_hcd_setup_xfer(device->hcd, device->pipe_ep0_out, &setup, timeout) != 8)
+    if(rt_usb_hcd_setup_xfer(device->hcd, device->pipe_ep0_out, &setup, timeout) != 8)
     {
         return -RT_EIO;
     }
-    if (rt_usb_hcd_pipe_xfer(device->hcd, device->pipe_ep0_in, max_lun, 1, timeout) != 1)
+    if(rt_usb_hcd_pipe_xfer(device->hcd, device->pipe_ep0_in, max_lun, 1, timeout) != 1)
     {
         return -RT_EIO;
     }
-    if (rt_usb_hcd_pipe_xfer(device->hcd, device->pipe_ep0_out, RT_NULL, 0, timeout) != 0)
+    if(rt_usb_hcd_pipe_xfer(device->hcd, device->pipe_ep0_out, RT_NULL, 0, timeout) != 0)
     {
         return -RT_EIO;
     }
@@ -249,7 +243,7 @@ rt_err_t rt_usbh_storage_reset(struct uhintf* intf)
     int timeout = USB_TIMEOUT_BASIC;
 
     /* parameter check */
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
@@ -263,17 +257,17 @@ rt_err_t rt_usbh_storage_reset(struct uhintf* intf)
 
     /* construct the request */
     setup.request_type = USB_REQ_TYPE_DIR_OUT | USB_REQ_TYPE_CLASS |
-                         USB_REQ_TYPE_INTERFACE;
+        USB_REQ_TYPE_INTERFACE;
     setup.bRequest = USBREQ_MASS_STORAGE_RESET;
     setup.wIndex = intf->intf_desc->bInterfaceNumber;
     setup.wLength = 0;
     setup.wValue = 0;
 
-    if (rt_usb_hcd_setup_xfer(device->hcd, device->pipe_ep0_out, &setup, timeout) != 8)
+    if(rt_usb_hcd_setup_xfer(device->hcd, device->pipe_ep0_out, &setup, timeout) != 8)
     {
         return -RT_EIO;
     }
-    if (rt_usb_hcd_pipe_xfer(device->hcd, device->pipe_ep0_in, RT_NULL, 0, timeout) != 0)
+    if(rt_usb_hcd_pipe_xfer(device->hcd, device->pipe_ep0_in, RT_NULL, 0, timeout) != 0)
     {
         return -RT_EIO;
     }
@@ -290,13 +284,13 @@ rt_err_t rt_usbh_storage_reset(struct uhintf* intf)
  *
  * @return the error code, RT_EOK on successfully.
  */
-rt_err_t rt_usbh_storage_read10(struct uhintf* intf, rt_uint8_t* buffer,
-                                rt_uint32_t sector, rt_size_t count, int timeout)
+rt_err_t rt_usbh_storage_read10(struct uhintf* intf, rt_uint8_t *buffer,
+    rt_uint32_t sector, rt_size_t count, int timeout)
 {
     struct ustorage_cbw cmd;
 
     /* parameter check */
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("interface is not available\n");
         return -RT_EIO;
@@ -336,13 +330,13 @@ rt_err_t rt_usbh_storage_read10(struct uhintf* intf, rt_uint8_t* buffer,
  *
  * @return the error code, RT_EOK on successfully.
  */
-rt_err_t rt_usbh_storage_write10(struct uhintf* intf, rt_uint8_t* buffer,
-                                 rt_uint32_t sector, rt_size_t count, int timeout)
+rt_err_t rt_usbh_storage_write10(struct uhintf* intf, rt_uint8_t *buffer,
+    rt_uint32_t sector, rt_size_t count, int timeout)
 {
     struct ustorage_cbw cmd;
 
     /* parameter check */
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
@@ -386,7 +380,7 @@ rt_err_t rt_usbh_storage_request_sense(struct uhintf* intf, rt_uint8_t* buffer)
     int timeout = USB_TIMEOUT_LONG;
 
     /* parameter check */
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
@@ -422,7 +416,7 @@ rt_err_t rt_usbh_storage_test_unit_ready(struct uhintf* intf)
     int timeout = USB_TIMEOUT_LONG;
 
     /* parameter check */
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
@@ -458,7 +452,7 @@ rt_err_t rt_usbh_storage_inquiry(struct uhintf* intf, rt_uint8_t* buffer)
     int timeout = USB_TIMEOUT_LONG;
 
     /* parameter check */
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
@@ -495,7 +489,7 @@ rt_err_t rt_usbh_storage_get_capacity(struct uhintf* intf, rt_uint8_t* buffer)
     int timeout = USB_TIMEOUT_LONG;
 
     /* parameter check */
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
@@ -534,15 +528,15 @@ static rt_err_t rt_usbh_storage_enable(void* arg)
     struct uhintf* intf = (struct uhintf*)arg;
 
     /* parameter check */
-    if (intf == RT_NULL)
+    if(intf == RT_NULL)
     {
         rt_kprintf("the interface is not available\n");
         return -RT_EIO;
     }
 
     RT_DEBUG_LOG(RT_DEBUG_USB, ("subclass %d, protocal %d\n",
-                                intf->intf_desc->bInterfaceSubClass,
-                                intf->intf_desc->bInterfaceProtocol));
+        intf->intf_desc->bInterfaceSubClass,
+        intf->intf_desc->bInterfaceProtocol));
 
     RT_DEBUG_LOG(RT_DEBUG_USB, ("rt_usbh_storage_run\n"));
 
@@ -555,37 +549,37 @@ static rt_err_t rt_usbh_storage_enable(void* arg)
     rt_memset(stor, 0, sizeof(struct ustor));
     intf->user_data = (void*)stor;
 
-    for (i = 0; i < intf->intf_desc->bNumEndpoints; i++)
+    for(i=0; i<intf->intf_desc->bNumEndpoints; i++)
     {
         uep_desc_t ep_desc;
 
         /* get endpoint descriptor from interface descriptor */
         rt_usbh_get_endpoint_descriptor(intf->intf_desc, i, &ep_desc);
-        if (ep_desc == RT_NULL)
+        if(ep_desc == RT_NULL)
         {
             rt_kprintf("rt_usb_get_endpoint_descriptor error\n");
             return -RT_ERROR;
         }
 
         /* the endpoint type of mass storage class should be BULK */
-        if ((ep_desc->bmAttributes & USB_EP_ATTR_TYPE_MASK) != USB_EP_ATTR_BULK)
-        { continue; }
+        if((ep_desc->bmAttributes & USB_EP_ATTR_TYPE_MASK) != USB_EP_ATTR_BULK)
+            continue;
 
         /* allocate pipes according to the endpoint type */
-        if (ep_desc->bEndpointAddress & USB_DIR_IN)
+        if(ep_desc->bEndpointAddress & USB_DIR_IN)
         {
             /* alloc an in pipe for the storage instance */
-            stor->pipe_in = rt_usb_instance_find_pipe(intf->device, ep_desc->bEndpointAddress);
+            stor->pipe_in = rt_usb_instance_find_pipe(intf->device,ep_desc->bEndpointAddress);
         }
         else
         {
             /* alloc an output pipe for the storage instance */
-            stor->pipe_out = rt_usb_instance_find_pipe(intf->device, ep_desc->bEndpointAddress);
+            stor->pipe_out = rt_usb_instance_find_pipe(intf->device,ep_desc->bEndpointAddress);
         }
     }
 
     /* check pipes infomation */
-    if (stor->pipe_in == RT_NULL || stor->pipe_out == RT_NULL)
+    if(stor->pipe_in == RT_NULL || stor->pipe_out == RT_NULL)
     {
         rt_kprintf("pipe error, unsupported device\n");
         return -RT_ERROR;
@@ -593,10 +587,7 @@ static rt_err_t rt_usbh_storage_enable(void* arg)
 
     /* should implement as callback */
     ret = rt_udisk_run(intf);
-    if (ret != RT_EOK)
-    {
-        return ret;
-    }
+    if(ret != RT_EOK) return ret;
 
     return RT_EOK;
 }
@@ -628,10 +619,7 @@ static rt_err_t rt_usbh_storage_disable(void* arg)
 
 
     /* free storage instance */
-    if (stor != RT_NULL)
-    {
-        rt_free(stor);
-    }
+    if(stor != RT_NULL) rt_free(stor);
     return RT_EOK;
 }
 

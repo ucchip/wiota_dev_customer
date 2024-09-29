@@ -31,11 +31,10 @@
 #define ARRAY_SIZE(ar)     (sizeof(ar)/sizeof(ar[0]))
 #endif
 
-struct rt_vbus_ring* RT_VBUS_OUT_RING;
-struct rt_vbus_ring* RT_VBUS_IN_RING;
+struct rt_vbus_ring *RT_VBUS_OUT_RING;
+struct rt_vbus_ring *RT_VBUS_IN_RING;
 
-const char* rt_vbus_chn_st2str[] =
-{
+const char *rt_vbus_chn_st2str[] = {
     "available",
     "closed",
     "establishing",
@@ -44,15 +43,13 @@ const char* rt_vbus_chn_st2str[] =
     "closing",
 };
 
-const char* rt_vbus_sess_st2str[] =
-{
+const char *rt_vbus_sess_st2str[] = {
     "available",
     "listening",
     "establishing",
 };
 
-const char* rt_vbus_cmd2str[] =
-{
+const char *rt_vbus_cmd2str[] = {
     "ENABLE",
     "DISABLE",
     "SET",
@@ -62,14 +59,14 @@ const char* rt_vbus_cmd2str[] =
     "RESUME",
 };
 
-static char* dump_cmd_pkt(unsigned char* dp, size_t dsize);
+static char* dump_cmd_pkt(unsigned char *dp, size_t dsize);
 
 /* 4 bytes for the head */
 #define LEN2BNR(len)    ((len + RT_VBUS_BLK_HEAD_SZ \
                           + sizeof(struct rt_vbus_blk) - 1) \
                          / sizeof(struct rt_vbus_blk))
 
-rt_inline void _ring_add_get_bnr(struct rt_vbus_ring* ring,
+rt_inline void _ring_add_get_bnr(struct rt_vbus_ring *ring,
                                  rt_size_t bnr)
 {
     int nidx = ring->get_idx + bnr;
@@ -82,7 +79,7 @@ rt_inline void _ring_add_get_bnr(struct rt_vbus_ring* ring,
     ring->get_idx = nidx;
 }
 
-rt_inline int _bus_ring_space_nr(struct rt_vbus_ring* rg)
+rt_inline int _bus_ring_space_nr(struct rt_vbus_ring *rg)
 {
     int delta;
 
@@ -101,13 +98,12 @@ rt_inline int _bus_ring_space_nr(struct rt_vbus_ring* rg)
     }
 }
 
-struct rt_vbus_pkg
-{
+struct rt_vbus_pkg {
     rt_uint8_t id;
     rt_uint8_t prio;
     rt_uint8_t finished;
     rt_uint8_t len;
-    const void* data;
+    const void *data;
 };
 
 /* chn0 is always connected */
@@ -156,19 +152,18 @@ void rt_vbus_set_post_wm(unsigned char chnr, unsigned int low, unsigned int high
 {}
 #endif
 
-struct
-{
+struct {
     rt_vbus_event_listener indicate;
-    void* ctx;
+    void *ctx;
 } _vbus_rx_indi[RT_VBUS_EVENT_ID_MAX][RT_VBUS_CHANNEL_NR];
 
 void rt_vbus_register_listener(unsigned char chnr,
                                enum rt_vbus_event_id eve,
                                rt_vbus_event_listener indi,
-                               void* ctx)
+                               void *ctx)
 {
     RT_ASSERT(chnr != 0 && chnr < RT_VBUS_CHANNEL_NR);
-    RT_ASSERT(eve < sizeof(_vbus_rx_indi) / sizeof(_vbus_rx_indi[0]));
+    RT_ASSERT(eve < sizeof(_vbus_rx_indi)/sizeof(_vbus_rx_indi[0]));
 
     _vbus_rx_indi[eve][chnr].indicate = indi;
     _vbus_rx_indi[eve][chnr].ctx = ctx;
@@ -176,10 +171,10 @@ void rt_vbus_register_listener(unsigned char chnr,
 
 static void _vbus_indicate(enum rt_vbus_event_id eve, unsigned char chnr)
 {
-    RT_ASSERT(eve < sizeof(_vbus_rx_indi) / sizeof(_vbus_rx_indi[0]));
+    RT_ASSERT(eve < sizeof(_vbus_rx_indi)/sizeof(_vbus_rx_indi[0]));
 
     if (_vbus_rx_indi[eve][chnr].indicate)
-    { _vbus_rx_indi[eve][chnr].indicate(_vbus_rx_indi[eve][chnr].ctx); }
+        _vbus_rx_indi[eve][chnr].indicate(_vbus_rx_indi[eve][chnr].ctx);
 }
 
 #define _BUS_OUT_THRD_STACK_SZ  2048
@@ -188,9 +183,9 @@ static void _vbus_indicate(enum rt_vbus_event_id eve, unsigned char chnr)
 
 static struct rt_thread _bus_out_thread;
 static rt_uint8_t _bus_out_thread_stack[_BUS_OUT_THRD_STACK_SZ];
-struct rt_prio_queue* _bus_out_que;
+struct rt_prio_queue *_bus_out_que;
 
-static void _bus_out_entry(void* param)
+static void _bus_out_entry(void *param)
 {
     struct rt_vbus_pkg dpkg;
 
@@ -216,7 +211,7 @@ static void _bus_out_entry(void* param)
 #endif
 
         if (!_chn_connected(dpkg.id))
-        { continue; }
+            continue;
 
         sp = _bus_ring_space_nr(RT_VBUS_OUT_RING);
 
@@ -227,7 +222,7 @@ static void _bus_out_entry(void* param)
         /* wait for enough space */
         while (sp < dnr)
         {
-            rt_ubase_t lvl = rt_hw_interrupt_disable();
+            rt_base_t level = rt_hw_interrupt_disable();
 
             RT_VBUS_OUT_RING->blocked = 1;
             rt_vbus_smp_wmb();
@@ -240,7 +235,7 @@ static void _bus_out_entry(void* param)
 
             RT_VBUS_OUT_RING->blocked = 0;
 
-            rt_hw_interrupt_enable(lvl);
+            rt_hw_interrupt_enable(level);
 
             sp = _bus_ring_space_nr(RT_VBUS_OUT_RING);
         }
@@ -256,16 +251,16 @@ static void _bus_out_entry(void* param)
             unsigned int tailsz;
 
             tailsz = (RT_VMM_RB_BLK_NR - RT_VBUS_OUT_RING->put_idx)
-                     * sizeof(RT_VBUS_OUT_RING->blks[0]) - RT_VBUS_BLK_HEAD_SZ;
+                * sizeof(RT_VBUS_OUT_RING->blks[0]) - RT_VBUS_BLK_HEAD_SZ;
 
             /* the remaining block is sufficient for the data */
             if (tailsz > dpkg.len)
-            { tailsz = dpkg.len; }
+                tailsz = dpkg.len;
 
             rt_memcpy(&RT_VBUS_OUT_RING->blks[RT_VBUS_OUT_RING->put_idx].data,
                       dpkg.data, tailsz);
             rt_memcpy(&RT_VBUS_OUT_RING->blks[0],
-                      ((char*)dpkg.data) + tailsz,
+                      ((char*)dpkg.data)+tailsz,
                       dpkg.len - tailsz);
 
             rt_vbus_smp_wmb();
@@ -299,14 +294,14 @@ void rt_vbus_resume_out_thread(void)
 
 rt_err_t rt_vbus_post(rt_uint8_t id,
                       rt_uint8_t prio,
-                      const void* data,
+                      const void *data,
                       rt_size_t size,
                       rt_int32_t timeout)
 {
     rt_err_t err = RT_EOK;
     struct rt_vbus_pkg pkg;
     unsigned int putsz;
-    const unsigned char* dp;
+    const unsigned char *dp;
 
     if (!_bus_out_que)
     {
@@ -317,7 +312,7 @@ rt_err_t rt_vbus_post(rt_uint8_t id,
     }
 
     if (id >= RT_VBUS_CHANNEL_NR)
-    { return -RT_ERROR; }
+        return -RT_ERROR;
 
     if (timeout != 0)
     {
@@ -353,12 +348,12 @@ rt_err_t rt_vbus_post(rt_uint8_t id,
         rt_exit_critical();
 
         if (thread->error != RT_EOK)
-        { return thread->error; }
+            return thread->error;
     }
 #endif
 
     if (_chn_status[id] != RT_VBUS_CHN_ST_ESTABLISHED)
-    { return -RT_ERROR; }
+        return -RT_ERROR;
 
     dp       = data;
     pkg.id   = id;
@@ -384,7 +379,7 @@ rt_err_t rt_vbus_post(rt_uint8_t id,
 #ifdef RT_VBUS_USING_FLOW_CONTROL
         err = rt_wm_que_inc(&_chn_wm_que[id], timeout);
         if (err != RT_EOK)
-        { break; }
+            break;
 #endif
 
         vbus_debug("post (data: %p(%d), size: %d, finshed: %d, timeout: %d)\n",
@@ -393,7 +388,7 @@ rt_err_t rt_vbus_post(rt_uint8_t id,
 
         err = rt_prio_queue_push(_bus_out_que, prio, &pkg, timeout);
         if (err != RT_EOK)
-        { break; }
+            break;
     }
 
     return err;
@@ -401,22 +396,22 @@ rt_err_t rt_vbus_post(rt_uint8_t id,
 
 struct rt_completion _chn0_post_cmp;
 
-void _chn0_tx_listener(void* p)
+void _chn0_tx_listener(void *p)
 {
     rt_completion_done(&_chn0_post_cmp);
 }
 
 /* Posts in channel0 should be sync. */
-static rt_err_t _chn0_post(const void* data,
-                           rt_size_t size,
-                           int timeout)
+static rt_err_t _chn0_post(const void *data,
+                               rt_size_t size,
+                               int timeout)
 {
     rt_err_t err;
 
     rt_completion_init(&_chn0_post_cmp);
     err = rt_vbus_post(0, 0, data, size, timeout);
     if (err != RT_EOK)
-    { return err; }
+        return err;
     return rt_completion_wait(&_chn0_post_cmp, timeout);
 }
 
@@ -433,7 +428,7 @@ static struct rt_event     _bus_in_event;
 /* {head, tail} */
 #define _IN_ACT_HEAD 0
 #define _IN_ACT_TAIL 1
-static struct rt_vbus_data* _bus_in_action[RT_VBUS_CHANNEL_NR][2];
+static struct rt_vbus_data *_bus_in_action[RT_VBUS_CHANNEL_NR][2];
 #ifdef RT_VBUS_STATISTICS
 static unsigned int _bus_in_action_nr[RT_VBUS_CHANNEL_NR];
 #endif
@@ -470,20 +465,20 @@ rt_err_t rt_vbus_listen_on(rt_uint8_t chnr,
     rt_uint32_t notuse;
 
     if (chnr == 0 || chnr >= RT_VBUS_CHANNEL_NR || !_chn_connected(chnr))
-    { return -RT_EIO; }
+        return -RT_EIO;
 
     return rt_event_recv(&_bus_in_event, 1 << chnr,
                          RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
                          timeout, &notuse);
 }
 
-void rt_vbus_data_push(unsigned int id, struct rt_vbus_data* act)
+void rt_vbus_data_push(unsigned int id, struct rt_vbus_data *act)
 {
-    rt_ubase_t lvl;
+    rt_base_t level;
 
     RT_ASSERT(0 < id && id < RT_VBUS_CHANNEL_NR);
 
-    lvl = rt_hw_interrupt_disable();
+    level = rt_hw_interrupt_disable();
 
     if (_bus_in_action[id][_IN_ACT_HEAD] == RT_NULL)
     {
@@ -500,12 +495,12 @@ void rt_vbus_data_push(unsigned int id, struct rt_vbus_data* act)
     _bus_in_action_nr[id]++;
 #endif
 
-    rt_hw_interrupt_enable(lvl);
+    rt_hw_interrupt_enable(level);
 
 #ifdef RT_VBUS_USING_FLOW_CONTROL
     _chn_recv_wm[id].level++;
     if (_chn_recv_wm[id].level == 0)
-    { _chn_recv_wm[id].level = ~0; }
+        _chn_recv_wm[id].level = ~0;
     if (_chn_recv_wm[id].level > _chn_recv_wm[id].high_mark &&
         _chn_recv_wm[id].level > _chn_recv_wm[id].last_warn)
     {
@@ -523,12 +518,12 @@ void rt_vbus_data_push(unsigned int id, struct rt_vbus_data* act)
 
 struct rt_vbus_data* rt_vbus_data_pop(unsigned int id)
 {
-    struct rt_vbus_data* act;
-    rt_ubase_t lvl;
+    struct rt_vbus_data *act;
+    rt_base_t level;
 
     RT_ASSERT(0 < id && id < RT_VBUS_CHANNEL_NR);
 
-    lvl = rt_hw_interrupt_disable();
+    level = rt_hw_interrupt_disable();
 
     act = _bus_in_action[id][_IN_ACT_HEAD];
     if (act)
@@ -536,7 +531,7 @@ struct rt_vbus_data* rt_vbus_data_pop(unsigned int id)
         _bus_in_action[id][_IN_ACT_HEAD] = act->next;
     }
 
-    rt_hw_interrupt_enable(lvl);
+    rt_hw_interrupt_enable(level);
 
 #ifdef RT_VBUS_USING_FLOW_CONTROL
     if (_chn_recv_wm[id].level != 0)
@@ -559,8 +554,8 @@ struct rt_vbus_data* rt_vbus_data_pop(unsigned int id)
 }
 
 /* dump cmd that is not start with ACK/NAK */
-static size_t __dump_naked_cmd(char* dst, size_t lsize,
-                               unsigned char* dp, size_t dsize)
+static size_t __dump_naked_cmd(char *dst, size_t lsize,
+                               unsigned char *dp, size_t dsize)
 {
     size_t len;
     if (dp[0] == RT_VBUS_CHN0_CMD_DISABLE ||
@@ -573,13 +568,13 @@ static size_t __dump_naked_cmd(char* dst, size_t lsize,
     else if (dp[0] == RT_VBUS_CHN0_CMD_ENABLE)
     {
         len = rt_snprintf(dst, lsize, "%s %s",
-                          rt_vbus_cmd2str[dp[0]], dp + 1);
+                          rt_vbus_cmd2str[dp[0]], dp+1);
     }
     else if (dp[0] < RT_VBUS_CHN0_CMD_MAX)
     {
         len = rt_snprintf(dst, lsize, "%s %s %d",
                           rt_vbus_cmd2str[dp[0]],
-                          dp + 1, dp[2 + rt_strlen((char*)dp + 1)]);
+                          dp+1, dp[2+rt_strlen((char*)dp+1)]);
     }
     else
     {
@@ -590,7 +585,7 @@ static size_t __dump_naked_cmd(char* dst, size_t lsize,
 }
 
 static char _cmd_dump_buf[64];
-static char* dump_cmd_pkt(unsigned char* dp, size_t dsize)
+static char* dump_cmd_pkt(unsigned char *dp, size_t dsize)
 {
     size_t len;
 
@@ -598,8 +593,8 @@ static char* dump_cmd_pkt(unsigned char* dp, size_t dsize)
     {
         len = rt_snprintf(_cmd_dump_buf, sizeof(_cmd_dump_buf),
                           "%s ", rt_vbus_cmd2str[dp[0]]);
-        len += __dump_naked_cmd(_cmd_dump_buf + len, sizeof(_cmd_dump_buf) - len,
-                                dp + 1, dsize - 1);
+        len += __dump_naked_cmd(_cmd_dump_buf+len, sizeof(_cmd_dump_buf)-len,
+                                dp+1, dsize-1);
     }
     else
     {
@@ -608,7 +603,7 @@ static char* dump_cmd_pkt(unsigned char* dp, size_t dsize)
     }
 
     if (len > sizeof(_cmd_dump_buf) - 1)
-    { len = sizeof(_cmd_dump_buf) - 1; }
+        len = sizeof(_cmd_dump_buf) - 1;
 
     _cmd_dump_buf[len] = '\0';
     return _cmd_dump_buf;
@@ -616,31 +611,31 @@ static char* dump_cmd_pkt(unsigned char* dp, size_t dsize)
 
 static rt_err_t _chn0_echo_with(rt_uint8_t prefix,
                                 rt_uint32_t dsize,
-                                unsigned char* dp)
+                                unsigned char *dp)
 {
     rt_err_t err;
-    unsigned char* resp;
+    unsigned char *resp;
 
-    resp = rt_malloc(dsize + 1);
+    resp = rt_malloc(dsize+1);
     if (!resp)
-    { return -RT_ENOMEM; }
+        return -RT_ENOMEM;
     *resp = prefix;
-    rt_memcpy(resp + 1, dp, dsize);
-    vbus_verbose("%s --> remote\n", dump_cmd_pkt(resp, dsize + 1));
+    rt_memcpy(resp+1, dp, dsize);
+    vbus_verbose("%s --> remote\n", dump_cmd_pkt(resp, dsize+1));
 
-    err = _chn0_post(resp, dsize + 1, RT_WAITING_FOREVER);
+    err = _chn0_post(resp, dsize+1, RT_WAITING_FOREVER);
 
     rt_free(resp);
 
     return err;
 }
 
-static rt_err_t _chn0_nak(rt_uint32_t dsize, unsigned char* dp)
+static rt_err_t _chn0_nak(rt_uint32_t dsize, unsigned char *dp)
 {
     return _chn0_echo_with(RT_VBUS_CHN0_CMD_NAK, dsize, dp);
 }
 
-static rt_err_t _chn0_ack(rt_uint32_t dsize, unsigned char* dp)
+static rt_err_t _chn0_ack(rt_uint32_t dsize, unsigned char *dp)
 {
     return _chn0_echo_with(RT_VBUS_CHN0_CMD_ACK, dsize, dp);
 }
@@ -658,12 +653,12 @@ struct rt_vbus_conn_session
     int chnr;
     enum _vbus_session_st st;
     struct rt_completion cmp;
-    struct rt_vbus_request* req;
+    struct rt_vbus_request *req;
 };
 
-static struct rt_vbus_conn_session _sess[RT_VBUS_CHANNEL_NR / 2];
+static struct rt_vbus_conn_session _sess[RT_VBUS_CHANNEL_NR/2];
 
-static int _sess_find(const unsigned char* name,
+static int _sess_find(const unsigned char *name,
                       enum _vbus_session_st st)
 {
     int i;
@@ -672,25 +667,25 @@ static int _sess_find(const unsigned char* name,
     {
         if (_sess[i].st == st && _sess[i].req->name &&
             rt_strcmp(_sess[i].req->name, (char*)name) == 0)
-        { break; }
+            break;
     }
     return i;
 }
 
-static int _chn0_actor(unsigned char* dp, size_t dsize)
+static int _chn0_actor(unsigned char *dp, size_t dsize)
 {
     if (*dp != RT_VBUS_CHN0_CMD_SUSPEND && *dp != RT_VBUS_CHN0_CMD_RESUME)
-    { vbus_verbose("local <-- %s\n", dump_cmd_pkt(dp, dsize)); }
+        vbus_verbose("local <-- %s\n", dump_cmd_pkt(dp, dsize));
 
     switch (*dp)
     {
-        case RT_VBUS_CHN0_CMD_ENABLE:
+    case RT_VBUS_CHN0_CMD_ENABLE:
         {
             int i, chnr;
             rt_err_t err;
-            unsigned char* resp;
+            unsigned char *resp;
 
-            i = _sess_find(dp + 1, SESSIOM_LISTENING);
+            i = _sess_find(dp+1, SESSIOM_LISTENING);
             if (i == ARRAY_SIZE(_sess))
             {
                 _chn0_nak(dsize, dp);
@@ -700,7 +695,7 @@ static int _chn0_actor(unsigned char* dp, size_t dsize)
             for (chnr = 0; chnr < ARRAY_SIZE(_chn_status); chnr++)
             {
                 if (_chn_status[chnr] == RT_VBUS_CHN_ST_AVAILABLE)
-                { break; }
+                    break;
             }
             if (chnr == ARRAY_SIZE(_chn_status))
             {
@@ -710,17 +705,17 @@ static int _chn0_actor(unsigned char* dp, size_t dsize)
 
             resp = rt_malloc(dsize + 1);
             if (!resp)
-            { break; }
+                break;
 
             *resp = RT_VBUS_CHN0_CMD_SET;
-            rt_memcpy(resp + 1, dp + 1, dsize - 1);
+            rt_memcpy(resp+1, dp+1, dsize-1);
             resp[dsize] = chnr;
 
             rt_vbus_set_recv_wm(chnr, _sess[i].req->recv_wm.low, _sess[i].req->recv_wm.high);
             rt_vbus_set_post_wm(chnr, _sess[i].req->post_wm.low, _sess[i].req->post_wm.high);
 
-            vbus_verbose("%s --> remote\n", dump_cmd_pkt(resp, dsize + 1));
-            err = _chn0_post(resp, dsize + 1, RT_WAITING_FOREVER);
+            vbus_verbose("%s --> remote\n", dump_cmd_pkt(resp, dsize+1));
+            err = _chn0_post(resp, dsize+1, RT_WAITING_FOREVER);
 
             if (err == RT_EOK)
             {
@@ -733,18 +728,18 @@ static int _chn0_actor(unsigned char* dp, size_t dsize)
             rt_free(resp);
         }
         break;
-        case RT_VBUS_CHN0_CMD_SET:
+    case RT_VBUS_CHN0_CMD_SET:
         {
             int i, chnr;
 
-            i = _sess_find(dp + 1, SESSIOM_ESTABLISHING);
+            i = _sess_find(dp+1, SESSIOM_ESTABLISHING);
             if (i == ARRAY_SIZE(_sess))
             {
                 vbus_verbose("drop spurious packet\n");
                 break;
             }
 
-            chnr = dp[1 + rt_strlen((const char*)dp + 1) + 1];
+            chnr = dp[1+rt_strlen((const char*)dp+1)+1];
 
             if (chnr == 0 || chnr >= RT_VBUS_CHANNEL_NR)
             {
@@ -772,50 +767,50 @@ static int _chn0_actor(unsigned char* dp, size_t dsize)
             }
         }
         break;
-        case RT_VBUS_CHN0_CMD_ACK:
-            if (dp[1] == RT_VBUS_CHN0_CMD_SET)
-            {
-                int i, chnr;
+    case RT_VBUS_CHN0_CMD_ACK:
+        if (dp[1] == RT_VBUS_CHN0_CMD_SET)
+        {
+            int i, chnr;
 
-                i = _sess_find(dp + 2, SESSIOM_ESTABLISHING);
-                if (i == ARRAY_SIZE(_sess))
-                    /* drop that spurious packet */
-                { break; }
+            i = _sess_find(dp+2, SESSIOM_ESTABLISHING);
+            if (i == ARRAY_SIZE(_sess))
+                /* drop that spurious packet */
+                break;
 
-                chnr = dp[1 + rt_strlen((const char*)dp + 2) + 2];
+            chnr = dp[1+rt_strlen((const char*)dp+2)+2];
 
-                _sess[i].chnr = chnr;
-                _chn_status[chnr] = RT_VBUS_CHN_ST_ESTABLISHED;
-                vbus_debug("chn %d %s\n", chnr,
-                           rt_vbus_chn_st2str[_chn_status[chnr]]);
-                rt_completion_done(&_sess[i].cmp);
-            }
-            else if (dp[1] == RT_VBUS_CHN0_CMD_DISABLE)
-            {
-                unsigned char chnr = dp[2];
+            _sess[i].chnr = chnr;
+            _chn_status[chnr] = RT_VBUS_CHN_ST_ESTABLISHED;
+            vbus_debug("chn %d %s\n", chnr,
+                       rt_vbus_chn_st2str[_chn_status[chnr]]);
+            rt_completion_done(&_sess[i].cmp);
+        }
+        else if (dp[1] == RT_VBUS_CHN0_CMD_DISABLE)
+        {
+            unsigned char chnr = dp[2];
 
-                if (chnr == 0 || chnr >= RT_VBUS_CHANNEL_NR)
-                { break; }
+            if (chnr == 0 || chnr >= RT_VBUS_CHANNEL_NR)
+                break;
 
-                /* We could only get here by sending DISABLE command, which is
-                 * initiated by the rt_vbus_close_chn. */
-                _chn_status[chnr] = RT_VBUS_CHN_ST_AVAILABLE;
+            /* We could only get here by sending DISABLE command, which is
+             * initiated by the rt_vbus_close_chn. */
+            _chn_status[chnr] = RT_VBUS_CHN_ST_AVAILABLE;
 
-                _vbus_indicate(RT_VBUS_EVENT_ID_DISCONN, chnr);
-                /* notify the thread that the channel has been closed */
-                rt_vbus_notify_chn(chnr, -RT_ERROR);
-            }
-            else
-            {
-                vbus_info("invalid ACK for %d\n", dp[1]);
-            }
-            break;
-        case RT_VBUS_CHN0_CMD_DISABLE:
+            _vbus_indicate(RT_VBUS_EVENT_ID_DISCONN, chnr);
+            /* notify the thread that the channel has been closed */
+            rt_vbus_notify_chn(chnr, -RT_ERROR);
+        }
+        else
+        {
+            vbus_info("invalid ACK for %d\n", dp[1]);
+        }
+        break;
+    case RT_VBUS_CHN0_CMD_DISABLE:
         {
             unsigned char chnr = dp[1];
 
             if (chnr == 0 || chnr >= RT_VBUS_CHANNEL_NR)
-            { break; }
+                break;
 
             _chn_status[chnr] = RT_VBUS_CHN_ST_CLOSING;
 
@@ -826,97 +821,97 @@ static int _chn0_actor(unsigned char* dp, size_t dsize)
             rt_vbus_notify_chn(chnr, -RT_ERROR);
         }
         break;
-        case RT_VBUS_CHN0_CMD_SUSPEND:
+    case RT_VBUS_CHN0_CMD_SUSPEND:
 #ifdef RT_VBUS_USING_FLOW_CONTROL
-            {
-                unsigned char chnr = dp[1];
+        {
+            unsigned char chnr = dp[1];
 
-                if (chnr == 0 || chnr >= RT_VBUS_CHANNEL_NR)
-                { break; }
+            if (chnr == 0 || chnr >= RT_VBUS_CHANNEL_NR)
+                break;
 
-                if (_chn_status[chnr] != RT_VBUS_CHN_ST_ESTABLISHED)
-                { break; }
+            if (_chn_status[chnr] != RT_VBUS_CHN_ST_ESTABLISHED)
+                break;
 
-                _chn_status[chnr] = RT_VBUS_CHN_ST_SUSPEND;
-            }
+            _chn_status[chnr] = RT_VBUS_CHN_ST_SUSPEND;
+        }
 #endif
-            break;
-        case RT_VBUS_CHN0_CMD_RESUME:
+        break;
+    case RT_VBUS_CHN0_CMD_RESUME:
 #ifdef RT_VBUS_USING_FLOW_CONTROL
+        {
+            unsigned char chnr = dp[1];
+
+            if (chnr == 0 || chnr >= RT_VBUS_CHANNEL_NR)
+                break;
+
+            if (_chn_status[chnr] != RT_VBUS_CHN_ST_SUSPEND)
+                break;
+
+            _chn_status[chnr] = RT_VBUS_CHN_ST_ESTABLISHED;
+
+            /* Protect the list. */
+            rt_enter_critical();
+            while (!rt_list_isempty(&_chn_suspended_threads[chnr]))
             {
-                unsigned char chnr = dp[1];
+                rt_thread_t thread;
 
-                if (chnr == 0 || chnr >= RT_VBUS_CHANNEL_NR)
-                { break; }
-
-                if (_chn_status[chnr] != RT_VBUS_CHN_ST_SUSPEND)
-                { break; }
-
-                _chn_status[chnr] = RT_VBUS_CHN_ST_ESTABLISHED;
-
-                /* Protect the list. */
-                rt_enter_critical();
-                while (!rt_list_isempty(&_chn_suspended_threads[chnr]))
-                {
-                    rt_thread_t thread;
-
-                    thread = rt_list_entry(_chn_suspended_threads[chnr].next,
-                                           struct rt_thread,
-                                           tlist);
-                    rt_thread_resume(thread);
-                }
-                rt_exit_critical();
+                thread = rt_list_entry(_chn_suspended_threads[chnr].next,
+                                       struct rt_thread,
+                                       tlist);
+                rt_thread_resume(thread);
             }
+            rt_exit_critical();
+        }
 #endif
-            break;
-        case RT_VBUS_CHN0_CMD_NAK:
-            if (dp[1] == RT_VBUS_CHN0_CMD_ENABLE)
-            {
-                int i;
+        break;
+    case RT_VBUS_CHN0_CMD_NAK:
+        if (dp[1] == RT_VBUS_CHN0_CMD_ENABLE)
+        {
+            int i;
 
-                i = _sess_find(dp + 2, SESSIOM_ESTABLISHING);
-                if (i == ARRAY_SIZE(_sess))
-                    /* drop that spurious packet */
-                { break; }
+            i = _sess_find(dp+2, SESSIOM_ESTABLISHING);
+            if (i == ARRAY_SIZE(_sess))
+                /* drop that spurious packet */
+                break;
 
-                _sess[i].chnr = -RT_EIO;
-                rt_completion_done(&_sess[i].cmp);
-            }
-            else if (dp[1] == RT_VBUS_CHN0_CMD_SET)
-            {
-                vbus_info("NAK for %d not implemented\n", dp[1]);
-            }
-            else
-            {
-                vbus_info("invalid NAK for %d\n", dp[1]);
-            }
-            break;
-        default:
-            /* just ignore the invalid cmd */
-            vbus_info("drop unknown cmd %d on chn0\n", *dp);
-            break;
+            _sess[i].chnr = -RT_EIO;
+            rt_completion_done(&_sess[i].cmp);
+        }
+        else if (dp[1] == RT_VBUS_CHN0_CMD_SET)
+        {
+            vbus_info("NAK for %d not implemented\n", dp[1]);
+        }
+        else
+        {
+            vbus_info("invalid NAK for %d\n", dp[1]);
+        }
+        break;
+    default:
+        /* just ignore the invalid cmd */
+        vbus_info("drop unknown cmd %d on chn0\n", *dp);
+        break;
     };
 
     return RT_EOK;
 }
 
-int rt_vbus_request_chn(struct rt_vbus_request* req,
+int rt_vbus_request_chn(struct rt_vbus_request *req,
                         int timeout)
 {
     int i, chnr, err;
     size_t plen = rt_strlen(req->name) + 2;
-    unsigned char* pbuf;
-    rt_ubase_t lvl;
+    unsigned char *pbuf;
+    rt_base_t level;
 
-    lvl = rt_hw_interrupt_disable();
+    level = rt_hw_interrupt_disable();
     for (i = 0; i < ARRAY_SIZE(_sess); i++)
     {
         if (_sess[i].st == SESSIOM_AVAILABLE)
-        { break; }
+            break;
     }
     if (i == ARRAY_SIZE(_sess))
     {
-        rt_hw_interrupt_enable(lvl);
+        rt_hw_interrupt_enable(level);
         return -RT_ERROR;
     }
 
@@ -926,7 +921,7 @@ int rt_vbus_request_chn(struct rt_vbus_request* req,
     if (req->is_server)
     {
         _sess[i].st = SESSIOM_LISTENING;
-        rt_hw_interrupt_enable(lvl);
+        rt_hw_interrupt_enable(level);
 
         vbus_debug("request listening %s on %d\n", req->name, i);
 
@@ -938,15 +933,15 @@ int rt_vbus_request_chn(struct rt_vbus_request* req,
     pbuf = rt_malloc(plen);
     if (!pbuf)
     {
-        rt_hw_interrupt_enable(lvl);
+        rt_hw_interrupt_enable(level);
         return -RT_ENOMEM;
     }
 
     _sess[i].st = SESSIOM_ESTABLISHING;
-    rt_hw_interrupt_enable(lvl);
+    rt_hw_interrupt_enable(level);
 
     pbuf[0] = RT_VBUS_CHN0_CMD_ENABLE;
-    rt_memcpy(pbuf + 1, req->name, plen - 1);
+    rt_memcpy(pbuf+1, req->name, plen-1);
     vbus_verbose("%s --> remote\n", dump_cmd_pkt(pbuf, plen));
 
     err = _chn0_post(pbuf, plen, RT_WAITING_FOREVER);
@@ -954,7 +949,7 @@ int rt_vbus_request_chn(struct rt_vbus_request* req,
 
 _waitforcmp:
     if (err == RT_EOK)
-    { err = rt_completion_wait(&_sess[i].cmp, timeout); }
+        err = rt_completion_wait(&_sess[i].cmp, timeout);
 
     vbus_debug("request wait cmp done %d, chnr %d\n", err, _sess[i].chnr);
 
@@ -963,7 +958,7 @@ _waitforcmp:
         /* cleanup the mass when the wait is time out but we have done some job
          */
         if (_sess[i].st == SESSIOM_ESTABLISHING)
-        { _chn_status[_sess[i].chnr] = RT_VBUS_CHN_ST_AVAILABLE; }
+            _chn_status[_sess[i].chnr] = RT_VBUS_CHN_ST_AVAILABLE;
         chnr = err;
         goto Out;
     }
@@ -982,7 +977,7 @@ Out:
 
 void rt_vbus_close_chn(unsigned char chnr)
 {
-    void* p;
+    void *p;
     rt_err_t err;
     unsigned char buf[2];
 
@@ -999,18 +994,18 @@ void rt_vbus_close_chn(unsigned char chnr)
     }
 
     if (!_chn_connected(chnr))
-    { return; }
+        return;
 
     _chn_status[chnr] = RT_VBUS_CHN_ST_CLOSING;
     vbus_info("%s --> remote\n", dump_cmd_pkt(buf, sizeof(buf)));
     err = _chn0_post(&buf, sizeof(buf), RT_WAITING_FOREVER);
     if (err == RT_EOK)
         /* wait for the ack */
-    { rt_vbus_listen_on(chnr, 10 * RT_TICK_PER_SECOND); }
+        rt_vbus_listen_on(chnr, 10 * RT_TICK_PER_SECOND);
 
     /* cleanup the remaining data */
     for (p = rt_vbus_data_pop(chnr); p; p = rt_vbus_data_pop(chnr))
-    { rt_free(p); }
+        rt_free(p);
     /* FIXME: there is a chance that there are some data left on the send
      * buffer. So if we connect other channel with the same number immediately,
      * the new channel will receive some garbage data. However, this is highly
@@ -1021,7 +1016,7 @@ void rt_vbus_close_chn(unsigned char chnr)
 static unsigned int _total_data_sz;
 #endif
 
-static void _bus_in_entry(void* param)
+static void _bus_in_entry(void *param)
 {
     rt_sem_init(&_bus_in_sem, "vbus", 0, RT_IPC_FLAG_FIFO);
     rt_event_init(&_bus_in_event, "vbus", RT_IPC_FLAG_FIFO);
@@ -1037,7 +1032,7 @@ static void _bus_in_entry(void* param)
         {
             unsigned int id, nxtidx;
             rt_size_t size;
-            struct rt_vbus_data* act;
+            struct rt_vbus_data *act;
 
             rt_vbus_smp_rmb();
             size = RT_VBUS_IN_RING->blks[RT_VBUS_IN_RING->get_idx].len;
@@ -1057,9 +1052,9 @@ static void _bus_in_entry(void* param)
             if (id == 0)
             {
                 if (size > 60)
-                { vbus_error("too big(%d) packet on chn0\n", size); }
+                    vbus_error("too big(%d) packet on chn0\n", size);
                 else
-                { _chn0_actor(RT_VBUS_IN_RING->blks[RT_VBUS_IN_RING->get_idx].data, size); }
+                    _chn0_actor(RT_VBUS_IN_RING->blks[RT_VBUS_IN_RING->get_idx].data, size);
                 _ring_add_get_bnr(RT_VBUS_IN_RING, LEN2BNR(size));
                 continue;
             }
@@ -1086,14 +1081,14 @@ static void _bus_in_entry(void* param)
                 unsigned int tailsz;
 
                 tailsz = (RT_VMM_RB_BLK_NR - RT_VBUS_IN_RING->get_idx)
-                         * sizeof(RT_VBUS_IN_RING->blks[0]) - RT_VBUS_BLK_HEAD_SZ;
+                          * sizeof(RT_VBUS_IN_RING->blks[0]) - RT_VBUS_BLK_HEAD_SZ;
 
                 /* the remaining block is sufficient for the data */
                 if (tailsz > size)
-                { tailsz = size; }
+                    tailsz = size;
 
-                rt_memcpy(act + 1, &RT_VBUS_IN_RING->blks[RT_VBUS_IN_RING->get_idx].data, tailsz);
-                rt_memcpy((char*)(act + 1) + tailsz, &RT_VBUS_IN_RING->blks[0], size - tailsz);
+                rt_memcpy(act+1, &RT_VBUS_IN_RING->blks[RT_VBUS_IN_RING->get_idx].data, tailsz);
+                rt_memcpy((char*)(act+1) + tailsz, &RT_VBUS_IN_RING->blks[0], size - tailsz);
 
                 /* It shall make sure the CPU has finished reading the item
                  * before it writes the new tail pointer, which will erase the
@@ -1103,7 +1098,7 @@ static void _bus_in_entry(void* param)
             }
             else
             {
-                rt_memcpy(act + 1, &RT_VBUS_IN_RING->blks[RT_VBUS_IN_RING->get_idx].data, size);
+                rt_memcpy(act+1, &RT_VBUS_IN_RING->blks[RT_VBUS_IN_RING->get_idx].data, size);
 
                 rt_vbus_smp_wmb();
                 RT_VBUS_IN_RING->get_idx = nxtidx;
@@ -1114,25 +1109,25 @@ static void _bus_in_entry(void* param)
             event_set |= 1 << id;
 
             if (RT_VBUS_IN_RING->blocked)
-            { rt_vbus_tick(0, RT_VBUS_GUEST_VIRQ); }
+                rt_vbus_tick(0, RT_VBUS_GUEST_VIRQ);
         }
 
         if (event_set != 0)
-        { rt_vbus_notify_set(event_set); }
+            rt_vbus_notify_set(event_set);
     }
     RT_ASSERT(0);
 }
 
-void rt_vbus_isr(int irqnr, void* param)
+void rt_vbus_isr(int irqnr, void *param)
 {
     if (RT_VBUS_OUT_RING->blocked)
-    { rt_vbus_resume_out_thread(); }
+        rt_vbus_resume_out_thread();
 
     rt_sem_release(&_bus_in_sem);
     rt_vbus_hw_eoi(irqnr, param);
 }
 
-int rt_vbus_init(void* outr, void* inr)
+int rt_vbus_init(void *outr, void *inr)
 {
     int i;
 
@@ -1264,7 +1259,7 @@ unsigned int rt_vbus_total_data_sz(void)
 #ifdef RT_VBUS_STATISTICS
     return _total_data_sz;
 #else
-    return (unsigned int) -1;
+    return (unsigned int)-1;
 #endif
 }
 
@@ -1274,7 +1269,7 @@ void rt_vbus_data_pkt_dump(void)
 
     for (i = 0; i < ARRAY_SIZE(_bus_in_action); i++)
     {
-        struct rt_vbus_data* dp;
+        struct rt_vbus_data *dp;
 
 #ifdef RT_VBUS_STATISTICS
         rt_kprintf("%2d %4d: ", i, _bus_in_action_nr[i]);
@@ -1298,7 +1293,7 @@ void rt_vbus_chm_wm_dump(void)
 
     rt_kprintf("post wm:\n");
     for (i = 0; i < ARRAY_SIZE(_chn_wm_que); i++)
-    { rt_wm_que_dump(&_chn_wm_que[i]); }
+        rt_wm_que_dump(&_chn_wm_que[i]);
 
     rt_kprintf("recv wm:\n");
     rt_kprintf("     low,     high,      cur,  last warn\n");
@@ -1313,7 +1308,7 @@ void rt_vbus_chm_wm_dump(void)
 
 #ifdef RT_USING_FINSH
 #include <finsh.h>
-FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_rb_dump,    vbrb, dump vbus ringbuffer status);
+FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_rb_dump,   vbrb, dump vbus ringbuffer status);
 FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_chn_dump,  vbchn, dump vbus channel status);
 FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_sess_dump, vbses, dump vbus session status);
 FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_que_dump,  vbque, dump vbus out queue status);

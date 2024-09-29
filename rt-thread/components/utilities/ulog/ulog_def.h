@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2021, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -10,6 +10,8 @@
 
 #ifndef _ULOG_DEF_H_
 #define _ULOG_DEF_H_
+
+#include <rtdef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,60 +55,60 @@ extern "C" {
     }
 
 #if !defined(LOG_TAG)
-/* compatible for rtdbg */
-#if defined(DBG_TAG)
-#define LOG_TAG                DBG_TAG
-#elif defined(DBG_SECTION_NAME)
-#define LOG_TAG                DBG_SECTION_NAME
-#else
-#define LOG_TAG                "NO_TAG"
-#endif
+    /* compatible for rtdbg */
+    #if defined(DBG_TAG)
+        #define LOG_TAG                DBG_TAG
+    #elif defined(DBG_SECTION_NAME)
+        #define LOG_TAG                DBG_SECTION_NAME
+    #else
+        #define LOG_TAG                "NO_TAG"
+    #endif
 #endif /* !defined(LOG_TAG) */
 
 #if !defined(LOG_LVL)
-/* compatible for rtdbg */
-#if defined(DBG_LVL)
-#define LOG_LVL                DBG_LVL
-#elif defined(DBG_LEVEL)
-#define LOG_LVL                DBG_LEVEL
-#else
-#define LOG_LVL                LOG_LVL_DBG
-#endif
+    /* compatible for rtdbg */
+    #if defined(DBG_LVL)
+        #define LOG_LVL                DBG_LVL
+    #elif defined(DBG_LEVEL)
+        #define LOG_LVL                DBG_LEVEL
+    #else
+        #define LOG_LVL                LOG_LVL_DBG
+    #endif
 #endif /* !defined(LOG_LVL) */
 
 #if (LOG_LVL >= LOG_LVL_DBG) && (ULOG_OUTPUT_LVL >= LOG_LVL_DBG)
-#define ulog_d(TAG, ...)           ulog_output(LOG_LVL_DBG, TAG, RT_TRUE, __VA_ARGS__)
+    #define ulog_d(TAG, ...)           ulog_output(LOG_LVL_DBG, TAG, RT_TRUE, __VA_ARGS__)
 #else
-#define ulog_d(TAG, ...)
+    #define ulog_d(TAG, ...)
 #endif /* (LOG_LVL >= LOG_LVL_DBG) && (ULOG_OUTPUT_LVL >= LOG_LVL_DBG) */
 
 #if (LOG_LVL >= LOG_LVL_INFO) && (ULOG_OUTPUT_LVL >= LOG_LVL_INFO)
-#define ulog_i(TAG, ...)           ulog_output(LOG_LVL_INFO, TAG, RT_TRUE, __VA_ARGS__)
+    #define ulog_i(TAG, ...)           ulog_output(LOG_LVL_INFO, TAG, RT_TRUE, __VA_ARGS__)
 #else
-#define ulog_i(TAG, ...)
+    #define ulog_i(TAG, ...)
 #endif /* (LOG_LVL >= LOG_LVL_INFO) && (ULOG_OUTPUT_LVL >= LOG_LVL_INFO) */
 
 #if (LOG_LVL >= LOG_LVL_WARNING) && (ULOG_OUTPUT_LVL >= LOG_LVL_WARNING)
-#define ulog_w(TAG, ...)           ulog_output(LOG_LVL_WARNING, TAG, RT_TRUE, __VA_ARGS__)
+    #define ulog_w(TAG, ...)           ulog_output(LOG_LVL_WARNING, TAG, RT_TRUE, __VA_ARGS__)
 #else
-#define ulog_w(TAG, ...)
+    #define ulog_w(TAG, ...)
 #endif /* (LOG_LVL >= LOG_LVL_WARNING) && (ULOG_OUTPUT_LVL >= LOG_LVL_WARNING) */
 
 #if (LOG_LVL >= LOG_LVL_ERROR) && (ULOG_OUTPUT_LVL >= LOG_LVL_ERROR)
-#define ulog_e(TAG, ...)           ulog_output(LOG_LVL_ERROR, TAG, RT_TRUE, __VA_ARGS__)
+    #define ulog_e(TAG, ...)           ulog_output(LOG_LVL_ERROR, TAG, RT_TRUE, __VA_ARGS__)
 #else
-#define ulog_e(TAG, ...)
+    #define ulog_e(TAG, ...)
 #endif /* (LOG_LVL >= LOG_LVL_ERROR) && (ULOG_OUTPUT_LVL >= LOG_LVL_ERROR) */
 
 #if (LOG_LVL >= LOG_LVL_DBG) && (ULOG_OUTPUT_LVL >= LOG_LVL_DBG)
-#define ulog_hex(TAG, width, buf, size)     ulog_hexdump(TAG, width, buf, size)
+    #define ulog_hex(TAG, width, buf, size)     ulog_hexdump(TAG, width, buf, size)
 #else
-#define ulog_hex(TAG, width, buf, size)
+    #define ulog_hex(TAG, width, buf, size)
 #endif /* (LOG_LVL >= LOG_LVL_DBG) && (ULOG_OUTPUT_LVL >= LOG_LVL_DBG) */
 
 /* assert for developer. */
 #ifdef ULOG_ASSERT_ENABLE
-#define ULOG_ASSERT(EXPR)                                                 \
+    #define ULOG_ASSERT(EXPR)                                                 \
     if (!(EXPR))                                                              \
     {                                                                         \
         ulog_output(LOG_LVL_ASSERT, LOG_TAG, RT_TRUE, "(%s) has assert failed at %s:%ld.", #EXPR, __FUNCTION__, __LINE__); \
@@ -114,12 +116,12 @@ extern "C" {
         while (1);                                                            \
     }
 #else
-#define ULOG_ASSERT(EXPR)
+    #define ULOG_ASSERT(EXPR)
 #endif
 
 /* ASSERT API definition */
 #if !defined(ASSERT)
-#define ASSERT           ULOG_ASSERT
+    #define ASSERT           ULOG_ASSERT
 #endif
 
 /* compatible for elog */
@@ -183,32 +185,35 @@ struct ulog_tag_lvl_filter
     rt_uint32_t level;
     rt_slist_t list;
 };
-typedef struct ulog_tag_lvl_filter* ulog_tag_lvl_filter_t;
+typedef struct ulog_tag_lvl_filter *ulog_tag_lvl_filter_t;
 
 struct ulog_frame
 {
     /* magic word is 0x10 ('lo') */
-    rt_uint32_t magic: 8;
-    rt_uint32_t is_raw: 1;
-    rt_uint32_t log_len: 23;
+    rt_uint32_t magic:8;
+    rt_uint32_t is_raw:1;
+    rt_uint32_t log_len:23;
     rt_uint32_t level;
-    const char* log;
-    const char* tag;
+    const char *log;
+    const char *tag;
 };
-typedef struct ulog_frame* ulog_frame_t;
+typedef struct ulog_frame *ulog_frame_t;
 
 struct ulog_backend
 {
     char name[RT_NAME_MAX];
     rt_bool_t support_color;
     rt_uint32_t out_level;
-    void (*init)  (struct ulog_backend* backend);
-    void (*output)(struct ulog_backend* backend, rt_uint32_t level, const char* tag, rt_bool_t is_raw, const char* log, size_t len);
-    void (*flush) (struct ulog_backend* backend);
-    void (*deinit)(struct ulog_backend* backend);
+    void (*init)  (struct ulog_backend *backend);
+    void (*output)(struct ulog_backend *backend, rt_uint32_t level, const char *tag, rt_bool_t is_raw, const char *log, rt_size_t len);
+    void (*flush) (struct ulog_backend *backend);
+    void (*deinit)(struct ulog_backend *backend);
+    /* The filter will be call before output. It will return TRUE when the filter condition is math. */
+    rt_bool_t (*filter)(struct ulog_backend *backend, rt_uint32_t level, const char *tag, rt_bool_t is_raw, const char *log, rt_size_t len);
     rt_slist_t list;
 };
-typedef struct ulog_backend* ulog_backend_t;
+typedef struct ulog_backend *ulog_backend_t;
+typedef rt_bool_t (*ulog_backend_filter_t)(struct ulog_backend *backend, rt_uint32_t level, const char *tag, rt_bool_t is_raw, const char *log, rt_size_t len);
 
 #ifdef __cplusplus
 }

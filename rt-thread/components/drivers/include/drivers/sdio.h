@@ -145,82 +145,82 @@ struct rt_sdio_device_id
 
 struct rt_sdio_driver
 {
-    char* name;
-    rt_int32_t (*probe)(struct rt_mmcsd_card* card);
-    rt_int32_t (*remove)(struct rt_mmcsd_card* card);
-    struct rt_sdio_device_id* id;
+    char *name;
+    rt_int32_t (*probe)(struct rt_mmcsd_card *card);
+    rt_int32_t (*remove)(struct rt_mmcsd_card *card);
+    struct rt_sdio_device_id *id;
 };
 
-rt_int32_t sdio_io_send_op_cond(struct rt_mmcsd_host* host,
+rt_int32_t sdio_io_send_op_cond(struct rt_mmcsd_host *host,
                                 rt_uint32_t           ocr,
-                                rt_uint32_t*          cmd5_resp);
-rt_int32_t sdio_io_rw_direct(struct rt_mmcsd_card* card,
+                                rt_uint32_t          *cmd5_resp);
+rt_int32_t sdio_io_rw_direct(struct rt_mmcsd_card *card,
                              rt_int32_t            rw,
                              rt_uint32_t           fn,
                              rt_uint32_t           reg_addr,
-                             rt_uint8_t*           pdata,
+                             rt_uint8_t           *pdata,
                              rt_uint8_t            raw);
-rt_int32_t sdio_io_rw_extended(struct rt_mmcsd_card* card,
+rt_int32_t sdio_io_rw_extended(struct rt_mmcsd_card *card,
                                rt_int32_t            rw,
                                rt_uint32_t           fn,
                                rt_uint32_t           addr,
                                rt_int32_t            op_code,
-                               rt_uint8_t*           buf,
+                               rt_uint8_t           *buf,
                                rt_uint32_t           blocks,
                                rt_uint32_t           blksize);
-rt_int32_t sdio_io_rw_extended_block(struct rt_sdio_function* func,
-                                     rt_int32_t               rw,
-                                     rt_uint32_t              addr,
-                                     rt_int32_t               op_code,
-                                     rt_uint8_t*              buf,
-                                     rt_uint32_t              len);
-rt_uint8_t sdio_io_readb(struct rt_sdio_function* func,
+rt_int32_t sdio_io_rw_extended_block(struct rt_sdio_function *func,
+                              rt_int32_t               rw,
+                              rt_uint32_t              addr,
+                              rt_int32_t               op_code,
+                              rt_uint8_t              *buf,
+                              rt_uint32_t              len);
+rt_uint8_t sdio_io_readb(struct rt_sdio_function *func,
                          rt_uint32_t              reg,
-                         rt_int32_t*              err);
-rt_int32_t sdio_io_writeb(struct rt_sdio_function* func,
+                         rt_int32_t              *err);
+rt_int32_t sdio_io_writeb(struct rt_sdio_function *func,
                           rt_uint32_t              reg,
                           rt_uint8_t               data);
-rt_uint16_t sdio_io_readw(struct rt_sdio_function* func,
+rt_uint16_t sdio_io_readw(struct rt_sdio_function *func,
                           rt_uint32_t              addr,
-                          rt_int32_t*              err);
-rt_int32_t sdio_io_writew(struct rt_sdio_function* func,
+                          rt_int32_t              *err);
+rt_int32_t sdio_io_writew(struct rt_sdio_function *func,
                           rt_uint16_t              data,
                           rt_uint32_t              addr);
-rt_uint32_t sdio_io_readl(struct rt_sdio_function* func,
+rt_uint32_t sdio_io_readl(struct rt_sdio_function *func,
                           rt_uint32_t              addr,
-                          rt_int32_t*              err);
-rt_int32_t sdio_io_writel(struct rt_sdio_function* func,
+                          rt_int32_t              *err);
+rt_int32_t sdio_io_writel(struct rt_sdio_function *func,
                           rt_uint32_t              data,
                           rt_uint32_t              addr);
-rt_int32_t sdio_io_read_multi_fifo_b(struct rt_sdio_function* func,
+rt_int32_t sdio_io_read_multi_fifo_b(struct rt_sdio_function *func,
                                      rt_uint32_t              addr,
-                                     rt_uint8_t*              buf,
+                                     rt_uint8_t              *buf,
                                      rt_uint32_t              len);
-rt_int32_t sdio_io_write_multi_fifo_b(struct rt_sdio_function* func,
+rt_int32_t sdio_io_write_multi_fifo_b(struct rt_sdio_function *func,
                                       rt_uint32_t              addr,
-                                      rt_uint8_t*              buf,
+                                      rt_uint8_t              *buf,
                                       rt_uint32_t              len);
-rt_int32_t sdio_io_read_multi_incr_b(struct rt_sdio_function* func,
+rt_int32_t sdio_io_read_multi_incr_b(struct rt_sdio_function *func,
                                      rt_uint32_t              addr,
-                                     rt_uint8_t*              buf,
+                                     rt_uint8_t              *buf,
                                      rt_uint32_t              len);
-rt_int32_t sdio_io_write_multi_incr_b(struct rt_sdio_function* func,
+rt_int32_t sdio_io_write_multi_incr_b(struct rt_sdio_function *func,
                                       rt_uint32_t              addr,
-                                      rt_uint8_t*              buf,
+                                      rt_uint8_t              *buf,
                                       rt_uint32_t              len);
-rt_int32_t init_sdio(struct rt_mmcsd_host* host, rt_uint32_t ocr);
-rt_int32_t sdio_attach_irq(struct rt_sdio_function* func,
-                           rt_sdio_irq_handler_t*   handler);
-rt_int32_t sdio_detach_irq(struct rt_sdio_function* func);
-void sdio_irq_wakeup(struct rt_mmcsd_host* host);
-rt_int32_t sdio_enable_func(struct rt_sdio_function* func);
-rt_int32_t sdio_disable_func(struct rt_sdio_function* func);
-void sdio_set_drvdata(struct rt_sdio_function* func, void* data);
-void* sdio_get_drvdata(struct rt_sdio_function* func);
-rt_int32_t sdio_set_block_size(struct rt_sdio_function* func,
+rt_int32_t init_sdio(struct rt_mmcsd_host *host, rt_uint32_t ocr);
+rt_int32_t sdio_attach_irq(struct rt_sdio_function *func,
+                           rt_sdio_irq_handler_t   *handler);
+rt_int32_t sdio_detach_irq(struct rt_sdio_function *func);
+void sdio_irq_wakeup(struct rt_mmcsd_host *host);
+rt_int32_t sdio_enable_func(struct rt_sdio_function *func);
+rt_int32_t sdio_disable_func(struct rt_sdio_function *func);
+void sdio_set_drvdata(struct rt_sdio_function *func, void *data);
+void* sdio_get_drvdata(struct rt_sdio_function *func);
+rt_int32_t sdio_set_block_size(struct rt_sdio_function *func,
                                rt_uint32_t              blksize);
-rt_int32_t sdio_register_driver(struct rt_sdio_driver* driver);
-rt_int32_t sdio_unregister_driver(struct rt_sdio_driver* driver);
+rt_int32_t sdio_register_driver(struct rt_sdio_driver *driver);
+rt_int32_t sdio_unregister_driver(struct rt_sdio_driver *driver);
 void rt_sdio_init(void);
 
 #ifdef __cplusplus

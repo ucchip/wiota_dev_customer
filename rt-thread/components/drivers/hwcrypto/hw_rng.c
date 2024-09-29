@@ -13,7 +13,7 @@
 #include <hw_rng.h>
 
 /* Used to save default RNG Context */
-static struct rt_hwcrypto_ctx* ctx_default;
+static struct rt_hwcrypto_ctx *ctx_default;
 
 /**
  * @brief           Creating RNG Context
@@ -22,9 +22,9 @@ static struct rt_hwcrypto_ctx* ctx_default;
  *
  * @return          RNG context
  */
-struct rt_hwcrypto_ctx* rt_hwcrypto_rng_create(struct rt_hwcrypto_device* device)
+struct rt_hwcrypto_ctx *rt_hwcrypto_rng_create(struct rt_hwcrypto_device *device)
 {
-    struct rt_hwcrypto_ctx* ctx;
+    struct rt_hwcrypto_ctx *ctx;
 
     ctx = rt_hwcrypto_ctx_create(device, HWCRYPTO_TYPE_RNG, sizeof(struct hwcrypto_rng));
     return ctx;
@@ -35,7 +35,7 @@ struct rt_hwcrypto_ctx* rt_hwcrypto_rng_create(struct rt_hwcrypto_device* device
  *
  * @param ctx       RNG context
  */
-void rt_hwcrypto_rng_destroy(struct rt_hwcrypto_ctx* ctx)
+void rt_hwcrypto_rng_destroy(struct rt_hwcrypto_ctx *ctx)
 {
     /* Destroy the defaule RNG Context ? */
     if (ctx == ctx_default)
@@ -50,9 +50,9 @@ void rt_hwcrypto_rng_destroy(struct rt_hwcrypto_ctx* ctx)
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_rng_default(struct rt_hwcrypto_device* device)
+rt_err_t rt_hwcrypto_rng_default(struct rt_hwcrypto_device *device)
 {
-    struct rt_hwcrypto_ctx* tmp_ctx;
+    struct rt_hwcrypto_ctx *tmp_ctx;
 
     /* if device is null, destroy default RNG Context */
     if (device == RT_NULL)
@@ -84,11 +84,11 @@ rt_err_t rt_hwcrypto_rng_default(struct rt_hwcrypto_device* device)
  *
  * @return          Random number
  */
-rt_uint32_t rt_hwcrypto_rng_update_ctx(struct rt_hwcrypto_ctx* ctx)
+rt_uint32_t rt_hwcrypto_rng_update_ctx(struct rt_hwcrypto_ctx *ctx)
 {
     if (ctx)
     {
-        return ((struct hwcrypto_rng*)ctx)->ops->update((struct hwcrypto_rng*)ctx);
+        return ((struct hwcrypto_rng *)ctx)->ops->update((struct hwcrypto_rng *)ctx);
     }
     return 0;
 }

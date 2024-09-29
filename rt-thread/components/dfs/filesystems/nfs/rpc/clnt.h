@@ -54,78 +54,73 @@
  * since each implementation is required to live with this (implementation
  * independent) list of errors.
  */
-enum clnt_stat
-{
-    RPC_SUCCESS = 0,        /* call succeeded */
+enum clnt_stat {
+    RPC_SUCCESS=0,          /* call succeeded */
     /*
      * local errors
      */
-    RPC_CANTENCODEARGS = 1,     /* can't encode arguments */
-    RPC_CANTDECODERES = 2,      /* can't decode results */
-    RPC_CANTSEND = 3,       /* failure in sending call */
-    RPC_CANTRECV = 4,       /* failure in receiving result */
-    RPC_TIMEDOUT = 5,       /* call timed out */
+    RPC_CANTENCODEARGS=1,       /* can't encode arguments */
+    RPC_CANTDECODERES=2,        /* can't decode results */
+    RPC_CANTSEND=3,         /* failure in sending call */
+    RPC_CANTRECV=4,         /* failure in receiving result */
+    RPC_TIMEDOUT=5,         /* call timed out */
     /*
      * remote errors
      */
-    RPC_VERSMISMATCH = 6,   /* rpc versions not compatible */
-    RPC_AUTHERROR = 7,      /* authentication error */
-    RPC_PROGUNAVAIL = 8,    /* program not available */
-    RPC_PROGVERSMISMATCH = 9,   /* program version mismatched */
-    RPC_PROCUNAVAIL = 10,   /* procedure unavailable */
-    RPC_CANTDECODEARGS = 11,    /* decode arguments error */
-    RPC_SYSTEMERROR = 12,   /* generic "other problem" */
+    RPC_VERSMISMATCH=6,     /* rpc versions not compatible */
+    RPC_AUTHERROR=7,        /* authentication error */
+    RPC_PROGUNAVAIL=8,      /* program not available */
+    RPC_PROGVERSMISMATCH=9,     /* program version mismatched */
+    RPC_PROCUNAVAIL=10,     /* procedure unavailable */
+    RPC_CANTDECODEARGS=11,      /* decode arguments error */
+    RPC_SYSTEMERROR=12,     /* generic "other problem" */
     RPC_NOBROADCAST = 21,       /* Broadcasting not supported */
     /*
      * callrpc & clnt_create errors
      */
-    RPC_UNKNOWNHOST = 13,   /* unknown host name */
-    RPC_UNKNOWNPROTO = 17,      /* unknown protocol */
+    RPC_UNKNOWNHOST=13,     /* unknown host name */
+    RPC_UNKNOWNPROTO=17,        /* unknown protocol */
     RPC_UNKNOWNADDR = 19,       /* Remote address unknown */
 
     /*
      * rpcbind errors
      */
-    RPC_RPCBFAILURE = 14,   /* portmapper failed in its call */
+    RPC_RPCBFAILURE=14,     /* portmapper failed in its call */
 #define RPC_PMAPFAILURE RPC_RPCBFAILURE
-    RPC_PROGNOTREGISTERED = 15, /* remote program is not registered */
+    RPC_PROGNOTREGISTERED=15,   /* remote program is not registered */
     RPC_N2AXLATEFAILURE = 22,   /* Name to addr translation failed */
     /*
      * unspecified error
      */
-    RPC_FAILED = 16,
-    RPC_INTR = 18,
-    RPC_TLIERROR = 20,
-    RPC_UDERROR = 23,
-    /*
-     * asynchronous errors
-     */
-    RPC_INPROGRESS = 24,
-    RPC_STALERACHANDLE = 25
+    RPC_FAILED=16,
+    RPC_INTR=18,
+    RPC_TLIERROR=20,
+    RPC_UDERROR=23,
+        /*
+         * asynchronous errors
+         */
+        RPC_INPROGRESS = 24,
+        RPC_STALERACHANDLE = 25
 };
 
 
 /*
  * Error info.
  */
-struct rpc_err
-{
-    int re_status;
-    union
-    {
-        int RE_errno;       /* related system error */
-        int RE_why; /* why the auth error occurred */
-        struct
-        {
-            unsigned long low;        /* lowest verion supported */
-            unsigned long high;       /* highest verion supported */
-        } RE_vers;
-        struct              /* maybe meaningful if RPC_FAILED */
-        {
-            long s1;
-            long s2;
-        } RE_lb;            /* life boot & debugging only */
-    } ru;
+struct rpc_err {
+  int re_status;
+  union {
+    int RE_errno;       /* related system error */
+    int RE_why; /* why the auth error occurred */
+    struct {
+      unsigned long low;        /* lowest verion supported */
+      unsigned long high;       /* highest verion supported */
+    } RE_vers;
+    struct {            /* maybe meaningful if RPC_FAILED */
+      long s1;
+      long s2;
+    } RE_lb;            /* life boot & debugging only */
+  } ru;
 #define re_errno    ru.RE_errno
 #define re_why      ru.RE_why
 #define re_vers     ru.RE_vers
@@ -139,24 +134,22 @@ struct rpc_err
  * Client is responsible for initializing auth, see e.g. auth_none.c.
  */
 typedef struct CLIENT CLIENT;
-struct CLIENT
-{
-    AUTH*  cl_auth;        /* authenticator */
-    struct clnt_ops
-    {
-        enum clnt_stat (*cl_call) (CLIENT*, unsigned long, xdrproc_t, char*, xdrproc_t,
-                                   char*, struct timeval);
-        /* call remote procedure */
-        void (*cl_abort) (void);    /* abort a call */
-        void (*cl_geterr) (CLIENT*, struct rpc_err*);
-        /* get specific error code */
-        bool_t (*cl_freeres) (CLIENT*, xdrproc_t, char*);
-        /* frees results */
-        void (*cl_destroy) (CLIENT*);  /* destroy this structure */
-        bool_t (*cl_control) (CLIENT*, int, char*);
-        /* the ioctl() of rpc */
-    }* cl_ops;
-    char* cl_private;     /* private stuff */
+struct CLIENT {
+  AUTH  *cl_auth;        /* authenticator */
+  struct clnt_ops {
+    enum clnt_stat (*cl_call) (CLIENT *, unsigned long, xdrproc_t, char*, xdrproc_t,
+                   char*, struct timeval);
+                    /* call remote procedure */
+    void (*cl_abort) (void);    /* abort a call */
+    void (*cl_geterr) (CLIENT *, struct rpc_err *);
+                /* get specific error code */
+    bool_t (*cl_freeres) (CLIENT *, xdrproc_t, char*);
+                /* frees results */
+    void (*cl_destroy) (CLIENT *); /* destroy this structure */
+    bool_t (*cl_control) (CLIENT *, int, char *);
+                /* the ioctl() of rpc */
+  } *cl_ops;
+  char* cl_private;     /* private stuff */
 };
 
 
@@ -291,9 +284,9 @@ struct CLIENT
  *  u_ong vers; -- version number
  *  char *prot; -- protocol
  */
-extern CLIENT* clnt_create (const char* __host, const unsigned long __prog,
-                            const unsigned long __vers, const char* __prot)
-;
+extern CLIENT *clnt_create (const char *__host, const unsigned long __prog,
+                const unsigned long __vers, const char *__prot)
+    ;
 
 /*
  * UDP based rpc.
@@ -316,22 +309,22 @@ extern CLIENT* clnt_create (const char* __host, const unsigned long __prog,
  *  unsigned int sendsz;
  *  unsigned int recvsz;
  */
-extern CLIENT* clntudp_create (struct sockaddr_in* __raddr, unsigned long __program,
-                               unsigned long __version, struct timeval __wait_resend,
-                               int* __sockp);
-extern CLIENT* clntudp_bufcreate (struct sockaddr_in* __raddr,
-                                  unsigned long __program, unsigned long __version,
-                                  struct timeval __wait_resend, int* __sockp,
-                                  unsigned int __sendsz, unsigned int __recvsz);
+extern CLIENT *clntudp_create (struct sockaddr_in *__raddr, unsigned long __program,
+                   unsigned long __version, struct timeval __wait_resend,
+                   int *__sockp);
+extern CLIENT *clntudp_bufcreate (struct sockaddr_in *__raddr,
+                  unsigned long __program, unsigned long __version,
+                  struct timeval __wait_resend, int *__sockp,
+                  unsigned int __sendsz, unsigned int __recvsz);
 
-extern int callrpc (const char* __host, const unsigned long __prognum,
-                    const unsigned long __versnum, const unsigned long __procnum,
-                    const xdrproc_t __inproc, const char* __in,
-                    const xdrproc_t __outproc, char* __out);
+extern int callrpc (const char *__host, const unsigned long __prognum,
+            const unsigned long __versnum, const unsigned long __procnum,
+            const xdrproc_t __inproc, const char *__in,
+            const xdrproc_t __outproc, char *__out);
 
 #define UDPMSGSIZE  8800    /* rpc imposed limit on udp msg size */
 #define RPCSMALLMSGSIZE 400 /* a more reasonable packet size */
 
-void clnt_perror(CLIENT* rpch, const char* s);
+void clnt_perror(CLIENT *rpch, const char *s);
 
 #endif /* rpc/clnt.h */

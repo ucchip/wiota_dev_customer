@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 struct rt_pollreq;
-typedef void (*poll_queue_proc)(rt_wqueue_t*, struct rt_pollreq*);
+typedef void (*poll_queue_proc)(rt_wqueue_t *, struct rt_pollreq *);
 
 typedef struct rt_pollreq
 {
@@ -24,7 +24,7 @@ typedef struct rt_pollreq
     short _key;
 } rt_pollreq_t;
 
-rt_inline void rt_poll_add(rt_wqueue_t* wq, rt_pollreq_t* req)
+rt_inline void rt_poll_add(rt_wqueue_t *wq, rt_pollreq_t *req)
 {
     if (req && req->_proc && wq)
     {

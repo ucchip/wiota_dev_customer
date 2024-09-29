@@ -72,7 +72,7 @@ enum netdev_cb_type
 struct netdev;
 
 /* function prototype for network interface device status or address change callback functions */
-typedef void (*netdev_callback_fn )(struct netdev* netdev, enum netdev_cb_type type);
+typedef void (*netdev_callback_fn )(struct netdev *netdev, enum netdev_cb_type type);
 
 struct netdev_ops;
 
@@ -94,21 +94,21 @@ struct netdev
 
     uint16_t flags;                                    /* network interface device status flag */
     uint16_t mtu;                                      /* maximum transfer unit (in bytes) */
-    const struct netdev_ops* ops;                      /* network interface device operations */
+    const struct netdev_ops *ops;                      /* network interface device operations */
 
     netdev_callback_fn status_callback;                /* network interface device flags change callback */
     netdev_callback_fn addr_callback;                  /* network interface device address information change callback */
 
 #ifdef RT_USING_SAL
-    void* sal_user_data;                               /* user-specific data for SAL */
+    void *sal_user_data;                               /* user-specific data for SAL */
 #endif /* RT_USING_SAL */
-    void* user_data;                                   /* user-specific data */
+    void *user_data;                                   /* user-specific data */
 };
 
 /* The list of network interface device */
-extern struct netdev* netdev_list;
+extern struct netdev *netdev_list;
 /* The default network interface device */
-extern struct netdev* netdev_default;
+extern struct netdev *netdev_default;
 
 /* The network interface device ping response object */
 struct netdev_ping_resp
@@ -117,51 +117,51 @@ struct netdev_ping_resp
     uint16_t data_len;                           /* response data length */
     uint16_t ttl;                                /* time to live */
     uint32_t ticks;                              /* response time, unit tick */
-    void* user_data;                             /* user-specific data */
+    void *user_data;                             /* user-specific data */
 };
 
 /* The network interface device operations */
 struct netdev_ops
 {
     /* set network interface device hardware status operations */
-    int (*set_up)(struct netdev* netdev);
-    int (*set_down)(struct netdev* netdev);
+    int (*set_up)(struct netdev *netdev);
+    int (*set_down)(struct netdev *netdev);
 
     /* set network interface device address information operations */
-    int (*set_addr_info)(struct netdev* netdev, ip_addr_t* ip_addr, ip_addr_t* netmask, ip_addr_t* gw);
-    int (*set_dns_server)(struct netdev* netdev, uint8_t dns_num, ip_addr_t* dns_server);
-    int (*set_dhcp)(struct netdev* netdev, rt_bool_t is_enabled);
+    int (*set_addr_info)(struct netdev *netdev, ip_addr_t *ip_addr, ip_addr_t *netmask, ip_addr_t *gw);
+    int (*set_dns_server)(struct netdev *netdev, uint8_t dns_num, ip_addr_t *dns_server);
+    int (*set_dhcp)(struct netdev *netdev, rt_bool_t is_enabled);
 
 #ifdef RT_USING_FINSH
     /* set network interface device common network interface device operations */
-    int (*ping)(struct netdev* netdev, const char* host, size_t data_len, uint32_t timeout, struct netdev_ping_resp* ping_resp);
-    void (*netstat)(struct netdev* netdev);
+    int (*ping)(struct netdev *netdev, const char *host, size_t data_len, uint32_t timeout, struct netdev_ping_resp *ping_resp);
+    void (*netstat)(struct netdev *netdev);
 #endif
 
     /* set default network interface device in current network stack*/
-    int (*set_default)(struct netdev* netdev);
+    int (*set_default)(struct netdev *netdev);
 };
 
 /* The network interface device registered and unregistered*/
-int netdev_register(struct netdev* netdev, const char* name, void* user_data);
-int netdev_unregister(struct netdev* netdev);
+int netdev_register(struct netdev *netdev, const char *name, void *user_data);
+int netdev_unregister(struct netdev *netdev);
 
 /* Get network interface device object */
-struct netdev* netdev_get_first_by_flags(uint16_t flags);
-struct netdev* netdev_get_by_ipaddr(ip_addr_t* ip_addr);
-struct netdev* netdev_get_by_name(const char* name);
+struct netdev *netdev_get_first_by_flags(uint16_t flags);
+struct netdev *netdev_get_by_ipaddr(ip_addr_t *ip_addr);
+struct netdev *netdev_get_by_name(const char *name);
 #ifdef RT_USING_SAL
-struct netdev* netdev_get_by_family(int family);
-int netdev_family_get(struct netdev* netdev);
+struct netdev *netdev_get_by_family(int family);
+int netdev_family_get(struct netdev *netdev);
 #endif /* RT_USING_SAL */
 
 /* Set default network interface device in list */
-void netdev_set_default(struct netdev* netdev);
+void netdev_set_default(struct netdev *netdev);
 
 /*  Set network interface device status */
-int netdev_set_up(struct netdev* netdev);
-int netdev_set_down(struct netdev* netdev);
-int netdev_dhcp_enabled(struct netdev* netdev, rt_bool_t is_enabled);
+int netdev_set_up(struct netdev *netdev);
+int netdev_set_down(struct netdev *netdev);
+int netdev_dhcp_enabled(struct netdev *netdev, rt_bool_t is_enabled);
 
 /* Get network interface device status */
 #define netdev_is_up(netdev) (((netdev)->flags & NETDEV_FLAG_UP) ? (uint8_t)1 : (uint8_t)0)
@@ -170,23 +170,24 @@ int netdev_dhcp_enabled(struct netdev* netdev, rt_bool_t is_enabled);
 #define netdev_is_dhcp_enabled(netdev) (((netdev)->flags & NETDEV_FLAG_DHCP) ? (uint8_t)1 : (uint8_t)0)
 
 /* Set network interface device address */
-int netdev_set_ipaddr(struct netdev* netdev, const ip_addr_t* ipaddr);
-int netdev_set_netmask(struct netdev* netdev, const ip_addr_t* netmask);
-int netdev_set_gw(struct netdev* netdev, const ip_addr_t* gw);
-int netdev_set_dns_server(struct netdev* netdev, uint8_t dns_num, const ip_addr_t* dns_server);
+int netdev_set_ipaddr(struct netdev *netdev, const ip_addr_t *ipaddr);
+int netdev_set_netmask(struct netdev *netdev, const ip_addr_t *netmask);
+int netdev_set_gw(struct netdev *netdev, const ip_addr_t *gw);
+int netdev_set_dns_server(struct netdev *netdev, uint8_t dns_num, const ip_addr_t *dns_server);
 
 /* Set network interface device callback, it can be called when the status or address changed */
-void netdev_set_status_callback(struct netdev* netdev, netdev_callback_fn status_callback);
-void netdev_set_addr_callback(struct netdev* netdev, netdev_callback_fn addr_callback);
+void netdev_set_status_callback(struct netdev *netdev, netdev_callback_fn status_callback);
+void netdev_set_addr_callback(struct netdev *netdev, netdev_callback_fn addr_callback);
 
 /* Set network interface device status and address, this function can only be called in the network interface device driver */
-void netdev_low_level_set_ipaddr(struct netdev* netdev, const ip_addr_t* ipaddr);
-void netdev_low_level_set_netmask(struct netdev* netdev, const ip_addr_t* netmask);
-void netdev_low_level_set_gw(struct netdev* netdev, const ip_addr_t* gw);
-void netdev_low_level_set_dns_server(struct netdev* netdev, uint8_t dns_num, const ip_addr_t* dns_server);
-void netdev_low_level_set_status(struct netdev* netdev, rt_bool_t is_up);
-void netdev_low_level_set_link_status(struct netdev* netdev, rt_bool_t is_up);
-void netdev_low_level_set_dhcp_status(struct netdev* netdev, rt_bool_t is_enable);
+void netdev_low_level_set_ipaddr(struct netdev *netdev, const ip_addr_t *ipaddr);
+void netdev_low_level_set_netmask(struct netdev *netdev, const ip_addr_t *netmask);
+void netdev_low_level_set_gw(struct netdev *netdev, const ip_addr_t *gw);
+void netdev_low_level_set_dns_server(struct netdev *netdev, uint8_t dns_num, const ip_addr_t *dns_server);
+void netdev_low_level_set_status(struct netdev *netdev, rt_bool_t is_up);
+void netdev_low_level_set_link_status(struct netdev *netdev, rt_bool_t is_up);
+void netdev_low_level_set_internet_status(struct netdev *netdev, rt_bool_t is_up);
+void netdev_low_level_set_dhcp_status(struct netdev *netdev, rt_bool_t is_enable);
 
 #ifdef __cplusplus
 }

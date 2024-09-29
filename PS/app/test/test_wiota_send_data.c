@@ -25,9 +25,9 @@
 unsigned int recv_count = 0;
 unsigned int remenber_recv_count = 0;
 
-#define LED1_GPIO_NUM 2  //send success
-#define LED2_GPIO_NUM 3  //senf dail
-#define LED3_GPIO_NUM 17 //recv success
+#define LED1_GPIO_NUM 2  // send success
+#define LED2_GPIO_NUM 3  // senf dail
+#define LED3_GPIO_NUM 17 // recv success
 
 typedef struct USER_DATA_INFO
 {
@@ -65,7 +65,7 @@ static void wiota_recv_cb(uc_recv_back_p data)
     }
 }
 
-static void wiota_test_recv_data_task(void* parameter)
+static void wiota_test_recv_data_task(void *parameter)
 {
     while (1)
     {
@@ -82,7 +82,7 @@ static void wiota_test_recv_data_task(void* parameter)
     }
 }
 
-static void wiota_test_send_data_task(void* parameter)
+static void wiota_test_send_data_task(void *parameter)
 {
     int i;
     unsigned int data_len;
@@ -103,7 +103,7 @@ static void wiota_test_send_data_task(void* parameter)
         // execute wiota protocol stack.
         uc_wiota_run();
 
-        //init GPIO pin
+        // init GPIO pin
         ret = pin_app_init();
         if (ret != RT_EOK)
         {
@@ -115,7 +115,7 @@ static void wiota_test_send_data_task(void* parameter)
         uc_wiota_register_recv_data_callback(wiota_recv_cb, UC_CALLBACK_NORAMAL_MSG);
         uc_wiota_register_recv_data_callback(wiota_recv_cb, UC_CALLBACK_STATE_INFO);
 
-        //set user id
+        // set user id
         uc_wiota_set_userid(&user_id, 4);
         for (i = 0; i < MAX_CONN_COUNT; i++)
         {
@@ -123,7 +123,7 @@ static void wiota_test_send_data_task(void* parameter)
             uc_wiota_connect();
 
             // wait for the connect ap. timeout 4s
-            if (uc_wiota_wait_sync(4000))
+            if (uc_wiota_wait_sync(4000, 2))
             {
                 rt_kprintf("connect ap fail, count =  %d\n", i);
                 continue;
@@ -163,9 +163,9 @@ static void wiota_test_send_data_task(void* parameter)
             // clean up all wiota record status.
             uc_wiota_reset_stats(UC_STATS_TYPE_ALL);
 
-            //Random string
+            // Random string
             data_len = rand() % MAX_SEND_BYTE;
-            data_len = (data_len == 0)? 1 : data_len;
+            data_len = (data_len == 0) ? 1 : data_len;
             rt_kprintf("send_data info: ");
             for (i = 0; i < data_len; i++)
             {
@@ -195,12 +195,12 @@ static void wiota_test_send_data_task(void* parameter)
 
             if (!send_result)
             {
-                //send success
+                // send success
                 rt_pin_write(LED1_GPIO_NUM, PIN_HIGH);
             }
             else
             {
-                //send fail
+                // send fail
                 rt_pin_write(LED2_GPIO_NUM, PIN_HIGH);
             }
             rt_thread_mdelay(1000);
@@ -246,4 +246,4 @@ void wiota_iote_data_recv_and_send_demo(void)
     }
 }
 
-#endif //WIOTA_IOTE_SEND_DATA_DEMO
+#endif // WIOTA_IOTE_SEND_DATA_DEMO

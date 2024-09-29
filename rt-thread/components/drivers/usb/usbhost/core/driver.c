@@ -6,6 +6,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2011-03-12     Yi Qiu      first version
+ * 2021-02-23     Leslie Lee  provide possibility for multi usb host
  */
 
 #include <rtthread.h>
@@ -13,6 +14,7 @@
 #include <drivers/usb_host.h>
 
 static rt_list_t _driver_list;
+static rt_bool_t _driver_list_created = RT_FALSE;
 
 /**
  * This function will initilize the usb class driver related data structure,
@@ -22,8 +24,11 @@ static rt_list_t _driver_list;
  */
 rt_err_t rt_usbh_class_driver_init(void)
 {
-    rt_list_init(&_driver_list);
-
+    if (_driver_list_created == RT_FALSE)
+    {
+        rt_list_init(&_driver_list);
+        _driver_list_created = RT_TRUE;
+    }
     return RT_EOK;
 }
 
@@ -37,13 +42,13 @@ rt_err_t rt_usbh_class_driver_init(void)
 
 rt_err_t rt_usbh_class_driver_register(ucd_t drv)
 {
-    if (drv == RT_NULL)
-    {
-        return -RT_ERROR;
-    }
+    if (drv == RT_NULL) return -RT_ERROR;
 
-    /* insert class driver into driver list */
-    rt_list_insert_after(&_driver_list, &(drv->list));
+    if (rt_usbh_class_driver_find(drv->class_code, drv->subclass_code) == RT_NULL)
+    {
+        /* insert class driver into driver list */
+        rt_list_insert_after(&_driver_list, &(drv->list));
+    }
 
     return RT_EOK;
 }
@@ -77,8 +82,8 @@ rt_err_t rt_usbh_class_driver_enable(ucd_t drv, void* args)
 {
     RT_ASSERT(drv != RT_NULL);
 
-    if (drv->enable != RT_NULL)
-    { drv->enable(args); }
+    if(drv->enable != RT_NULL)
+        drv->enable(args);
 
     return RT_EOK;
 }
@@ -95,8 +100,8 @@ rt_err_t rt_usbh_class_driver_disable(ucd_t drv, void* args)
 {
     RT_ASSERT(drv != RT_NULL);
 
-    if (drv->disable != RT_NULL)
-    { drv->disable(args); }
+    if(drv->disable != RT_NULL)
+        drv->disable(args);
 
     return RT_EOK;
 }
@@ -112,11 +117,11 @@ rt_err_t rt_usbh_class_driver_disable(ucd_t drv, void* args)
  */
 ucd_t rt_usbh_class_driver_find(int class_code, int subclass_code)
 {
-    struct rt_list_node* node;
+    struct rt_list_node *node;
 
     /* enter critical */
     if (rt_thread_self() != RT_NULL)
-    { rt_enter_critical(); }
+        rt_enter_critical();
 
     /* try to find driver object */
     for (node = _driver_list.next; node != &_driver_list; node = node->next)
@@ -127,7 +132,7 @@ ucd_t rt_usbh_class_driver_find(int class_code, int subclass_code)
         {
             /* leave critical */
             if (rt_thread_self() != RT_NULL)
-            { rt_exit_critical(); }
+                rt_exit_critical();
 
             return drv;
         }
@@ -135,9 +140,8 @@ ucd_t rt_usbh_class_driver_find(int class_code, int subclass_code)
 
     /* leave critical */
     if (rt_thread_self() != RT_NULL)
-    { rt_exit_critical(); }
+        rt_exit_critical();
 
     /* not found */
     return RT_NULL;
 }
-

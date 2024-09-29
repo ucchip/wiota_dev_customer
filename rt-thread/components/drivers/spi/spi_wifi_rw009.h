@@ -71,8 +71,8 @@ struct spi_data_packet
 
 typedef enum
 {
-    MODE_STATION = 0,
-    MODE_SOFTAP = 1,
+    MODE_STATION=0,
+    MODE_SOFTAP=1,
 } wifi_mode_t;
 
 typedef struct _rw009_ap_info
@@ -204,9 +204,9 @@ extern void spi_wifi_int_cmd(rt_bool_t cmd);
 extern rt_bool_t spi_wifi_is_busy(void);
 
 /* export API. */
-extern rt_err_t rt_hw_wifi_init(const char* spi_device_name, wifi_mode_t mode);
+extern rt_err_t rt_hw_wifi_init(const char *spi_device_name,wifi_mode_t mode);
 extern int32_t rw009_rssi(void);
-extern rt_err_t rw009_join(const char* SSID, const char* passwd);
-extern rt_err_t rw009_softap(const char* SSID, const char* passwd, uint32_t security, uint32_t channel);
+extern rt_err_t rw009_join(const char * SSID, const char * passwd);
+extern rt_err_t rw009_softap(const char * SSID, const char * passwd,uint32_t security,uint32_t channel);
 
 #endif // SPI_WIFI_H_INCLUDED

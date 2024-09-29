@@ -237,9 +237,9 @@ extern "C" {
 
 #define  uswap_8(x) \
     (((rt_uint16_t)(*((rt_uint8_t *)(x)))) + \
-     (((rt_uint16_t)(*(((rt_uint8_t *)(x)) + 1))) << 8))
+    (((rt_uint16_t)(*(((rt_uint8_t *)(x)) + 1))) << 8))
 
-typedef void (*func_callback)(void* context);
+typedef void (*func_callback)(void *context);
 typedef enum
 {
     USB_STATE_NOTATTACHED = 0,
@@ -251,7 +251,7 @@ typedef enum
     USB_STATE_ADDRESS,
     USB_STATE_CONFIGURED,
     USB_STATE_SUSPENDED
-} udevice_state_t;
+}udevice_state_t;
 
 typedef enum
 {
@@ -388,25 +388,7 @@ struct usb_os_header_comp_id_descriptor
     rt_uint8_t  bCount;
     rt_uint8_t  reserved[7];
 };
-typedef struct usb_os_header_comp_id_descriptor* usb_os_header_desc_t;
-
-struct usb_os_function_comp_id_descriptor
-{
-    rt_list_t list;
-    rt_uint8_t bFirstInterfaceNumber;
-    rt_uint8_t reserved1;
-    rt_uint8_t compatibleID[8];
-    rt_uint8_t subCompatibleID[8];
-    rt_uint8_t reserved2[6];
-};
-typedef struct usb_os_function_comp_id_descriptor* usb_os_func_comp_id_desc_t;
-
-struct usb_os_comp_id_descriptor
-{
-    struct usb_os_header_comp_id_descriptor head_desc;
-    rt_list_t func_desc;
-};
-typedef struct usb_os_comp_id_descriptor* usb_os_comp_id_desc_t;
+typedef struct usb_os_header_comp_id_descriptor * usb_os_header_desc_t;
 
 struct usb_os_property_header
 {
@@ -415,17 +397,17 @@ struct usb_os_property_header
     rt_uint16_t wIndex;
     rt_uint16_t wCount;
 };
-typedef struct usb_os_property_header* usb_os_property_header_t;
+typedef struct usb_os_property_header * usb_os_property_header_t;
 struct usb_os_proerty
 {
     rt_uint32_t dwSize;
     rt_uint32_t dwPropertyDataType;
     rt_uint16_t wPropertyNameLength;
-    const char* bPropertyName;
+    const char * bPropertyName;
     rt_uint32_t dwPropertyDataLength;
-    const char* bPropertyData;
+    const char * bPropertyData;
 };
-typedef struct usb_os_proerty* usb_os_proerty_t;
+typedef struct usb_os_proerty * usb_os_proerty_t;
 
 // Value    Description
 //  1       A NULL-terminated Unicode String (REG_SZ)
@@ -444,15 +426,15 @@ typedef struct usb_os_proerty* usb_os_proerty_t;
 #define USB_OS_PROPERTY_TYPE_REG_MULTI_SZ                0x07UL
 
 #define USB_OS_PROPERTY_DESC(PropertyDataType,PropertyName,PropertyData) \
-    {\
-        .dwSize                 = sizeof(struct usb_os_proerty)-sizeof(const char *)*2\
-                                  +sizeof(PropertyName)*2+sizeof(PropertyData)*2,\
-                                  .dwPropertyDataType     = PropertyDataType,\
-                                                            .wPropertyNameLength    = sizeof(PropertyName)*2,\
-                                                                                      .bPropertyName          = PropertyName,\
-                                                                                                                .dwPropertyDataLength   = sizeof(PropertyData)*2,\
-                                                                                                                        .bPropertyData          = PropertyData\
-    }
+{\
+    .dwSize                 = sizeof(struct usb_os_proerty)-sizeof(const char *)*2\
+                            +sizeof(PropertyName)*2+sizeof(PropertyData)*2,\
+    .dwPropertyDataType     = PropertyDataType,\
+    .wPropertyNameLength    = sizeof(PropertyName)*2,\
+    .bPropertyName          = PropertyName,\
+    .dwPropertyDataLength   = sizeof(PropertyData)*2,\
+    .bPropertyData          = PropertyData\
+}
 
 
 #ifndef HID_SUB_DESCRIPTOR_MAX
@@ -470,7 +452,7 @@ struct uhid_descriptor
     {
         rt_uint8_t type;
         rt_uint16_t wLength;
-    } Descriptor[HID_SUB_DESCRIPTOR_MAX];
+    }Descriptor[HID_SUB_DESCRIPTOR_MAX];
 };
 typedef struct uhid_descriptor* uhid_desc_t;
 
@@ -556,6 +538,24 @@ struct ustorage_csw
 typedef struct ustorage_csw* ustorage_csw_t;
 
 #pragma pack()
+
+struct usb_os_comp_id_descriptor
+{
+    struct usb_os_header_comp_id_descriptor head_desc;
+    rt_list_t func_desc;
+};
+typedef struct usb_os_comp_id_descriptor * usb_os_comp_id_desc_t;
+
+struct usb_os_function_comp_id_descriptor
+{
+    rt_list_t list;
+    rt_uint8_t bFirstInterfaceNumber;
+    rt_uint8_t reserved1;
+    rt_uint8_t compatibleID[8];
+    rt_uint8_t subCompatibleID[8];
+    rt_uint8_t reserved2[6];
+};
+typedef struct usb_os_function_comp_id_descriptor * usb_os_func_comp_id_desc_t;
 
 /*
  * USB device event loop thread configurations

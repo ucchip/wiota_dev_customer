@@ -1,5 +1,5 @@
 /*
- * COPYRIGHT (C) 2011-2021, Real-Thread Information Technology Ltd
+ * COPYRIGHT (C) 2011-2022, Real-Thread Information Technology Ltd
  * All rights reserved
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -8,6 +8,7 @@
  * Date           Author       Notes
  * 2013-04-14     Grissiom     initial implementation
  * 2019-12-09     Steven Liu   add YMODEM send protocol
+ * 2022-08-04     Meco Man     move error codes to rym_code to silence warnings
  */
 
 #ifndef __YMODEM_H__
@@ -17,7 +18,6 @@
 #include <string.h>
 
 /* The word "RYM" is stand for "Real-YModem". */
-
 enum rym_code
 {
     RYM_CODE_NONE = 0x00,
@@ -28,29 +28,17 @@ enum rym_code
     RYM_CODE_NAK  = 0x15,
     RYM_CODE_CAN  = 0x18,
     RYM_CODE_C    = 0x43,
-};
 
-/* RYM error code
- *
- * We use the rt_err_t to return error values. We take use of current error
- * codes available in RTT and append ourselves.
- */
-/* timeout on handshake */
-#define RYM_ERR_TMO  0x70
-/* wrong code, wrong SOH, STX etc. */
-#define RYM_ERR_CODE 0x71
-/* wrong sequence number */
-#define RYM_ERR_SEQ  0x72
-/* wrong CRC checksum */
-#define RYM_ERR_CRC  0x73
-/* not enough data received */
-#define RYM_ERR_DSZ  0x74
-/* the transmission is aborted by user */
-#define RYM_ERR_CAN  0x75
-/* wrong answer, wrong ACK or C */
-#define RYM_ERR_ACK  0x76
-/* transmit file invalid */
-#define RYM_ERR_FILE 0x77
+    /* RYM error code */
+    RYM_ERR_TMO   = 0x70, /* timeout on handshake */
+    RYM_ERR_CODE  = 0x71, /* wrong code, wrong SOH, STX etc */
+    RYM_ERR_SEQ   = 0x72, /* wrong sequence number */
+    RYM_ERR_CRC   = 0x73, /* wrong CRC checksum */
+    RYM_ERR_DSZ   = 0x74, /* not enough data received */
+    RYM_ERR_CAN   = 0x75, /* the transmission is aborted by user */
+    RYM_ERR_ACK   = 0x76, /* wrong answer, wrong ACK or C */
+    RYM_ERR_FILE  = 0x77, /* transmit file invalid */
+};
 
 /* how many ticks wait for chars between packet. */
 #ifndef RYM_WAIT_CHR_TICK
@@ -72,7 +60,7 @@ enum rym_code
 
 enum rym_stage
 {
-    RYM_STAGE_NONE,
+    RYM_STAGE_NONE = 0,
     /* set when C is send */
     RYM_STAGE_ESTABLISHING,
     /* set when we've got the packet 0 and sent ACK and second C */
@@ -96,7 +84,7 @@ struct rym_ctx;
  * transfer and the buf will be discarded. Any other return values will cause
  * the transfer continue.
  */
-typedef enum rym_code(*rym_callback)(struct rym_ctx* ctx, rt_uint8_t* buf, rt_size_t len);
+typedef enum rym_code(*rym_callback)(struct rym_ctx *ctx, rt_uint8_t *buf, rt_size_t len);
 
 /* Currently RYM only support one transfer session(ctx) for simplicity.
  *
@@ -112,7 +100,7 @@ struct rym_ctx
      * happened. */
     enum rym_stage stage;
     /* user could get the error content through this */
-    rt_uint8_t* buf;
+    rt_uint8_t *buf;
 
     struct rt_semaphore sem;
 
@@ -144,7 +132,7 @@ struct rym_ctx
  * @param handshake_timeout the timeout when hand shaking. The unit is in
  * second.
  */
-rt_err_t rym_recv_on_device(struct rym_ctx* ctx, rt_device_t dev, rt_uint16_t oflag,
+rt_err_t rym_recv_on_device(struct rym_ctx *ctx, rt_device_t dev, rt_uint16_t oflag,
                             rym_callback on_begin, rym_callback on_data, rym_callback on_end,
                             int handshake_timeout);
 
@@ -167,7 +155,7 @@ rt_err_t rym_recv_on_device(struct rym_ctx* ctx, rt_device_t dev, rt_uint16_t of
  * @param handshake_timeout the timeout when hand shaking. The unit is in
  * second.
  */
-rt_err_t rym_send_on_device(struct rym_ctx* ctx, rt_device_t dev, rt_uint16_t oflag,
+rt_err_t rym_send_on_device(struct rym_ctx *ctx, rt_device_t dev, rt_uint16_t oflag,
                             rym_callback on_begin, rym_callback on_data, rym_callback on_end,
                             int handshake_timeout);
 

@@ -15,20 +15,20 @@
 
 static struct vmm_iomap _vmm_iomap[RT_VMM_IOMAP_MAXNR];
 
-void vmm_iomap_init(struct vmm_iomap* iomap)
+void vmm_iomap_init(struct vmm_iomap *iomap)
 {
     rt_memcpy(_vmm_iomap, iomap, sizeof(_vmm_iomap));
 }
 
 /* find virtual address according to name */
-unsigned long vmm_find_iomap(const char* name)
+unsigned long vmm_find_iomap(const char *name)
 {
     int i;
 
     for (i = 0; i < ARRAY_SIZE(_vmm_iomap); i++)
     {
         if (rt_strcmp(_vmm_iomap[i].name, name) == 0)
-        { return (unsigned long)_vmm_iomap[i].va; }
+            return (unsigned long)_vmm_iomap[i].va;
     }
 
     return 0;
@@ -42,7 +42,7 @@ unsigned long vmm_find_iomap_by_pa(unsigned long pa)
     for (i = 0; i < ARRAY_SIZE(_vmm_iomap); i++)
     {
         if (_vmm_iomap[i].pa == pa)
-        { return (unsigned long)_vmm_iomap[i].va; }
+            return (unsigned long)_vmm_iomap[i].va;
     }
 
     return 0;

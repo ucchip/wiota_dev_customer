@@ -20,12 +20,12 @@
 
 struct rt_vmm_share_layout rt_vmm_share RT_SECTION(".vmm.share");
 
-volatile struct vmm_context* _vmm_context = RT_NULL;
+volatile struct vmm_context *_vmm_context = RT_NULL;
 
-void vmm_context_init(void* context_addr)
+void vmm_context_init(void *context_addr)
 {
-    _vmm_context = (struct vmm_context*)context_addr;
-    rt_memset((void*)_vmm_context, 0x00, sizeof(struct vmm_context));
+    _vmm_context = (struct vmm_context *)context_addr;
+    rt_memset((void *)_vmm_context, 0x00, sizeof(struct vmm_context));
     /* When loading RT-Thread, the IRQ on the guest should be disabled. */
     _vmm_context->virq_status = 1;
 }
@@ -38,7 +38,7 @@ unsigned long vmm_domain_val RT_SECTION(".bss.share");
  * "super" domain mode to have access of both side. The code executed in super
  * domain mode is restricted and should be harmless. */
 unsigned long super_domain_val RT_SECTION(".bss.share");
-void vmm_context_init_domain(struct vmm_domain* domain)
+void vmm_context_init_domain(struct vmm_domain *domain)
 {
     asm volatile ("mrc p15, 0, %0, c3, c0\n" : "=r" (guest_domain_val));
 
@@ -119,17 +119,17 @@ int vmm_virq_check(void)
 }
 
 /* 10 = len("%08x, ") */
-static char _vmbuf[10 * ARRAY_SIZE(_vmm_context->virq_pending)];
+static char _vmbuf[10*ARRAY_SIZE(_vmm_context->virq_pending)];
 void vmm_dump_virq(void)
 {
     int i, s;
 
     vmm_info("---- virtual IRQ ----\n");
     vmm_info("  status: %08x,   pended: %08x, pending:\n",
-             _vmm_context->virq_status, _vmm_context->virq_pended);
+               _vmm_context->virq_status, _vmm_context->virq_pended);
     for (s = 0, i = 0; i < ARRAY_SIZE(_vmm_context->virq_pending); i++)
     {
-        s += rt_snprintf(_vmbuf + s, sizeof(_vmbuf) - s,
+        s += rt_snprintf(_vmbuf+s, sizeof(_vmbuf)-s,
                          "%08x, ", _vmm_context->virq_pending[i]);
     }
     vmm_info("%.*s\n", sizeof(_vmbuf), _vmbuf);
@@ -161,7 +161,7 @@ extern struct rt_thread vmm_thread;
 
 void vmm_show_guest_reg(void)
 {
-    struct rt_hw_stack* sp = vmm_thread.sp;
+    struct rt_hw_stack *sp = vmm_thread.sp;
 #ifdef RT_VMM_USING_DOMAIN
     unsigned long old_domain;
 
@@ -169,7 +169,7 @@ void vmm_show_guest_reg(void)
 #endif
 
     vmm_info("CPSR: %08x, PC: %08x, LR: %08x, SP: %08x\n",
-             sp->cpsr, sp->pc, sp->lr, sp + 1);
+             sp->cpsr, sp->pc, sp->lr, sp+1);
 
 #ifdef RT_VMM_USING_DOMAIN
     vmm_context_restore_domain(old_domain);
@@ -206,26 +206,26 @@ static int _bad_cpsr(unsigned long cpsr)
 
     switch (cpsr & MODEMASK)
     {
-        case USERMODE:
-        case FIQMODE:
-        case IRQMODE:
-        case SVCMODE:
+    case USERMODE:
+    case FIQMODE:
+    case IRQMODE:
+    case SVCMODE:
 #ifdef CPU_HAS_MONITOR_MODE
-        case MONITORMODE:
+    case MONITORMODE:
 #endif
-        case ABORTMODE:
+    case ABORTMODE:
 #ifdef CPU_HAS_HYP_MODE
-        case HYPMODE:
+    case HYPMODE:
 #endif
-        case UNDEFMODE:
-        case MODEMASK:
-            bad = 0;
-            break;
+    case UNDEFMODE:
+    case MODEMASK:
+        bad = 0;
+        break;
     };
     return bad;
 }
 
-void vmm_verify_guest_status(struct rt_hw_stack* sp)
+void vmm_verify_guest_status(struct rt_hw_stack *sp)
 {
     int dump_vmm = 0;
     unsigned long cpsr;
@@ -238,9 +238,9 @@ void vmm_verify_guest_status(struct rt_hw_stack* sp)
     cpsr = sp->cpsr;
     if (_bad_cpsr(cpsr))
     {
-        vmm_info("=================================\n");
-        vmm_info("VMM WARING: bad CPSR in guest\n");
-        dump_vmm = 1;
+            vmm_info("=================================\n");
+            vmm_info("VMM WARING: bad CPSR in guest\n");
+            dump_vmm = 1;
     }
     else
     {

@@ -72,45 +72,45 @@ typedef enum
     RT_WLAN_EVT_MAX
 } rt_wlan_event_t;
 
-typedef void (*rt_wlan_event_handler)(int event, struct rt_wlan_buff* buff, void* parameter);
+typedef void (*rt_wlan_event_handler)(int event, struct rt_wlan_buff *buff, void *parameter);
 
 struct rt_wlan_scan_result
 {
     rt_int32_t num;
-    struct rt_wlan_info* info;
+    struct rt_wlan_info *info;
 };
 
 /*
  * wifi init interface
  */
 int rt_wlan_init(void);
-rt_err_t rt_wlan_set_mode(const char* dev_name, rt_wlan_mode_t mode);
-rt_wlan_mode_t rt_wlan_get_mode(const char* dev_name);
+rt_err_t rt_wlan_set_mode(const char *dev_name, rt_wlan_mode_t mode);
+rt_wlan_mode_t rt_wlan_get_mode(const char *dev_name);
 
 /*
  * wifi station mode interface
  */
-rt_err_t rt_wlan_connect(const char* ssid, const char* password);
-rt_err_t rt_wlan_connect_adv(struct rt_wlan_info* info, const char* password);
+rt_err_t rt_wlan_connect(const char *ssid, const char *password);
+rt_err_t rt_wlan_connect_adv(struct rt_wlan_info *info, const char *password);
 rt_err_t rt_wlan_disconnect(void);
 rt_bool_t rt_wlan_is_connected(void);
 rt_bool_t rt_wlan_is_ready(void);
-rt_err_t rt_wlan_set_mac(rt_uint8_t* mac);
-rt_err_t rt_wlan_get_mac(rt_uint8_t* mac);
-rt_err_t rt_wlan_get_info(struct rt_wlan_info* info);
+rt_err_t rt_wlan_set_mac(rt_uint8_t *mac);
+rt_err_t rt_wlan_get_mac(rt_uint8_t *mac);
+rt_err_t rt_wlan_get_info(struct rt_wlan_info *info);
 int rt_wlan_get_rssi(void);
 
 /*
  * wifi ap mode interface
  */
-rt_err_t rt_wlan_start_ap(const char* ssid, const char* password);
-rt_err_t rt_wlan_start_ap_adv(struct rt_wlan_info* info, const char* password);
+rt_err_t rt_wlan_start_ap(const char *ssid, const char *password);
+rt_err_t rt_wlan_start_ap_adv(struct rt_wlan_info *info, const char *password);
 rt_bool_t rt_wlan_ap_is_active(void);
 rt_err_t rt_wlan_ap_stop(void);
-rt_err_t rt_wlan_ap_get_info(struct rt_wlan_info* info);
+rt_err_t rt_wlan_ap_get_info(struct rt_wlan_info *info);
 int rt_wlan_ap_get_sta_num(void);
-int rt_wlan_ap_get_sta_info(struct rt_wlan_info* info, int num);
-rt_err_t rt_wlan_ap_deauth_sta(rt_uint8_t* mac);
+int rt_wlan_ap_get_sta_info(struct rt_wlan_info *info, int num);
+rt_err_t rt_wlan_ap_deauth_sta(rt_uint8_t *mac);
 rt_err_t rt_wlan_ap_set_country(rt_country_code_t country_code);
 rt_country_code_t rt_wlan_ap_get_country(void);
 
@@ -118,14 +118,9 @@ rt_country_code_t rt_wlan_ap_get_country(void);
  * wifi scan interface
  */
 rt_err_t rt_wlan_scan(void);
-struct rt_wlan_scan_result* rt_wlan_scan_sync(void);
-struct rt_wlan_scan_result* rt_wlan_scan_with_info(struct rt_wlan_info* info);
-int rt_wlan_scan_get_info_num(void);
-int rt_wlan_scan_get_info(struct rt_wlan_info* info, int num);
-struct rt_wlan_scan_result* rt_wlan_scan_get_result(void);
-void rt_wlan_scan_result_clean(void);
-int rt_wlan_scan_find_cache(struct rt_wlan_info* info, struct rt_wlan_info* out_info, int num);
-rt_bool_t rt_wlan_find_best_by_cache(const char* ssid, struct rt_wlan_info* info);
+struct rt_wlan_scan_result *rt_wlan_scan_sync(void);
+rt_err_t rt_wlan_scan_with_info(struct rt_wlan_info *info);
+
 
 /*
  * wifi auto connect interface
@@ -142,7 +137,7 @@ int rt_wlan_get_powersave(void);
 /*
  * wifi event management interface
  */
-rt_err_t rt_wlan_register_event_handler(rt_wlan_event_t event, rt_wlan_event_handler handler, void* parameter);
+rt_err_t rt_wlan_register_event_handler(rt_wlan_event_t event, rt_wlan_event_handler handler, void *parameter);
 rt_err_t rt_wlan_unregister_event_handler(rt_wlan_event_t event);
 
 /*

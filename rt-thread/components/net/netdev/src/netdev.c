@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2021, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <rtthread.h>
 #include <rthw.h>
@@ -19,7 +20,7 @@
 
 #ifdef RT_USING_SAL
 #include <sal_netdb.h>
-#include <sal.h>
+#include <sal_low_lvl.h>
 #endif /* RT_USING_SAL */
 
 #define DBG_TAG              "netdev"
@@ -27,9 +28,9 @@
 #include <rtdbg.h>
 
 /* The list of network interface device */
-struct netdev* netdev_list;
+struct netdev *netdev_list = RT_NULL;
 /* The default network interface device */
-struct netdev* netdev_default;
+struct netdev *netdev_default = RT_NULL;
 
 /**
  * This function will register network interface device and
@@ -42,11 +43,11 @@ struct netdev* netdev_default;
  * @return  0: registered successfully
  *         -1: registered failed
  */
-int netdev_register(struct netdev* netdev, const char* name, void* user_data)
+int netdev_register(struct netdev *netdev, const char *name, void *user_data)
 {
     rt_base_t level;
-    uint16_t flags_mask;
-    int index;
+    rt_uint16_t flags_mask;
+    rt_uint16_t index;
 
     RT_ASSERT(netdev);
     RT_ASSERT(name);
@@ -77,7 +78,7 @@ int netdev_register(struct netdev* netdev, const char* name, void* user_data)
     netdev->status_callback = RT_NULL;
     netdev->addr_callback = RT_NULL;
 
-    if (rt_strlen(name) > RT_NAME_MAX)
+    if(rt_strlen(name) > RT_NAME_MAX)
     {
         char netdev_name[RT_NAME_MAX + 1] = {0};
 
@@ -119,11 +120,11 @@ int netdev_register(struct netdev* netdev, const char* name, void* user_data)
  * @return  0: unregistered successfully
  *         -1: unregistered failed
  */
-int netdev_unregister(struct netdev* netdev)
+int netdev_unregister(struct netdev *netdev)
 {
     rt_base_t level;
-    rt_slist_t* node = RT_NULL;
-    struct netdev* cur_netdev = RT_NULL;
+    rt_slist_t *node = RT_NULL;
+    struct netdev *cur_netdev = RT_NULL;
 
     RT_ASSERT(netdev);
 
@@ -160,7 +161,7 @@ int netdev_unregister(struct netdev* netdev)
     if (cur_netdev == netdev)
     {
 #ifdef RT_USING_SAL
-        extern int sal_netdev_cleanup(struct netdev * netdev);
+        extern int sal_netdev_cleanup(struct netdev *netdev);
         sal_netdev_cleanup(netdev);
 #endif
         rt_memset(netdev, 0, sizeof(*netdev));
@@ -178,11 +179,11 @@ int netdev_unregister(struct netdev* netdev)
  * @return != NULL: network interface device object
  *            NULL: get failed
  */
-struct netdev* netdev_get_first_by_flags(uint16_t flags)
+struct netdev *netdev_get_first_by_flags(uint16_t flags)
 {
     rt_base_t level;
-    rt_slist_t* node = RT_NULL;
-    struct netdev* netdev = RT_NULL;
+    rt_slist_t *node = RT_NULL;
+    struct netdev *netdev = RT_NULL;
 
     if (netdev_list == RT_NULL)
     {
@@ -215,11 +216,11 @@ struct netdev* netdev_get_first_by_flags(uint16_t flags)
  * @return != NULL: network interface device object
  *            NULL: get failed
  */
-struct netdev* netdev_get_by_ipaddr(ip_addr_t* ip_addr)
+struct netdev *netdev_get_by_ipaddr(ip_addr_t *ip_addr)
 {
     rt_base_t level;
-    rt_slist_t* node = RT_NULL;
-    struct netdev* netdev = RT_NULL;
+    rt_slist_t *node = RT_NULL;
+    struct netdev *netdev = RT_NULL;
 
     if (netdev_list == RT_NULL)
     {
@@ -252,11 +253,11 @@ struct netdev* netdev_get_by_ipaddr(ip_addr_t* ip_addr)
  * @return != NULL: network interface device object
  *            NULL: get failed
  */
-struct netdev* netdev_get_by_name(const char* name)
+struct netdev *netdev_get_by_name(const char *name)
 {
     rt_base_t level;
-    rt_slist_t* node = RT_NULL;
-    struct netdev* netdev = RT_NULL;
+    rt_slist_t *node = RT_NULL;
+    struct netdev *netdev = RT_NULL;
 
     if (netdev_list == RT_NULL)
     {
@@ -290,12 +291,12 @@ struct netdev* netdev_get_by_name(const char* name)
  * @return != NULL: network interface device object
  *            NULL: get failed
  */
-struct netdev* netdev_get_by_family(int family)
+struct netdev *netdev_get_by_family(int family)
 {
     rt_base_t level;
-    rt_slist_t* node = RT_NULL;
-    struct netdev* netdev = RT_NULL;
-    struct sal_proto_family* pf = RT_NULL;
+    rt_slist_t *node = RT_NULL;
+    struct netdev *netdev = RT_NULL;
+    struct sal_proto_family *pf = RT_NULL;
 
     if (netdev_list == RT_NULL)
     {
@@ -307,7 +308,7 @@ struct netdev* netdev_get_by_family(int family)
     for (node = &(netdev_list->list); node; node = rt_slist_next(node))
     {
         netdev = rt_slist_entry(node, struct netdev, list);
-        pf = (struct sal_proto_family*) netdev->sal_user_data;
+        pf = (struct sal_proto_family *) netdev->sal_user_data;
         if (pf && pf->skt_ops && pf->family == family && netdev_is_up(netdev))
         {
             rt_hw_interrupt_enable(level);
@@ -318,7 +319,7 @@ struct netdev* netdev_get_by_family(int family)
     for (node = &(netdev_list->list); node; node = rt_slist_next(node))
     {
         netdev = rt_slist_entry(node, struct netdev, list);
-        pf = (struct sal_proto_family*) netdev->sal_user_data;
+        pf = (struct sal_proto_family *) netdev->sal_user_data;
         if (pf && pf->skt_ops && pf->sec_family == family && netdev_is_up(netdev))
         {
             rt_hw_interrupt_enable(level);
@@ -338,11 +339,11 @@ struct netdev* netdev_get_by_family(int family)
  *
  * @return the network interface device family type
  */
-int netdev_family_get(struct netdev* netdev)
+int netdev_family_get(struct netdev *netdev)
 {
     RT_ASSERT(netdev);
 
-    return ((struct sal_proto_family*)netdev->sal_user_data)->family;
+    return ((struct sal_proto_family *)netdev->sal_user_data)->family;
 }
 
 #endif /* RT_USING_SAL */
@@ -352,7 +353,7 @@ int netdev_family_get(struct netdev* netdev)
  *
  * @param netdev the network interface device to change
  */
-void netdev_set_default(struct netdev* netdev)
+void netdev_set_default(struct netdev *netdev)
 {
     if (netdev)
     {
@@ -375,7 +376,7 @@ void netdev_set_default(struct netdev* netdev)
  * @return  0: set status successfully
  *         -1: set status failed
  */
-int netdev_set_up(struct netdev* netdev)
+int netdev_set_up(struct netdev *netdev)
 {
     RT_ASSERT(netdev);
 
@@ -402,7 +403,7 @@ int netdev_set_up(struct netdev* netdev)
  * @return  0: set status successfully
  *         -1: set sttaus failed
  */
-int netdev_set_down(struct netdev* netdev)
+int netdev_set_down(struct netdev *netdev)
 {
     RT_ASSERT(netdev);
 
@@ -431,7 +432,7 @@ int netdev_set_down(struct netdev* netdev)
  * @return  0: set DHCP status successfully
  *         -1: set DHCP status failed
  */
-int netdev_dhcp_enabled(struct netdev* netdev, rt_bool_t is_enabled)
+int netdev_dhcp_enabled(struct netdev *netdev, rt_bool_t is_enabled)
 {
     RT_ASSERT(netdev);
 
@@ -460,7 +461,7 @@ int netdev_dhcp_enabled(struct netdev* netdev, rt_bool_t is_enabled)
  * @return  0: set IP address successfully
  *         -1: set IP address failed
  */
-int netdev_set_ipaddr(struct netdev* netdev, const ip_addr_t* ip_addr)
+int netdev_set_ipaddr(struct netdev *netdev, const ip_addr_t *ip_addr)
 {
     RT_ASSERT(netdev);
     RT_ASSERT(ip_addr);
@@ -477,8 +478,8 @@ int netdev_set_ipaddr(struct netdev* netdev, const ip_addr_t* ip_addr)
         return -RT_ERROR;
     }
 
-    /* execute network interface device set IP address operations */
-    return netdev->ops->set_addr_info(netdev, (ip_addr_t*)ip_addr, RT_NULL, RT_NULL);
+     /* execute network interface device set IP address operations */
+    return netdev->ops->set_addr_info(netdev, (ip_addr_t *)ip_addr, RT_NULL, RT_NULL);
 }
 
 /**
@@ -490,7 +491,7 @@ int netdev_set_ipaddr(struct netdev* netdev, const ip_addr_t* ip_addr)
  * @return  0: set netmask address successfully
  *         -1: set netmask address failed
  */
-int netdev_set_netmask(struct netdev* netdev, const ip_addr_t* netmask)
+int netdev_set_netmask(struct netdev *netdev, const ip_addr_t *netmask)
 {
     RT_ASSERT(netdev);
     RT_ASSERT(netmask);
@@ -508,7 +509,7 @@ int netdev_set_netmask(struct netdev* netdev, const ip_addr_t* netmask)
     }
 
     /* execute network interface device set netmask address operations */
-    return netdev->ops->set_addr_info(netdev, RT_NULL, (ip_addr_t*)netmask, RT_NULL);
+    return netdev->ops->set_addr_info(netdev, RT_NULL, (ip_addr_t *)netmask, RT_NULL);
 }
 
 /**
@@ -520,7 +521,7 @@ int netdev_set_netmask(struct netdev* netdev, const ip_addr_t* netmask)
  * @return  0: set gateway address successfully
  *         -1: set gateway address failed
  */
-int netdev_set_gw(struct netdev* netdev, const ip_addr_t* gw)
+int netdev_set_gw(struct netdev *netdev, const ip_addr_t *gw)
 {
     RT_ASSERT(netdev);
     RT_ASSERT(gw);
@@ -538,7 +539,7 @@ int netdev_set_gw(struct netdev* netdev, const ip_addr_t* gw)
     }
 
     /* execute network interface device set gateway address operations */
-    return netdev->ops->set_addr_info(netdev, RT_NULL, RT_NULL, (ip_addr_t*)gw);
+    return netdev->ops->set_addr_info(netdev, RT_NULL, RT_NULL, (ip_addr_t *)gw);
 }
 
 /**
@@ -550,7 +551,7 @@ int netdev_set_gw(struct netdev* netdev, const ip_addr_t* gw)
  * @return  0: set netmask address successfully
  *         -1: set netmask address failed
  */
-int netdev_set_dns_server(struct netdev* netdev, uint8_t dns_num, const ip_addr_t* dns_server)
+int netdev_set_dns_server(struct netdev *netdev, uint8_t dns_num, const ip_addr_t *dns_server)
 {
     RT_ASSERT(netdev);
     RT_ASSERT(dns_server);
@@ -568,7 +569,7 @@ int netdev_set_dns_server(struct netdev* netdev, uint8_t dns_num, const ip_addr_
     }
 
     /* execute network interface device set DNS server address operations */
-    return netdev->ops->set_dns_server(netdev, dns_num, (ip_addr_t*)dns_server);
+    return netdev->ops->set_dns_server(netdev, dns_num, (ip_addr_t *)dns_server);
 }
 
 /**
@@ -577,7 +578,7 @@ int netdev_set_dns_server(struct netdev* netdev, uint8_t dns_num, const ip_addr_
  * @param netdev the network interface device to change
  * @param status_callback the callback be called when the status has been changed.
  */
-void netdev_set_status_callback(struct netdev* netdev, netdev_callback_fn status_callback)
+void netdev_set_status_callback(struct netdev *netdev, netdev_callback_fn status_callback)
 {
     RT_ASSERT(netdev);
     RT_ASSERT(status_callback);
@@ -591,7 +592,7 @@ void netdev_set_status_callback(struct netdev* netdev, netdev_callback_fn status
  * @param netdev the network interface device to change
  * @param addr_callback the callback be called when the address has been changed.
  */
-void netdev_set_addr_callback(struct netdev* netdev, netdev_callback_fn addr_callback)
+void netdev_set_addr_callback(struct netdev *netdev, netdev_callback_fn addr_callback)
 {
     RT_ASSERT(netdev);
     RT_ASSERT(addr_callback);
@@ -607,7 +608,7 @@ void netdev_set_addr_callback(struct netdev* netdev, netdev_callback_fn addr_cal
  * @param netdev the network interface device to change
  * @param ipaddr the new IP address
  */
-void netdev_low_level_set_ipaddr(struct netdev* netdev, const ip_addr_t* ip_addr)
+void netdev_low_level_set_ipaddr(struct netdev *netdev, const ip_addr_t *ip_addr)
 {
     RT_ASSERT(ip_addr);
 
@@ -638,7 +639,7 @@ void netdev_low_level_set_ipaddr(struct netdev* netdev, const ip_addr_t* ip_addr
  * @param netdev the network interface device to change
  * @param netmask the new netmask address
  */
-void netdev_low_level_set_netmask(struct netdev* netdev, const ip_addr_t* netmask)
+void netdev_low_level_set_netmask(struct netdev *netdev, const ip_addr_t *netmask)
 {
     RT_ASSERT(netmask);
 
@@ -649,7 +650,7 @@ void netdev_low_level_set_netmask(struct netdev* netdev, const ip_addr_t* netmas
 #ifdef RT_USING_SAL
         /* set network interface device flags to internet up */
         if (netdev_is_up(netdev) && netdev_is_link_up(netdev) &&
-            !ip_addr_isany(&(netdev->ip_addr)))
+                !ip_addr_isany(&(netdev->ip_addr)))
         {
             sal_check_netdev_internet_up(netdev);
         }
@@ -670,7 +671,7 @@ void netdev_low_level_set_netmask(struct netdev* netdev, const ip_addr_t* netmas
  * @param netdev the network interface device to change
  * @param gateway the new gateway address
  */
-void netdev_low_level_set_gw(struct netdev* netdev, const ip_addr_t* gw)
+void netdev_low_level_set_gw(struct netdev *netdev, const ip_addr_t *gw)
 {
     RT_ASSERT(gw);
 
@@ -681,7 +682,7 @@ void netdev_low_level_set_gw(struct netdev* netdev, const ip_addr_t* gw)
 #ifdef RT_USING_SAL
         /* set network interface device flags to internet up */
         if (netdev_is_up(netdev) && netdev_is_link_up(netdev) &&
-            !ip_addr_isany(&(netdev->ip_addr)))
+                !ip_addr_isany(&(netdev->ip_addr)))
         {
             sal_check_netdev_internet_up(netdev);
         }
@@ -703,9 +704,9 @@ void netdev_low_level_set_gw(struct netdev* netdev, const ip_addr_t* gw)
  * @param dns_server the new DNS server address
  *
  */
-void netdev_low_level_set_dns_server(struct netdev* netdev, uint8_t dns_num, const ip_addr_t* dns_server)
+void netdev_low_level_set_dns_server(struct netdev *netdev, uint8_t dns_num, const ip_addr_t *dns_server)
 {
-    int index;
+    unsigned int index;
 
     RT_ASSERT(dns_server);
 
@@ -736,9 +737,9 @@ void netdev_low_level_set_dns_server(struct netdev* netdev, uint8_t dns_num, con
 
 #ifdef NETDEV_USING_AUTO_DEFAULT
 /* Change to the first link_up network interface device automatically */
-static void netdev_auto_change_default(struct netdev* netdev)
+static void netdev_auto_change_default(struct netdev *netdev)
 {
-    struct netdev* new_netdev = RT_NULL;
+    struct netdev *new_netdev = RT_NULL;
 
     if (rt_memcmp(netdev, netdev_default, sizeof(struct netdev)) == 0)
     {
@@ -758,7 +759,7 @@ static void netdev_auto_change_default(struct netdev* netdev)
  * @param netdev the network interface device to change
  * @param is_up the new status
  */
-void netdev_low_level_set_status(struct netdev* netdev, rt_bool_t is_up)
+void netdev_low_level_set_status(struct netdev *netdev, rt_bool_t is_up)
 {
     if (netdev && netdev_is_up(netdev) != is_up)
     {
@@ -791,7 +792,7 @@ void netdev_low_level_set_status(struct netdev* netdev, rt_bool_t is_up)
  * @param netdev the network interface device to change
  * @param is_up the new link status
  */
-void netdev_low_level_set_link_status(struct netdev* netdev, rt_bool_t is_up)
+void netdev_low_level_set_link_status(struct netdev *netdev, rt_bool_t is_up)
 {
     if (netdev && netdev_is_link_up(netdev) != is_up)
     {
@@ -829,13 +830,41 @@ void netdev_low_level_set_link_status(struct netdev* netdev, rt_bool_t is_up)
 }
 
 /**
+ * This function will set network interface device active internet status.
+ * @NOTE it can only be called in the network interface device driver.
+ *
+ * @param netdev the network interface device to change
+ * @param is_up the new internet status
+ */
+void netdev_low_level_set_internet_status(struct netdev *netdev, rt_bool_t is_up)
+{
+    if (netdev && netdev_is_internet_up(netdev) != is_up)
+    {
+        if (is_up)
+        {
+            netdev->flags |= NETDEV_FLAG_INTERNET_UP;
+        }
+        else
+        {
+            netdev->flags &= ~NETDEV_FLAG_INTERNET_UP;
+        }
+
+        /* execute  network interface device status change callback function */
+        if (netdev->status_callback)
+        {
+            netdev->status_callback(netdev, is_up ? NETDEV_CB_STATUS_INTERNET_UP : NETDEV_CB_STATUS_INTERNET_DOWN);
+        }
+    }
+}
+
+/**
  * This function will set network interface device DHCP status.
  * @NOTE it can only be called in the network interface device driver.
  *
  * @param netdev the network interface device to change
  * @param is_up the new DHCP status
  */
-void netdev_low_level_set_dhcp_status(struct netdev* netdev, rt_bool_t is_enable)
+void netdev_low_level_set_dhcp_status(struct netdev *netdev, rt_bool_t is_enable)
 {
     if (netdev && netdev_is_dhcp_enabled(netdev) != is_enable)
     {
@@ -867,9 +896,9 @@ static void netdev_list_if(void)
 #define NETDEV_IFCONFIG_IMEI_MAX_LEN   8
 
     rt_ubase_t index;
-    rt_slist_t* node  = RT_NULL;
-    struct netdev* netdev = RT_NULL;
-    struct netdev* cur_netdev_list = netdev_list;
+    rt_slist_t *node  = RT_NULL;
+    struct netdev *netdev = RT_NULL;
+    struct netdev *cur_netdev_list = netdev_list;
 
     if (cur_netdev_list == RT_NULL)
     {
@@ -915,52 +944,19 @@ static void netdev_list_if(void)
         }
 
         rt_kprintf("\nFLAGS:");
-        if (netdev->flags & NETDEV_FLAG_UP)
-        {
-            rt_kprintf(" UP");
-        }
-        else
-        {
-            rt_kprintf(" DOWN");
-        }
-        if (netdev->flags & NETDEV_FLAG_LINK_UP)
-        {
-            rt_kprintf(" LINK_UP");
-        }
-        else
-        {
-            rt_kprintf(" LINK_DOWN");
-        }
+        if (netdev->flags & NETDEV_FLAG_UP) rt_kprintf(" UP");
+        else rt_kprintf(" DOWN");
+        if (netdev->flags & NETDEV_FLAG_LINK_UP) rt_kprintf(" LINK_UP");
+        else rt_kprintf(" LINK_DOWN");
 #ifdef SAL_INTERNET_CHECK
-        if (netdev->flags & NETDEV_FLAG_INTERNET_UP)
-        {
-            rt_kprintf(" INTERNET_UP");
-        }
-        else
-        {
-            rt_kprintf(" INTERNET_DOWN");
-        }
+        if (netdev->flags & NETDEV_FLAG_INTERNET_UP) rt_kprintf(" INTERNET_UP");
+        else rt_kprintf(" INTERNET_DOWN");
 #endif
-        if (netdev->flags & NETDEV_FLAG_DHCP)
-        {
-            rt_kprintf(" DHCP_ENABLE");
-        }
-        else
-        {
-            rt_kprintf(" DHCP_DISABLE");
-        }
-        if (netdev->flags & NETDEV_FLAG_ETHARP)
-        {
-            rt_kprintf(" ETHARP");
-        }
-        if (netdev->flags & NETDEV_FLAG_BROADCAST)
-        {
-            rt_kprintf(" BROADCAST");
-        }
-        if (netdev->flags & NETDEV_FLAG_IGMP)
-        {
-            rt_kprintf(" IGMP");
-        }
+        if (netdev->flags & NETDEV_FLAG_DHCP) rt_kprintf(" DHCP_ENABLE");
+        else rt_kprintf(" DHCP_DISABLE");
+        if (netdev->flags & NETDEV_FLAG_ETHARP) rt_kprintf(" ETHARP");
+        if (netdev->flags & NETDEV_FLAG_BROADCAST) rt_kprintf(" BROADCAST");
+        if (netdev->flags & NETDEV_FLAG_IGMP) rt_kprintf(" IGMP");
         rt_kprintf("\n");
         rt_kprintf("ip address: %s\n", inet_ntoa(netdev->ip_addr));
         rt_kprintf("gw address: %s\n", inet_ntoa(netdev->gw));
@@ -968,7 +964,7 @@ static void netdev_list_if(void)
 
 #if NETDEV_IPV6
         {
-            ip_addr_t* addr;
+            ip_addr_t *addr;
             int i;
 
             addr = &netdev->ip6_addr[0];
@@ -976,13 +972,13 @@ static void netdev_list_if(void)
             if (!ip_addr_isany(addr))
             {
                 rt_kprintf("ipv6 link-local: %s %s\n", inet_ntoa(*addr),
-                           !ip_addr_isany(addr) ? "VALID" : "INVALID");
+                        !ip_addr_isany(addr) ? "VALID" : "INVALID");
 
                 for (i = 1; i < NETDEV_IPV6_NUM_ADDRESSES; i++)
                 {
                     addr = &netdev->ip6_addr[i];
                     rt_kprintf("ipv6[%d] address: %s %s\n", i, inet_ntoa(*addr),
-                               !ip_addr_isany(addr) ? "VALID" : "INVALID");
+                            !ip_addr_isany(addr) ? "VALID" : "INVALID");
                 }
             }
         }
@@ -1002,7 +998,7 @@ static void netdev_list_if(void)
 
 static void netdev_set_if(char* netdev_name, char* ip_addr, char* gw_addr, char* nm_addr)
 {
-    struct netdev* netdev = RT_NULL;
+    struct netdev *netdev = RT_NULL;
     ip_addr_t addr;
 
     netdev = netdev_get_by_name(netdev_name);
@@ -1031,7 +1027,7 @@ static void netdev_set_if(char* netdev_name, char* ip_addr, char* gw_addr, char*
     }
 }
 
-int netdev_ifconfig(int argc, char** argv)
+int netdev_ifconfig(int argc, char **argv)
 {
     if (argc == 1)
     {
@@ -1052,29 +1048,40 @@ int netdev_ifconfig(int argc, char** argv)
 
     return 0;
 }
-FINSH_FUNCTION_EXPORT_ALIAS(netdev_ifconfig, __cmd_ifconfig, list the information of all network interfaces);
+MSH_CMD_EXPORT_ALIAS(netdev_ifconfig, ifconfig, list the information of all network interfaces);
 #endif /* NETDEV_USING_IFCONFIG */
 
 #ifdef NETDEV_USING_PING
-int netdev_cmd_ping(char* target_name, rt_uint32_t times, rt_size_t size)
+int netdev_cmd_ping(char* target_name, char *netdev_name, rt_uint32_t times, rt_size_t size)
 {
 #define NETDEV_PING_DATA_SIZE       32
-    /** ping receive timeout - in milliseconds */
+/** ping receive timeout - in milliseconds */
 #define NETDEV_PING_RECV_TIMEO      (2 * RT_TICK_PER_SECOND)
-    /** ping delay - in milliseconds */
+/** ping delay - in milliseconds */
 #define NETDEV_PING_DELAY           (1 * RT_TICK_PER_SECOND)
-    /* check netdev ping options */
+/* check netdev ping options */
 #define NETDEV_PING_IS_COMMONICABLE(netdev) \
     ((netdev) && (netdev)->ops && (netdev)->ops->ping && \
-     netdev_is_up(netdev) && netdev_is_link_up(netdev)) \
+        netdev_is_up(netdev) && netdev_is_link_up(netdev)) \
 
-    struct netdev* netdev = RT_NULL;
+    struct netdev *netdev = RT_NULL;
     struct netdev_ping_resp ping_resp;
-    int index, ret = 0;
+    rt_uint32_t index;
+    int ret = 0;
 
     if (size == 0)
     {
         size = NETDEV_PING_DATA_SIZE;
+    }
+
+    if (netdev_name != RT_NULL)
+    {
+        netdev = netdev_get_by_name(netdev_name);
+        if (netdev == RT_NULL)
+        {
+            netdev = netdev_default;
+            rt_kprintf("ping: not found specified netif, using default netdev %s.\n", netdev->name);
+        }
     }
 
     if (NETDEV_PING_IS_COMMONICABLE(netdev_default))
@@ -1110,29 +1117,29 @@ int netdev_cmd_ping(char* target_name, rt_uint32_t times, rt_size_t size)
 
         rt_memset(&ping_resp, 0x00, sizeof(struct netdev_ping_resp));
         start_tick = rt_tick_get();
-        ret = netdev->ops->ping(netdev, (const char*)target_name, size, NETDEV_PING_RECV_TIMEO, &ping_resp);
+        ret = netdev->ops->ping(netdev, (const char *)target_name, size, NETDEV_PING_RECV_TIMEO, &ping_resp);
         if (ret == -RT_ETIMEOUT)
         {
             rt_kprintf("ping: from %s icmp_seq=%d timeout\n",
-                       (ip_addr_isany(&(ping_resp.ip_addr))) ? target_name : inet_ntoa(ping_resp.ip_addr), index);
+                (ip_addr_isany(&(ping_resp.ip_addr))) ? target_name : inet_ntoa(ping_resp.ip_addr), index);
         }
         else if (ret == -RT_ERROR)
         {
             rt_kprintf("ping: unknown %s %s\n",
-                       (ip_addr_isany(&(ping_resp.ip_addr))) ? "host" : "address",
-                       (ip_addr_isany(&(ping_resp.ip_addr))) ? target_name : inet_ntoa(ping_resp.ip_addr));
+                (ip_addr_isany(&(ping_resp.ip_addr))) ? "host" : "address",
+                    (ip_addr_isany(&(ping_resp.ip_addr))) ? target_name : inet_ntoa(ping_resp.ip_addr));
         }
         else
         {
             if (ping_resp.ttl == 0)
             {
                 rt_kprintf("%d bytes from %s icmp_seq=%d time=%d ms\n",
-                           ping_resp.data_len, inet_ntoa(ping_resp.ip_addr), index, ping_resp.ticks);
+                            ping_resp.data_len, inet_ntoa(ping_resp.ip_addr), index, ping_resp.ticks);
             }
             else
             {
                 rt_kprintf("%d bytes from %s icmp_seq=%d ttl=%d time=%d ms\n",
-                           ping_resp.data_len, inet_ntoa(ping_resp.ip_addr), index, ping_resp.ttl, ping_resp.ticks);
+                            ping_resp.data_len, inet_ntoa(ping_resp.ip_addr), index, ping_resp.ttl, ping_resp.ticks);
             }
         }
 
@@ -1144,37 +1151,41 @@ int netdev_cmd_ping(char* target_name, rt_uint32_t times, rt_size_t size)
     return RT_EOK;
 }
 
-int netdev_ping(int argc, char** argv)
+int netdev_ping(int argc, char **argv)
 {
     if (argc == 1)
     {
-        rt_kprintf("Please input: ping <host address>\n");
+        rt_kprintf("Please input: ping [netdev name] <host address>\n");
     }
-    else
+    else if (argc == 2)
     {
-        netdev_cmd_ping(argv[1], 4, 0);
+        netdev_cmd_ping(argv[1], RT_NULL, 4, 0);
+    }
+    else if (argc == 3)
+    {
+        netdev_cmd_ping(argv[1], argv[2], 4, 0);
     }
 
     return 0;
 }
-FINSH_FUNCTION_EXPORT_ALIAS(netdev_ping, __cmd_ping, ping network host);
+MSH_CMD_EXPORT_ALIAS(netdev_ping, ping, ping network host);
 #endif /* NETDEV_USING_IFCONFIG */
 
 static void netdev_list_dns(void)
 {
-    int index = 0;
-    struct netdev* netdev = RT_NULL;
-    rt_slist_t* node  = RT_NULL;
+    unsigned int index = 0;
+    struct netdev *netdev = RT_NULL;
+    rt_slist_t *node  = RT_NULL;
 
     for (node = &(netdev_list->list); node; node = rt_slist_next(node))
     {
         netdev = rt_list_entry(node, struct netdev, list);
 
         rt_kprintf("network interface device: %.*s%s\n",
-                   RT_NAME_MAX, netdev->name,
-                   (netdev == netdev_default) ? " (Default)" : "");
+                RT_NAME_MAX, netdev->name,
+                (netdev == netdev_default)?" (Default)":"");
 
-        for (index = 0; index < NETDEV_DNS_SERVERS_NUM; index++)
+        for(index = 0; index < NETDEV_DNS_SERVERS_NUM; index++)
         {
             rt_kprintf("dns server #%d: %s\n", index, inet_ntoa(netdev->dns_servers[index]));
         }
@@ -1186,9 +1197,9 @@ static void netdev_list_dns(void)
     }
 }
 
-static void netdev_set_dns(char* netdev_name, uint8_t dns_num, char* dns_server)
+static void netdev_set_dns(char *netdev_name, uint8_t dns_num, char *dns_server)
 {
-    struct netdev* netdev = RT_NULL;
+    struct netdev *netdev = RT_NULL;
     ip_addr_t dns_addr;
 
     netdev = netdev_get_by_name(netdev_name);
@@ -1205,7 +1216,7 @@ static void netdev_set_dns(char* netdev_name, uint8_t dns_num, char* dns_server)
     }
 }
 
-int netdev_dns(int argc, char** argv)
+int netdev_dns(int argc, char **argv)
 {
     if (argc == 1)
     {
@@ -1227,14 +1238,13 @@ int netdev_dns(int argc, char** argv)
 
     return 0;
 }
-FINSH_FUNCTION_EXPORT_ALIAS(netdev_dns, __cmd_dns, list and set the information of dns);
-
+MSH_CMD_EXPORT_ALIAS(netdev_dns, dns, list and set the information of dns);
 #ifdef NETDEV_USING_NETSTAT
 static void netdev_cmd_netstat(void)
 {
-    rt_slist_t* node  = RT_NULL;
-    struct netdev* netdev = RT_NULL;
-    struct netdev* cur_netdev_list = netdev_list;
+    rt_slist_t *node  = RT_NULL;
+    struct netdev *netdev = RT_NULL;
+    struct netdev *cur_netdev_list = netdev_list;
 
     if (cur_netdev_list == RT_NULL)
     {
@@ -1262,7 +1272,7 @@ static void netdev_cmd_netstat(void)
     }
 }
 
-int netdev_netstat(int argc, char** argv)
+int netdev_netstat(int argc, char **argv)
 {
     if (argc != 1)
     {
@@ -1275,7 +1285,7 @@ int netdev_netstat(int argc, char** argv)
 
     return 0;
 }
-FINSH_FUNCTION_EXPORT_ALIAS(netdev_netstat, __cmd_netstat, list the information of TCP / IP);
+MSH_CMD_EXPORT_ALIAS(netdev_netstat, netstat, list the information of TCP / IP);
 #endif /* NETDEV_USING_NETSTAT */
 
 #endif /* RT_USING_FINSH */

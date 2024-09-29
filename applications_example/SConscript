@@ -1,0 +1,47 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd = GetCurrentDir()
+
+# add the general drivers.
+src = ['uc_example_app.c']
+
+if GetDepend(['APP_EXAMPLE_PIN']):
+    src += ['uc_pin_app.c']
+
+if GetDepend(['APP_EXAMPLE_UART']):
+    src += ['uc_uart_app.c']
+
+if GetDepend(['APP_EXAMPLE_I2C']):
+    src += ['uc_i2c_app.c']
+
+if GetDepend(['APP_EXAMPLE_SPI']):
+    src += ['uc_spi_app.c']
+
+if GetDepend(['APP_EXAMPLE_ADC']):
+    src += ['uc_adc_app.c']
+
+if GetDepend(['APP_EXAMPLE_DAC']):
+    src += ['uc_dac_app.c']
+
+if GetDepend(['APP_EXAMPLE_RTC']):
+    src += ['uc_rtc_app.c']
+
+if GetDepend(['APP_EXAMPLE_WATCHDOG']):
+    src += ['uc_watchdog_app.c']
+
+if GetDepend(['APP_EXAMPLE_PWM']):
+    src += ['uc_pwm_app.c']
+
+if GetDepend(['APP_EXAMPLE_FLASH']):
+    src += ['uc_flash_app.c']
+
+if GetDepend(['APP_EXAMPLE_HWTIMER']):
+    src += ['uc_hwtimer_app.c']
+
+path = [cwd]
+
+group = DefineGroup('Applications_example', src, depend = [''], CPPPATH = path)
+
+Return('group')

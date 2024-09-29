@@ -21,10 +21,10 @@ struct hwcrypto_gcm;
 
 struct hwcrypto_gcm_ops
 {
-    rt_err_t (*start)(struct hwcrypto_gcm* gcm_ctx,
-                      const unsigned char* add, size_t add_len);    /**< Set additional data. start GCM operation */
-    rt_err_t (*finish)(struct hwcrypto_gcm* gcm_ctx,
-                       const unsigned char* tag, size_t tag_len);   /**< finish GCM operation. get tag */
+    rt_err_t (*start)(struct hwcrypto_gcm *gcm_ctx,
+                      const unsigned char *add, rt_size_t add_len);    /**< Set additional data. start GCM operation */
+    rt_err_t (*finish)(struct hwcrypto_gcm *gcm_ctx,
+                       const unsigned char *tag, rt_size_t tag_len);   /**< finish GCM operation. get tag */
 };
 
 /**
@@ -34,7 +34,7 @@ struct hwcrypto_gcm
 {
     struct hwcrypto_symmetric parent;       /**< Inheritance from hardware symmetric crypto context */
     hwcrypto_type crypt_type;               /**< symmetric crypto type. eg: AES/DES */
-    const struct hwcrypto_gcm_ops* ops;     /**< !! Hardware initializes this value when creating context !! */
+    const struct hwcrypto_gcm_ops *ops;     /**< !! Hardware initializes this value when creating context !! */
 };
 
 /**
@@ -45,7 +45,7 @@ struct hwcrypto_gcm
  *
  * @return          GCM context
  */
-struct rt_hwcrypto_ctx* rt_hwcrypto_gcm_create(struct rt_hwcrypto_device* device,
+struct rt_hwcrypto_ctx *rt_hwcrypto_gcm_create(struct rt_hwcrypto_device *device,
                                                hwcrypto_type crypt_type);
 
 /**
@@ -53,7 +53,7 @@ struct rt_hwcrypto_ctx* rt_hwcrypto_gcm_create(struct rt_hwcrypto_device* device
  *
  * @param ctx       GCM context
  */
-void rt_hwcrypto_gcm_destroy(struct rt_hwcrypto_ctx* ctx);
+void rt_hwcrypto_gcm_destroy(struct rt_hwcrypto_ctx *ctx);
 
 /**
  * @brief           This function starts a GCM encryption or decryption operation
@@ -64,7 +64,7 @@ void rt_hwcrypto_gcm_destroy(struct rt_hwcrypto_ctx* ctx);
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_gcm_start(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* add,
+rt_err_t rt_hwcrypto_gcm_start(struct rt_hwcrypto_ctx *ctx, const rt_uint8_t *add,
                                rt_size_t add_len);
 
 /**
@@ -76,7 +76,7 @@ rt_err_t rt_hwcrypto_gcm_start(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* ad
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_gcm_finish(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* tag,
+rt_err_t rt_hwcrypto_gcm_finish(struct rt_hwcrypto_ctx *ctx, const rt_uint8_t *tag,
                                 rt_size_t tag_len);
 
 /**
@@ -90,8 +90,8 @@ rt_err_t rt_hwcrypto_gcm_finish(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* t
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_gcm_crypt(struct rt_hwcrypto_ctx* ctx, hwcrypto_mode mode,
-                               rt_size_t length, const rt_uint8_t* in, rt_uint8_t* out);
+rt_err_t rt_hwcrypto_gcm_crypt(struct rt_hwcrypto_ctx *ctx, hwcrypto_mode mode,
+                               rt_size_t length, const rt_uint8_t *in, rt_uint8_t *out);
 
 /**
  * @brief           Set Symmetric Encryption and Decryption Key
@@ -102,8 +102,8 @@ rt_err_t rt_hwcrypto_gcm_crypt(struct rt_hwcrypto_ctx* ctx, hwcrypto_mode mode,
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_gcm_setkey(struct rt_hwcrypto_ctx* ctx,
-                                const rt_uint8_t* key, rt_uint32_t bitlen);
+rt_err_t rt_hwcrypto_gcm_setkey(struct rt_hwcrypto_ctx *ctx,
+                                const rt_uint8_t *key, rt_uint32_t bitlen);
 
 /**
  * @brief           Get Symmetric Encryption and Decryption Key
@@ -114,8 +114,8 @@ rt_err_t rt_hwcrypto_gcm_setkey(struct rt_hwcrypto_ctx* ctx,
  *
  * @return          Key length of copy
  */
-rt_err_t rt_hwcrypto_gcm_getkey(struct rt_hwcrypto_ctx* ctx,
-                                rt_uint8_t* key, rt_uint32_t bitlen);
+rt_err_t rt_hwcrypto_gcm_getkey(struct rt_hwcrypto_ctx *ctx,
+                                rt_uint8_t *key, rt_uint32_t bitlen);
 
 /**
  * @brief           Set Symmetric Encryption and Decryption initialization vector
@@ -126,8 +126,8 @@ rt_err_t rt_hwcrypto_gcm_getkey(struct rt_hwcrypto_ctx* ctx,
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_gcm_setiv(struct rt_hwcrypto_ctx* ctx,
-                               const rt_uint8_t* iv, rt_size_t len);
+rt_err_t rt_hwcrypto_gcm_setiv(struct rt_hwcrypto_ctx *ctx,
+                               const rt_uint8_t *iv, rt_size_t len);
 
 /**
  * @brief           Get Symmetric Encryption and Decryption initialization vector
@@ -138,8 +138,8 @@ rt_err_t rt_hwcrypto_gcm_setiv(struct rt_hwcrypto_ctx* ctx,
  *
  * @return          IV length of copy
  */
-rt_err_t rt_hwcrypto_gcm_getiv(struct rt_hwcrypto_ctx* ctx,
-                               rt_uint8_t* iv, rt_size_t len);
+rt_err_t rt_hwcrypto_gcm_getiv(struct rt_hwcrypto_ctx *ctx,
+                               rt_uint8_t *iv, rt_size_t len);
 
 /**
  * @brief           Set offset in initialization vector
@@ -147,7 +147,7 @@ rt_err_t rt_hwcrypto_gcm_getiv(struct rt_hwcrypto_ctx* ctx,
  * @param ctx       GCM context
  * @param iv_off    The offset in IV
  */
-void rt_hwcrypto_gcm_set_ivoff(struct rt_hwcrypto_ctx* ctx, rt_int32_t iv_off);
+void rt_hwcrypto_gcm_set_ivoff(struct rt_hwcrypto_ctx *ctx, rt_int32_t iv_off);
 
 /**
  * @brief           Get offset in initialization vector
@@ -155,7 +155,7 @@ void rt_hwcrypto_gcm_set_ivoff(struct rt_hwcrypto_ctx* ctx, rt_int32_t iv_off);
  * @param ctx       GCM context
  * @param iv_off    It must point to a valid memory
  */
-void rt_hwcrypto_gcm_get_ivoff(struct rt_hwcrypto_ctx* ctx, rt_int32_t* iv_off);
+void rt_hwcrypto_gcm_get_ivoff(struct rt_hwcrypto_ctx *ctx, rt_int32_t *iv_off);
 
 /**
  * @brief           This function copy GCM context
@@ -165,15 +165,15 @@ void rt_hwcrypto_gcm_get_ivoff(struct rt_hwcrypto_ctx* ctx, rt_int32_t* iv_off);
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_gcm_cpy(struct rt_hwcrypto_ctx* des,
-                             const struct rt_hwcrypto_ctx* src);
+rt_err_t rt_hwcrypto_gcm_cpy(struct rt_hwcrypto_ctx *des,
+                             const struct rt_hwcrypto_ctx *src);
 
 /**
  * @brief           Reset GCM context
  *
  * @param ctx       GCM context
  */
-void rt_hwcrypto_gcm_reset(struct rt_hwcrypto_ctx* ctx);
+void rt_hwcrypto_gcm_reset(struct rt_hwcrypto_ctx *ctx);
 
 #ifdef __cplusplus
 }

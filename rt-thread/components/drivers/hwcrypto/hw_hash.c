@@ -20,9 +20,9 @@
  *
  * @return          Hash context
  */
-struct rt_hwcrypto_ctx* rt_hwcrypto_hash_create(struct rt_hwcrypto_device* device, hwcrypto_type type)
+struct rt_hwcrypto_ctx *rt_hwcrypto_hash_create(struct rt_hwcrypto_device *device, hwcrypto_type type)
 {
-    struct rt_hwcrypto_ctx* ctx;
+    struct rt_hwcrypto_ctx *ctx;
 
     ctx = rt_hwcrypto_ctx_create(device, type, sizeof(struct hwcrypto_hash));
     return ctx;
@@ -33,7 +33,7 @@ struct rt_hwcrypto_ctx* rt_hwcrypto_hash_create(struct rt_hwcrypto_device* devic
  *
  * @param ctx       Hash context
  */
-void rt_hwcrypto_hash_destroy(struct rt_hwcrypto_ctx* ctx)
+void rt_hwcrypto_hash_destroy(struct rt_hwcrypto_ctx *ctx)
 {
     rt_hwcrypto_ctx_destroy(ctx);
 }
@@ -47,11 +47,11 @@ void rt_hwcrypto_hash_destroy(struct rt_hwcrypto_ctx* ctx)
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_hash_finish(struct rt_hwcrypto_ctx* ctx, rt_uint8_t* output, rt_size_t length)
+rt_err_t rt_hwcrypto_hash_finish(struct rt_hwcrypto_ctx *ctx, rt_uint8_t *output, rt_size_t length)
 {
-    if (ctx && ((struct hwcrypto_hash*)ctx)->ops->finish)
+    if (ctx && ((struct hwcrypto_hash *)ctx)->ops->finish)
     {
-        return ((struct hwcrypto_hash*)ctx)->ops->finish((struct hwcrypto_hash*)ctx, output, length);
+        return ((struct hwcrypto_hash *)ctx)->ops->finish((struct hwcrypto_hash *)ctx, output, length);
     }
     return -RT_ERROR;
 }
@@ -65,11 +65,11 @@ rt_err_t rt_hwcrypto_hash_finish(struct rt_hwcrypto_ctx* ctx, rt_uint8_t* output
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_hash_update(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* input, rt_size_t length)
+rt_err_t rt_hwcrypto_hash_update(struct rt_hwcrypto_ctx *ctx, const rt_uint8_t *input, rt_size_t length)
 {
-    if (ctx && ((struct hwcrypto_hash*)ctx)->ops->update)
+    if (ctx && ((struct hwcrypto_hash *)ctx)->ops->update)
     {
-        return ((struct hwcrypto_hash*)ctx)->ops->update((struct hwcrypto_hash*)ctx, input, length);
+        return ((struct hwcrypto_hash *)ctx)->ops->update((struct hwcrypto_hash *)ctx, input, length);
     }
     return -RT_ERROR;
 }
@@ -82,7 +82,7 @@ rt_err_t rt_hwcrypto_hash_update(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* 
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_hash_cpy(struct rt_hwcrypto_ctx* des, const struct rt_hwcrypto_ctx* src)
+rt_err_t rt_hwcrypto_hash_cpy(struct rt_hwcrypto_ctx *des, const struct rt_hwcrypto_ctx *src)
 {
     return rt_hwcrypto_ctx_cpy(des, src);
 }
@@ -92,7 +92,7 @@ rt_err_t rt_hwcrypto_hash_cpy(struct rt_hwcrypto_ctx* des, const struct rt_hwcry
  *
  * @param ctx       Hash context
  */
-void rt_hwcrypto_hash_reset(struct rt_hwcrypto_ctx* ctx)
+void rt_hwcrypto_hash_reset(struct rt_hwcrypto_ctx *ctx)
 {
     rt_hwcrypto_ctx_reset(ctx);
 }
@@ -105,7 +105,7 @@ void rt_hwcrypto_hash_reset(struct rt_hwcrypto_ctx* ctx)
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_hash_set_type(struct rt_hwcrypto_ctx* ctx, hwcrypto_type type)
+rt_err_t rt_hwcrypto_hash_set_type(struct rt_hwcrypto_ctx *ctx, hwcrypto_type type)
 {
     return rt_hwcrypto_set_type(ctx, type);
 }

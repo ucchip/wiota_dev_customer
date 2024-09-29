@@ -16,21 +16,20 @@
 struct nfs_credentia
 {
     rt_uint32_t stamp;
-    char* name;
+    char *name;
     rt_uint32_t uid;
     rt_uint32_t gid;
-    rt_uint32_t* auxi;
+    rt_uint32_t *auxi;
     rt_uint32_t auxi_count;
 };
 
-static void authnone_verf(AUTH*);
-static bool_t authnone_validate(AUTH*, struct opaque_auth*);
-static bool_t authnone_refresh(AUTH*);
-static void authnone_destroy(AUTH*);
-static bool_t authnone_marshal(AUTH* client, XDR* xdrs);
+static void authnone_verf(AUTH *);
+static bool_t authnone_validate(AUTH *, struct opaque_auth *);
+static bool_t authnone_refresh(AUTH *);
+static void authnone_destroy(AUTH *);
+static bool_t authnone_marshal(AUTH *client, XDR *xdrs);
 
-static struct nfs_credentia _credentia =
-{
+static struct nfs_credentia _credentia = {
     .stamp = 0,
     .name = "rt-thread",
     .uid = 0,
@@ -55,16 +54,16 @@ static struct authnone_private
     AUTH no_client;
     char marshalled_client[MAX_MARSHEL_SIZE];
     unsigned int mcnt;
-}* authnone_private;
+} *authnone_private;
 
-AUTH* authnone_create(void)
+AUTH *authnone_create(void)
 {
-    register struct authnone_private* ap = authnone_private;
+    register struct authnone_private *ap = authnone_private;
     XDR xdr_stream;
-    register XDR* xdrs;
+    register XDR *xdrs;
     extern bool_t xdr_opaque_auth(XDR * xdrs, struct opaque_auth * ap);
     struct opaque_auth auth;
-    rt_uint32_t* auth_buf, *auth_base;
+    rt_uint32_t *auth_buf, *auth_base;
     int buf_len = 0, str_len = 0;
 
     if (_credentia.name)
@@ -110,7 +109,7 @@ AUTH* authnone_create(void)
 
     if (ap == 0)
     {
-        ap = (struct authnone_private*) rt_malloc(sizeof(*ap));
+        ap = (struct authnone_private *) rt_malloc(sizeof(*ap));
         if (ap == 0)
         {
             rt_free(auth_base);
@@ -124,7 +123,7 @@ AUTH* authnone_create(void)
     {
         memset(&auth, 0, sizeof(auth));
         auth.oa_flavor = 1;
-        auth.oa_base = (char*)auth_base;
+        auth.oa_base = (char *)auth_base;
         auth.oa_length = (auth_buf - auth_base) * sizeof(rt_uint32_t);
         ap->no_client.ah_cred = auth;
         ap->no_client.ah_verf = _null_auth;
@@ -142,32 +141,32 @@ AUTH* authnone_create(void)
 }
 
 /*ARGSUSED*/
-static bool_t authnone_marshal(AUTH* client, XDR* xdrs)
+static bool_t authnone_marshal(AUTH *client, XDR *xdrs)
 {
-    register struct authnone_private* ap = authnone_private;
+    register struct authnone_private *ap = authnone_private;
 
     if (ap == 0)
-    { return (0); }
+        return (0);
     return ((*xdrs->x_ops->x_putbytes)(xdrs,
                                        ap->marshalled_client, ap->mcnt));
 }
 
-static void authnone_verf(AUTH* x)
+static void authnone_verf(AUTH *x)
 {
 }
 
-static bool_t authnone_validate(AUTH* x, struct opaque_auth* x1)
+static bool_t authnone_validate(AUTH *x, struct opaque_auth *x1)
 {
 
     return (TRUE);
 }
 
-static bool_t authnone_refresh(AUTH* x)
+static bool_t authnone_refresh(AUTH *x)
 {
 
     return (FALSE);
 }
 
-static void authnone_destroy(AUTH* x)
+static void authnone_destroy(AUTH *x)
 {
 }

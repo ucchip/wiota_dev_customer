@@ -17,21 +17,21 @@
 
 // todo: remove repleat code
 #define RT_MEMHEAP_SIZE         RT_ALIGN(sizeof(struct rt_lwp_memheap_item), RT_ALIGN_SIZE)
-#define MEMITEM_SIZE(item)      ((rt_uint32_t)item->next - (rt_uint32_t)item - RT_MEMHEAP_SIZE)
+#define MEMITEM_SIZE(item)      ((rt_ubase_t)item->next - (rt_ubase_t)item - RT_MEMHEAP_SIZE)
 
 #ifndef LWP_MEM_PAGE_SIZE
-#define LWP_MEM_PAGE_SIZE       (4 * 1024)
+    #define LWP_MEM_PAGE_SIZE       (4 * 1024)
 #endif
 
 #ifndef LWP_MEM_MAX_PAGE_COUNT
-#define LWP_MEM_MAX_PAGE_COUNT  (256 * 4)
+    #define LWP_MEM_MAX_PAGE_COUNT  (256 * 4)
 #endif
 
-static void* rt_lwp_malloc_page(struct rt_lwp* lwp, rt_size_t npages)
+static void *rt_lwp_malloc_page(struct rt_lwp *lwp, rt_size_t npages)
 {
-    void* chunk;
+    void *chunk;
     char name[6];
-    struct rt_lwp_memheap* lwp_heap;
+    struct rt_lwp_memheap *lwp_heap;
     rt_size_t page_cnt;
 
     RT_ASSERT(lwp != RT_NULL);
@@ -70,7 +70,7 @@ static void* rt_lwp_malloc_page(struct rt_lwp* lwp, rt_size_t npages)
     return chunk;
 }
 
-static void rt_lwp_free_page(struct rt_lwp* lwp, struct rt_lwp_memheap* lwp_heap)
+static void rt_lwp_free_page(struct rt_lwp *lwp, struct rt_lwp_memheap *lwp_heap)
 {
     rt_size_t npages;
 
@@ -89,15 +89,15 @@ static void rt_lwp_free_page(struct rt_lwp* lwp, struct rt_lwp_memheap* lwp_heap
     rt_free(lwp_heap);
 }
 
-void rt_lwp_mem_init(struct rt_lwp* lwp)
+void rt_lwp_mem_init(struct rt_lwp *lwp)
 {
     RT_ASSERT(lwp != RT_NULL);
     rt_list_init(&lwp->hlist);
 }
 
-void rt_lwp_mem_deinit(struct rt_lwp* lwp)
+void rt_lwp_mem_deinit(struct rt_lwp *lwp)
 {
-    struct rt_list_node* node;
+    struct rt_list_node *node;
 
     RT_ASSERT(lwp != RT_NULL);
 
@@ -105,7 +105,7 @@ void rt_lwp_mem_deinit(struct rt_lwp* lwp)
 
     while (node != &(lwp->hlist))
     {
-        struct rt_lwp_memheap* lwp_heap;
+        struct rt_lwp_memheap *lwp_heap;
 
         lwp_heap = rt_list_entry(node, struct rt_lwp_memheap, mlist);
         RT_ASSERT(lwp_heap != RT_NULL);
@@ -117,22 +117,22 @@ void rt_lwp_mem_deinit(struct rt_lwp* lwp)
     }
 }
 
-void* rt_lwp_mem_malloc(rt_uint32_t size)
+void *rt_lwp_mem_malloc(rt_uint32_t size)
 {
-    struct rt_lwp* lwp;
-    struct rt_list_node* node;
-    void* addr = RT_NULL;
+    struct rt_lwp *lwp;
+    struct rt_list_node *node;
+    void *addr = RT_NULL;
     rt_uint32_t npages;
 
     if (size == 0)
-    { return RT_NULL; }
+        return RT_NULL;
 
     lwp = rt_lwp_self();
     RT_ASSERT(lwp != RT_NULL);
 
     for (node  = lwp->hlist.next; node != &(lwp->hlist); node = node->next)
     {
-        struct rt_lwp_memheap* lwp_heap;
+        struct rt_lwp_memheap *lwp_heap;
         lwp_heap = rt_list_entry(node, struct rt_lwp_memheap, mlist);
 
         addr = rt_lwp_memheap_alloc(lwp_heap, size);
@@ -145,28 +145,28 @@ void* rt_lwp_mem_malloc(rt_uint32_t size)
 
     npages = (size + rt_lwp_memheap_unavailable_size_get() + LWP_MEM_PAGE_SIZE) / LWP_MEM_PAGE_SIZE;
     if (RT_NULL != rt_lwp_malloc_page(lwp, npages))
-    { return rt_lwp_mem_malloc(size); }
+        return rt_lwp_mem_malloc(size);
     else
-    { return RT_NULL; }
+        return RT_NULL;
 }
 
-void rt_lwp_mem_free(void* addr)
+void rt_lwp_mem_free(void *addr)
 {
-    struct rt_lwp_memheap_item* header_ptr;
-    struct rt_lwp_memheap* lwp_heap;
+    struct rt_lwp_memheap_item *header_ptr;
+    struct rt_lwp_memheap *lwp_heap;
 
     if (addr == RT_NULL)
-    { return ; }
+        return ;
 
     /* get memory item */
-    header_ptr = (struct rt_lwp_memheap_item*)((rt_uint8_t*)addr - RT_MEMHEAP_SIZE);
+    header_ptr = (struct rt_lwp_memheap_item *)((rt_uint8_t *)addr - RT_MEMHEAP_SIZE);
     RT_ASSERT(header_ptr);
 
     lwp_heap = header_ptr->pool_ptr;
     RT_ASSERT(lwp_heap);
 
     dbg_log(DBG_LOG, "lwp free 0x%x\n", addr);
-    rt_lwp_memheap_free((void*)addr);
+    rt_lwp_memheap_free((void *)addr);
 
     if (rt_lwp_memheap_is_empty(lwp_heap))
     {
@@ -174,13 +174,13 @@ void rt_lwp_mem_free(void* addr)
     }
 }
 
-void* rt_lwp_mem_realloc(void* rmem, rt_size_t newsize)
+void *rt_lwp_mem_realloc(void *rmem, rt_size_t newsize)
 {
-    void* new_ptr;
-    struct rt_lwp_memheap_item* header_ptr;
+    void *new_ptr;
+    struct rt_lwp_memheap_item *header_ptr;
 
     if (rmem == RT_NULL)
-    { return rt_lwp_mem_malloc(newsize); }
+        return rt_lwp_mem_malloc(newsize);
 
     if (newsize == 0)
     {
@@ -189,8 +189,8 @@ void* rt_lwp_mem_realloc(void* rmem, rt_size_t newsize)
     }
 
     /* get old memory item */
-    header_ptr = (struct rt_lwp_memheap_item*)
-                 ((rt_uint8_t*)rmem - RT_MEMHEAP_SIZE);
+    header_ptr = (struct rt_lwp_memheap_item *)
+                 ((rt_uint8_t *)rmem - RT_MEMHEAP_SIZE);
 
     new_ptr = rt_lwp_memheap_realloc(header_ptr->pool_ptr, rmem, newsize);
     if (new_ptr == RT_NULL)
@@ -204,9 +204,9 @@ void* rt_lwp_mem_realloc(void* rmem, rt_size_t newsize)
             /* get the size of old memory block */
             oldsize = MEMITEM_SIZE(header_ptr);
             if (newsize > oldsize)
-            { rt_memcpy(new_ptr, rmem, oldsize); }
+                rt_memcpy(new_ptr, rmem, oldsize);
             else
-            { rt_memcpy(new_ptr, rmem, newsize); }
+                rt_memcpy(new_ptr, rmem, newsize);
 
             dbg_log(DBG_LOG, "lwp realloc with memcpy 0x%x -> 0x%x/%d\n", rmem, new_ptr, newsize);
             rt_lwp_mem_free(rmem);

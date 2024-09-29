@@ -31,7 +31,7 @@ int rt_hw_tick_init(void)
 {
     /* Read core id */
     unsigned long core_id = current_coreid();
-    unsigned long interval = 1000 / RT_TICK_PER_SECOND;
+    unsigned long interval = 1000/RT_TICK_PER_SECOND;
 
     /* Clear the Machine-Timer bit in MIE */
     clear_csr(mie, MIP_MTIP);

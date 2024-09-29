@@ -11,7 +11,8 @@
 #include <rthw.h>
 #include <rtdevice.h>
 #include "drivers/usb_device.h"
-#include "audio.h"
+
+#include "uaudioreg.h"
 
 #define DBG_TAG              "usbd.audio.mic"
 #define DBG_LVL              DBG_INFO
@@ -26,9 +27,9 @@
 #define RECORD_BUFFER_SZ    (RECORD_PER_MS_SZ * 20)  /* 20ms */
 
 #if defined(RT_USBD_MIC_DEVICE_NAME)
-#define MIC_DEVICE_NAME    RT_USBD_MIC_DEVICE_NAME
+    #define MIC_DEVICE_NAME    RT_USBD_MIC_DEVICE_NAME
 #else
-#define MIC_DEVICE_NAME    "mic0"
+    #define MIC_DEVICE_NAME    "mic0"
 #endif
 
 #define EVENT_RECORD_START   (1 << 0)
@@ -46,9 +47,6 @@
 #define UAC_MAX_PACKET_SIZE         64
 #define UAC_EP_MAX_PACKET_SIZE      32
 #define UAC_CHANNEL_NUM             RECORD_CHANNEL
-#define UAC_INTR_NUM                1
-#define UAC_CH_NUM                  1
-#define UAC_FORMAT_NUM              1
 
 struct uac_ac_descriptor
 {
@@ -56,21 +54,21 @@ struct uac_ac_descriptor
     struct uiad_descriptor iad_desc;
 #endif
     struct uinterface_descriptor intf_desc;
-    DECLARE_UAC_AC_HEADER_DESCRIPTOR(UAC_INTR_NUM) hdr_desc;
-    struct uac_input_terminal_descriptor it_desc;
-    struct uac1_output_terminal_descriptor ot_desc;
+    struct usb_audio_control_descriptor hdr_desc;
+    struct usb_audio_input_terminal it_desc;
+    struct usb_audio_output_terminal ot_desc;
 #if UAC_USE_FEATURE_UNIT
-    DECLARE_UAC_FEATURE_UNIT_DESCRIPTOR(UAC_CH_NUM) feature_unit_desc;
+    struct usb_audio_feature_unit feature_unit_desc;
 #endif
 };
 
 struct uac_as_descriptor
 {
     struct uinterface_descriptor intf_desc;
-    struct uac1_as_header_descriptor hdr_desc;
-    DECLARE_UAC_FORMAT_TYPE_I_DISCRETE_DESC(UAC_FORMAT_NUM) format_type_desc;
+    struct usb_audio_streaming_interface_descriptor hdr_desc;
+    struct usb_audio_streaming_type1_descriptor format_type_desc;
     struct uendpoint_descriptor ep_desc;
-    struct uac_iso_endpoint_descriptor as_ep_desc;
+    struct usb_audio_streaming_endpoint_descriptor as_ep_desc;
 };
 
 /*
@@ -83,7 +81,7 @@ struct uac_audio_mic
     rt_event_t   event;
     rt_uint8_t   open_count;
 
-    rt_uint8_t*  buffer;
+    rt_uint8_t  *buffer;
     rt_uint32_t  buffer_index;
 
     uep_t        ep;
@@ -125,7 +123,7 @@ static struct usb_qualifier_descriptor dev_qualifier =
 };
 
 ALIGN(4)
-const static char* _ustring[] =
+const static char *_ustring[] =
 {
     "Language",
     "RT-Thread Team.",
@@ -169,9 +167,9 @@ static struct uac_ac_descriptor ac_desc =
     },
     /* Header Descriptor */
     {
-        UAC_DT_AC_HEADER_SIZE(UAC_INTR_NUM),
+        sizeof(struct usb_audio_control_descriptor),
         UAC_CS_INTERFACE,
-        UAC_HEADER,
+        UDESCSUB_AC_HEADER,
         0x0100,    /* Version: 1.00 */
         0x001E,    /* Total length: 30 */
         0x01,      /* Total number of interfaces: 1 */
@@ -179,9 +177,9 @@ static struct uac_ac_descriptor ac_desc =
     },
     /*  Input Terminal Descriptor */
     {
-        UAC_DT_INPUT_TERMINAL_SIZE,
+        sizeof(struct usb_audio_input_terminal),
         UAC_CS_INTERFACE,
-        UAC_INPUT_TERMINAL,
+        UDESCSUB_AC_INPUT,
         0x01,      /* Terminal ID: 1 */
         0x0201,    /* Terminal Type: Microphone (0x0201) */
         0x00,      /* Assoc Terminal: 0 */
@@ -192,9 +190,9 @@ static struct uac_ac_descriptor ac_desc =
     },
     /*  Output Terminal Descriptor */
     {
-        UAC_DT_OUTPUT_TERMINAL_SIZE,
+        sizeof(struct usb_audio_output_terminal),
         UAC_CS_INTERFACE,
-        UAC_OUTPUT_TERMINAL,
+        UDESCSUB_AC_OUTPUT,
         0x02,      /* Terminal ID: 2 */
         0x0101,    /* Terminal Type: USB Streaming (0x0101) */
         0x00,      /* Assoc Terminal: 0 */
@@ -204,11 +202,12 @@ static struct uac_ac_descriptor ac_desc =
 #if UAC_USE_FEATURE_UNIT
     /*  Feature unit Descriptor */
     {
-        UAC_DT_FEATURE_UNIT_SIZE(UAC_CH_NUM),
+        sizeof(struct usb_audio_feature_unit),
         UAC_CS_INTERFACE,
-        UAC_FEATURE_UNIT,
+        UDESCSUB_AC_FEATURE,
         0x02,
-        0x0101,
+        0x01,
+        0x01,
         0x00,
         0x01,
     },
@@ -246,19 +245,19 @@ static struct uac_as_descriptor as_desc =
     },
     /* General AS Descriptor */
     {
-        UAC_DT_AS_HEADER_SIZE,
+        sizeof(struct usb_audio_streaming_interface_descriptor),
         UAC_CS_INTERFACE,
-        UAC_AS_GENERAL,
+        AS_GENERAL,
         0x02,      /* Terminal ID: 2 */
         0x01,      /* Interface delay in frames: 1 */
-        UAC_FORMAT_TYPE_I_PCM,
+        UA_FMT_PCM,
     },
     /* Format type i Descriptor */
     {
-        UAC_FORMAT_TYPE_I_DISCRETE_DESC_SIZE(UAC_FORMAT_NUM),
+        sizeof(struct usb_audio_streaming_type1_descriptor),
         UAC_CS_INTERFACE,
-        UAC_FORMAT_TYPE,
-        UAC_FORMAT_TYPE_I,
+        FORMAT_TYPE,
+        FORMAT_TYPE_I,
         UAC_CHANNEL_NUM,
         2,         /* Subframe Size: 2 */
         RESOLUTION_BITS,
@@ -276,13 +275,13 @@ static struct uac_as_descriptor as_desc =
     },
     /* AS Endpoint Descriptor */
     {
-        UAC_ISO_ENDPOINT_DESC_SIZE,
+        sizeof(struct usb_audio_streaming_endpoint_descriptor),
         UAC_CS_ENDPOINT,
-        UAC_MS_GENERAL,
+        AS_GENERAL,
     },
 };
 
-void mic_entry(void* parameter)
+void mic_entry(void *parameter)
 {
     struct rt_audio_caps caps = {0};
     rt_uint32_t e, index;
@@ -331,9 +330,9 @@ void mic_entry(void* parameter)
                               1000, &e) != RT_EOK)
             {
                 if (mic.open_count > 0)
-                { continue; }
+                    continue;
                 else
-                { break; }
+                    break;
             }
             if (e & EVENT_RECORD_DATA)
             {
@@ -351,7 +350,7 @@ void mic_entry(void* parameter)
 
 __exit:
     if (mic.buffer)
-    { rt_free(mic.buffer); }
+        rt_free(mic.buffer);
 }
 
 static rt_err_t _record_start(ufunction_t func)
@@ -409,22 +408,22 @@ static rt_err_t _interface_as_handler(ufunction_t func, ureq_t setup)
     {
         switch (setup->bRequest)
         {
-            case USB_REQ_GET_INTERFACE:
-                break;
-            case USB_REQ_SET_INTERFACE:
-                LOG_D("set interface handler");
-                if (setup->wValue == 1)
-                {
-                    _record_start(func);
-                }
-                else if (setup->wValue == 0)
-                {
-                    _record_stop(func);
-                }
-                break;
-            default:
-                LOG_D("unknown uac request 0x%x", setup->bRequest);
-                return -RT_ERROR;
+        case USB_REQ_GET_INTERFACE:
+            break;
+        case USB_REQ_SET_INTERFACE:
+            LOG_D("set interface handler");
+            if (setup->wValue == 1)
+            {
+                _record_start(func);
+            }
+            else if (setup->wValue == 0)
+            {
+                _record_stop(func);
+            }
+            break;
+        default:
+            LOG_D("unknown uac request 0x%x", setup->bRequest);
+            return -RT_ERROR;
         }
     }
 
@@ -463,8 +462,8 @@ static struct ufunction_ops ops =
  *
  * @return RT_EOK on successful.
  */
-static rt_err_t _uac_descriptor_config(struct uac_ac_descriptor* ac,
-                                       rt_uint8_t cintf_nr, struct uac_as_descriptor* as, rt_uint8_t sintf_nr)
+static rt_err_t _uac_descriptor_config(struct uac_ac_descriptor *ac,
+                                       rt_uint8_t cintf_nr, struct uac_as_descriptor *as, rt_uint8_t sintf_nr)
 {
     ac->hdr_desc.baInterfaceNr[0] = sintf_nr;
 #ifdef RT_USB_DEVICE_COMPOSITE
@@ -474,11 +473,11 @@ static rt_err_t _uac_descriptor_config(struct uac_ac_descriptor* ac,
     return RT_EOK;
 }
 
-static rt_err_t _uac_samplerate_config(struct uac_as_descriptor* as, rt_uint32_t samplerate)
+static rt_err_t _uac_samplerate_config(struct uac_as_descriptor *as, rt_uint32_t samplerate)
 {
-    as->format_type_desc.tSamFreq[0][2] = samplerate >> 16 & 0xff;
-    as->format_type_desc.tSamFreq[0][1] = samplerate >> 8 & 0xff;
-    as->format_type_desc.tSamFreq[0][0] = samplerate & 0xff;
+    as->format_type_desc.tSamFreq[0 * 3 + 2] = samplerate >> 16 & 0xff;
+    as->format_type_desc.tSamFreq[0 * 3 + 1] = samplerate >> 8 & 0xff;
+    as->format_type_desc.tSamFreq[0 * 3 + 0] = samplerate & 0xff;
     return RT_EOK;
 }
 
@@ -495,7 +494,7 @@ ufunction_t rt_usbd_function_uac_mic_create(udevice_t device)
     uintf_t intf_ac, intf_as;
     ualtsetting_t setting_as0;
     ualtsetting_t setting_ac, setting_as;
-    struct uac_as_descriptor* as_desc_t;
+    struct uac_as_descriptor *as_desc_t;
 
     /* parameter check */
     RT_ASSERT(device != RT_NULL);
@@ -521,16 +520,16 @@ ufunction_t rt_usbd_function_uac_mic_create(udevice_t device)
     setting_as = rt_usbd_altsetting_new(sizeof(struct uac_as_descriptor));
     /* config desc in alternate setting */
     rt_usbd_altsetting_config_descriptor(setting_ac, &ac_desc,
-                                         (rt_off_t) & ((struct uac_ac_descriptor*)0)->intf_desc);
+                                         (rt_off_t) & ((struct uac_ac_descriptor *)0)->intf_desc);
     rt_usbd_altsetting_config_descriptor(setting_as0, &as_desc0, 0);
     rt_usbd_altsetting_config_descriptor(setting_as, &as_desc,
-                                         (rt_off_t) & ((struct uac_as_descriptor*)0)->intf_desc);
+                                         (rt_off_t) & ((struct uac_as_descriptor *)0)->intf_desc);
     /* configure the uac interface descriptor */
     _uac_descriptor_config(setting_ac->desc, intf_ac->intf_num, setting_as->desc, intf_as->intf_num);
     _uac_samplerate_config(setting_as->desc, RECORD_SAMPLERATE);
 
     /* create endpoint */
-    as_desc_t = (struct uac_as_descriptor*)setting_as->desc;
+    as_desc_t = (struct uac_as_descriptor *)setting_as->desc;
     mic.ep = rt_usbd_endpoint_new(&as_desc_t->ep_desc, _ep_data_in_handler);
 
     /* add the endpoint to the alternate setting */
@@ -561,7 +560,7 @@ int audio_mic_init(void)
                                5, 10);
 
     if (mic_tid != RT_NULL)
-    { rt_thread_startup(mic_tid); }
+        rt_thread_startup(mic_tid);
     return RT_EOK;
 }
 INIT_COMPONENT_EXPORT(audio_mic_init);

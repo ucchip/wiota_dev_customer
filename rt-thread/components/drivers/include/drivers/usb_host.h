@@ -6,6 +6,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2011-3-12     Yi Qiu      first version
+ * 2021-02-23     Leslie Lee  provide possibility for multi usb host
  */
 
 #ifndef __RT_USB_HOST_H__
@@ -68,10 +69,10 @@ struct uinstance
 
     struct udevice_descriptor dev_desc;
     ucfg_desc_t cfg_desc;
-    struct uhcd* hcd;
+    struct uhcd *hcd;
 
-    struct upipe* pipe_ep0_out;
-    struct upipe* pipe_ep0_in;
+    struct upipe * pipe_ep0_out;
+    struct upipe * pipe_ep0_in;
     rt_list_t pipe;
 
     rt_uint8_t status;
@@ -93,7 +94,7 @@ struct uhintf
     uintf_desc_t intf_desc;
 
     ucd_t drv;
-    void* user_data;
+    void *user_data;
 };
 
 struct upipe
@@ -119,7 +120,7 @@ struct uhub
 
     rt_uint8_t buffer[8];
     struct uinstance* self;
-    struct uhcd* hcd;
+    struct uhcd *hcd;
 };
 typedef struct uhub* uhub_t;
 
@@ -137,6 +138,7 @@ struct uhcd
     uhcd_ops_t ops;
     rt_uint8_t num_ports;
     uhub_t roothub;
+    struct rt_messagequeue *usb_mq;
 };
 typedef struct uhcd* uhcd_t;
 
@@ -156,15 +158,15 @@ struct uhost_msg
         struct
         {
             func_callback function;
-            void* context;
-        } cb;
-    } content;
+            void *context;
+        }cb;
+    }content;
 };
 typedef struct uhost_msg* uhost_msg_t;
 
 /* usb host system interface */
-rt_err_t rt_usb_host_init(void);
-void rt_usbh_hub_init(struct uhcd* hcd);
+rt_err_t rt_usb_host_init(const char *name);
+void rt_usbh_hub_init(struct uhcd *hcd);
 
 /* usb host core interface */
 struct uinstance* rt_usbh_alloc_instance(uhcd_t uhcd);
@@ -193,21 +195,21 @@ ucd_t rt_usbh_class_driver_storage(void);
 
 
 /* usb hub interface */
-rt_err_t rt_usbh_hub_get_descriptor(struct uinstance* device, rt_uint8_t* buffer,
-                                    rt_size_t size);
+rt_err_t rt_usbh_hub_get_descriptor(struct uinstance* device, rt_uint8_t *buffer,
+    rt_size_t size);
 rt_err_t rt_usbh_hub_get_status(struct uinstance* device, rt_uint32_t* buffer);
 rt_err_t rt_usbh_hub_get_port_status(uhub_t uhub, rt_uint16_t port,
-                                     rt_uint32_t* buffer);
+    rt_uint32_t* buffer);
 rt_err_t rt_usbh_hub_clear_port_feature(uhub_t uhub, rt_uint16_t port,
-                                        rt_uint16_t feature);
+    rt_uint16_t feature);
 rt_err_t rt_usbh_hub_set_port_feature(uhub_t uhub, rt_uint16_t port,
-                                      rt_uint16_t feature);
+    rt_uint16_t feature);
 rt_err_t rt_usbh_hub_reset_port(uhub_t uhub, rt_uint16_t port);
-rt_err_t rt_usbh_event_signal(struct uhost_msg* msg);
+rt_err_t rt_usbh_event_signal(uhcd_t uhcd, struct uhost_msg* msg);
 
 
-void rt_usbh_root_hub_connect_handler(struct uhcd* hcd, rt_uint8_t port, rt_bool_t isHS);
-void rt_usbh_root_hub_disconnect_handler(struct uhcd* hcd, rt_uint8_t port);
+void rt_usbh_root_hub_connect_handler(struct uhcd *hcd, rt_uint8_t port, rt_bool_t isHS);
+void rt_usbh_root_hub_disconnect_handler(struct uhcd *hcd, rt_uint8_t port);
 
 /* usb host controller driver interface */
 rt_inline rt_err_t rt_usb_instance_add_pipe(uinst_t inst, upipe_t pipe)
@@ -217,14 +219,14 @@ rt_inline rt_err_t rt_usb_instance_add_pipe(uinst_t inst, upipe_t pipe)
     rt_list_insert_before(&inst->pipe, &pipe->list);
     return RT_EOK;
 }
-rt_inline upipe_t rt_usb_instance_find_pipe(uinst_t inst, rt_uint8_t ep_address)
+rt_inline upipe_t rt_usb_instance_find_pipe(uinst_t inst,rt_uint8_t ep_address)
 {
-    rt_list_t* l;
-    for (l = inst->pipe.next; l != &inst->pipe; l = l->next)
+    rt_list_t * l;
+    for(l = inst->pipe.next;l != &inst->pipe;l = l->next)
     {
-        if (rt_list_entry(l, struct upipe, list)->ep.bEndpointAddress == ep_address)
+        if(rt_list_entry(l,struct upipe,list)->ep.bEndpointAddress == ep_address)
         {
-            return rt_list_entry(l, struct upipe, list);
+            return rt_list_entry(l,struct upipe,list);
         }
     }
     return RT_NULL;
@@ -232,13 +234,13 @@ rt_inline upipe_t rt_usb_instance_find_pipe(uinst_t inst, rt_uint8_t ep_address)
 rt_inline rt_err_t rt_usb_hcd_alloc_pipe(uhcd_t hcd, upipe_t* pipe, uinst_t inst, uep_desc_t ep)
 {
     *pipe = (upipe_t)rt_malloc(sizeof(struct upipe));
-    if (*pipe == RT_NULL)
+    if(*pipe == RT_NULL)
     {
         return RT_ERROR;
     }
-    rt_memset(*pipe, 0, sizeof(struct upipe));
+    rt_memset(*pipe,0,sizeof(struct upipe));
     (*pipe)->inst = inst;
-    rt_memcpy(&(*pipe)->ep, ep, sizeof(struct uendpoint_descriptor));
+    rt_memcpy(&(*pipe)->ep,ep,sizeof(struct uendpoint_descriptor));
     return hcd->ops->open_pipe(*pipe);
 }
 rt_inline void rt_usb_pipe_add_callback(upipe_t pipe, func_callback callback)
@@ -257,7 +259,7 @@ rt_inline rt_err_t rt_usb_hcd_free_pipe(uhcd_t hcd, upipe_t pipe)
 int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void* buffer, int nbytes, int timeout);
 rt_inline int rt_usb_hcd_setup_xfer(uhcd_t hcd, upipe_t pipe, ureq_t setup, int timeout)
 {
-    return hcd->ops->pipe_xfer(pipe, USBH_PID_SETUP, (void*)setup, 8, timeout);
+    return hcd->ops->pipe_xfer(pipe, USBH_PID_SETUP, (void *)setup, 8, timeout);
 }
 
 #ifdef __cplusplus
@@ -265,5 +267,3 @@ rt_inline int rt_usb_hcd_setup_xfer(uhcd_t hcd, upipe_t pipe, ureq_t setup, int 
 #endif
 
 #endif
-
-

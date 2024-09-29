@@ -1,7 +1,74 @@
+
+sync V3.2
+S-v3.2
+
+外部更新：
+	1. 快速配置qc功能模块，不需要可关闭
+	2. memcpy/memset 修改为 rt_memcpy/rt_memset ！
+	3. crt0.flash.S 增加pmc_init，修复休眠唤醒后可能的开机电流异常
+	4. 中断处理函数更新， default_int_handler，防止中断漏检问题
+	5. boot_strap更新，增加qspi init，基带paging状态检测和恢复
+	6. 更新uboot.bin，包括开机异常处理，断电保护等
+	7. iic优化
+	8. 增加spim
+	9. 增加flash id获取接口，更新flash读写接口，兼容新版硬件flash
+	10. adc校准更新
+	11. 网关相关功能更新
+	12. onchip_flash_erase中cache miss问题修复
+	13. rt-thread版本更新为4.1.1
+	13. rt-thread驱动更新
+	14. bintools更新
+	15. .gitignore更新，记得先清除本地跟踪 "git rm -r --chched ."
+
+协议接口更新：
+	1. 帧号上报功能，UC_RECV_FN_CHANGE
+	2. 下行单播不回ack功能，特殊场景使用，UC_RATE_NOACK_MODE
+	3. 指定帧号发送功能，uc_wiota_send_data_by_fn/at_wiotasend_by_fn_setup，需提前至少1帧
+	4. 设置频点新增返回值，是否设置成功，uc_wiota_set_freq_info
+	5. 新增获取子帧长度接口，uc_wiota_get_subframe_len
+	6. 新增查询dcxo的at接口，at_dcxo_query
+	7. 优化at回调打印，wiota_recv_callback
+	8. 增加宏_LPM_PAGING_，低功耗功能控制宏，关闭后可减小整体固件大小，如需关闭需要单独编译对应协议库
+	9. 指示灯功能（_LIGHT_PILOT_），默认关闭，如需打开需要单独编译对应协议库
+	10. 配置是否在退出协议栈自动保存静态数据，at_wiota_save_mode_setup/uc_wiota_set_exit_save_static
+	11. 外部PA配置gpio相关接口（V3.1.2不支持）
+	12. userid配置，不再需要先disconnect再重新connect，可直接动态配置（V3.1.2不支持）
+
+协议内部更新：
+	1. 去掉初始化时可能存在的 ”写OTP操作“（风险项，写otp可能导致otp异常清除）
+	2. 增加帧号有效性检测，（广播帧号包的mcs检测，帧号突变检测，tracking状态检测）
+	3. 快速扫频阶段，记录agc，在后续同步过程中使用该agc，有效避免信号饱和时同步异常或者同步tracking agc调整过慢问题。(应用建议流程：先扫频，再设频点，再同步) 
+	4. 在尝试同步阶段disconnect时异常临界问题解决
+	5. cache miss问题优化
+	6. 扩展ID唤醒，周期倍数不为1的异常处理
+	7. 200K 128 nlen为1的特殊配置下，检测周期的更新优化
+	8. 扫频临界问题修复
+	9. grant模式优化（下个版本更新新策略）
+	10. awaken cause中的cs flag记录，防止第二次查询时异常
+	11. 频点接收计算带宽更新为400K（射频计算相关，非频谱带宽）
+	12. 优化根据温度曲线计算dcxo的公式
+	13. id mask范围更新，从 0~0xFFF 更新为 1~0xFFE，避免量产otp数据异常导致无法通信，默认值认为0x214
+	14. 基带llr接收优化
+
+
+版本说明：
+
+V3.1 基础大版本
+V3.1.1 更新应用关于OTA相关bug（重要）
+V3.1.2 更新协议栈接口（未更新基带，部分新接口暂不可用），更新quick connect模块，更新bintools
+V3.1.3 更新基带（协议新接口均可用），更新应用新策略和优化
+V3.2 更新外设，rt_thread系统相关，uboot，更新应用新策略和优化和对应协议接口等
+
+注意：
+1. 由于本次V3.2更新内容，相对于V3.1.1改动较大，OTA升级空间不够，需要中间版本进行逐步OTA升级，
+2. V3.1.2和V3.1.3主要用于OTA升级，不建议在这两个版本上进行应用开发！
+
+
 sync v3.1.1
 S-v3.1.1
 
 	1. 修复网关模式下的OTA升级bug
+
 
 sync v3.1
 S-v3.1

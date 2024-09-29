@@ -13,7 +13,7 @@
 
 #include <vbus_api.h>
 
-int rt_vbus_init(void* outr, void* inr);
+int rt_vbus_init(void *outr, void *inr);
 
 void rt_vbus_resume_out_thread(void);
 
@@ -37,29 +37,26 @@ void rt_vbus_resume_out_thread(void);
  */
 rt_err_t rt_vbus_post(rt_uint8_t chnr,
                       rt_uint8_t prio,
-                      const void* datap,
+                      const void *datap,
                       rt_size_t size,
                       rt_int32_t timeout);
 
-struct rt_vbus_data
-{
+struct rt_vbus_data {
     /* Number of bytes in current data package. */
     unsigned char size;
     /* Used internally in VBus. Don't modify this field as it may corrupt the
      * receive queue. */
-    struct rt_vbus_data* next;
+    struct rt_vbus_data *next;
     /* Data follows the struct */
 };
 
-struct rt_vbus_wm_cfg
-{
+struct rt_vbus_wm_cfg {
     unsigned int low, high;
 };
 
-struct rt_vbus_request
-{
+struct rt_vbus_request {
     unsigned char prio;
-    const char* name;
+    const char *name;
     int is_server;
     struct rt_vbus_wm_cfg recv_wm, post_wm;
 };
@@ -68,7 +65,7 @@ struct rt_vbus_request
  *
  * @return channel number. Negative if error happened.
  */
-int rt_vbus_request_chn(struct rt_vbus_request* req, int timeout);
+int rt_vbus_request_chn(struct rt_vbus_request *req, int timeout);
 
 /** Close channel @chnr */
 void rt_vbus_close_chn(unsigned char chnr);
@@ -78,10 +75,9 @@ void rt_vbus_set_post_wm(unsigned char chnr, unsigned int low, unsigned int high
 /** Set the water mark level for receiving from the channel @chnr. */
 void rt_vbus_set_recv_wm(unsigned char chnr, unsigned int low, unsigned int high);
 
-typedef void (*rt_vbus_event_listener)(void* ctx);
+typedef void (*rt_vbus_event_listener)(void *ctx);
 
-enum rt_vbus_event_id
-{
+enum rt_vbus_event_id {
     /* On a packet received in channel. */
     RT_VBUS_EVENT_ID_RX,
     /* On the data of rt_vbus_post has been written to the ring buffer. */
@@ -98,7 +94,7 @@ enum rt_vbus_event_id
 void rt_vbus_register_listener(unsigned char chnr,
                                enum rt_vbus_event_id eve,
                                rt_vbus_event_listener indi,
-                               void* ctx);
+                               void *ctx);
 
 /** Listen on any events happen on the @chnr for @timeout ticks.
  *
@@ -109,7 +105,7 @@ rt_err_t rt_vbus_listen_on(rt_uint8_t chnr,
 
 /** Push a data package into the receive queue of the channel @chnr. */
 void rt_vbus_data_push(unsigned int chnr,
-                       struct rt_vbus_data* data);
+                       struct rt_vbus_data *data);
 /** Pop a data package from the receive queue of the channel @chnr.
  *
  * The actual data is following the struct rt_vbus_data. After using it, it
@@ -121,7 +117,7 @@ struct rt_vbus_dev
 {
     /* Runtime infomations. */
     rt_uint8_t chnr;
-    struct rt_vbus_data* act;
+    struct rt_vbus_data *act;
     rt_size_t pos;
 
     /* There will be a request for each channel. So no need to seperate them so
@@ -138,7 +134,7 @@ rt_uint8_t rt_vbus_get_chnnr(rt_device_t dev);
  */
 void rt_vbus_chnx_register_disconn(rt_device_t dev,
                                    rt_vbus_event_listener indi,
-                                   void* ctx);
+                                   void *ctx);
 
 /* Commands for the device control interface. */
 #define VBUS_IOCRECV_WM      0xD1
@@ -150,7 +146,7 @@ struct rt_vbus_dev_liscfg
 {
     enum rt_vbus_event_id event;
     rt_vbus_event_listener listener;
-    void* ctx;
+    void *ctx;
 };
 
 int rt_vbus_shell_start(void);
@@ -169,13 +165,13 @@ int rt_vbus_hw_init(void);
  * BSP should call this function when the interrupt from other core is
  * triggered. @param is not used by VBus and will pass to rt_vbus_hw_eoi.
  */
-void rt_vbus_isr(int irqnr, void* param);
+void rt_vbus_isr(int irqnr, void *param);
 
 /** VBus End Of Interrupt function.
  *
  * This function will be called when VBus finished the ISR handling. BSP should
  * define this function to clear the interrupt flag etc.
  */
-int rt_vbus_hw_eoi(int irqnr, void* param);
+int rt_vbus_hw_eoi(int irqnr, void *param);
 
 #endif /* end of include guard: __VBUS_H__ */

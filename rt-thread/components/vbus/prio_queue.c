@@ -13,15 +13,14 @@
 
 #include "prio_queue.h"
 
-struct rt_prio_queue_item
-{
-    struct rt_prio_queue_item* next;
+struct rt_prio_queue_item {
+    struct rt_prio_queue_item *next;
     /* data follows */
 };
 
-static void _do_push(struct rt_prio_queue* que,
+static void _do_push(struct rt_prio_queue *que,
                      rt_uint8_t prio,
-                     struct rt_prio_queue_item* item)
+                     struct rt_prio_queue_item *item)
 {
     if (que->head[prio] == RT_NULL)
     {
@@ -36,14 +35,14 @@ static void _do_push(struct rt_prio_queue* que,
     que->tail[prio] = item;
 }
 
-static struct rt_prio_queue_item* _do_pop(struct rt_prio_queue* que)
+static struct rt_prio_queue_item* _do_pop(struct rt_prio_queue *que)
 {
     int ffs;
-    struct rt_prio_queue_item* item;
+    struct rt_prio_queue_item *item;
 
     ffs = __rt_ffs(que->bitmap);
     if (ffs == 0)
-    { return RT_NULL; }
+        return RT_NULL;
     ffs--;
 
     item = que->head[ffs];
@@ -58,9 +57,9 @@ static struct rt_prio_queue_item* _do_pop(struct rt_prio_queue* que)
     return item;
 }
 
-rt_err_t rt_prio_queue_init(struct rt_prio_queue* que,
-                            const char* name,
-                            void* buf,
+rt_err_t rt_prio_queue_init(struct rt_prio_queue *que,
+                            const char *name,
+                            void *buf,
                             rt_size_t bufsz,
                             rt_size_t itemsz)
 {
@@ -78,7 +77,7 @@ rt_err_t rt_prio_queue_init(struct rt_prio_queue* que,
     return RT_EOK;
 }
 
-void rt_prio_queue_detach(struct rt_prio_queue* que)
+void rt_prio_queue_detach(struct rt_prio_queue *que)
 {
     /* wake up all suspended pop threads, push thread is suspended on mempool.
      */
@@ -87,7 +86,7 @@ void rt_prio_queue_detach(struct rt_prio_queue* que)
         rt_thread_t thread;
 
         /* disable interrupt */
-        rt_ubase_t temp = rt_hw_interrupt_disable();
+        rt_base_t level = rt_hw_interrupt_disable();
 
         /* get next suspend thread */
         thread = rt_list_entry(que->suspended_pop_list.next, struct rt_thread, tlist);
@@ -97,17 +96,17 @@ void rt_prio_queue_detach(struct rt_prio_queue* que)
         rt_thread_resume(thread);
 
         /* enable interrupt */
-        rt_hw_interrupt_enable(temp);
+        rt_hw_interrupt_enable(level);
     }
     rt_mp_detach(&que->pool);
 }
 
 #ifdef RT_USING_HEAP
-struct rt_prio_queue* rt_prio_queue_create(const char* name,
+struct rt_prio_queue* rt_prio_queue_create(const char *name,
                                            rt_size_t item_nr,
                                            rt_size_t item_sz)
 {
-    struct rt_prio_queue* que;
+    struct rt_prio_queue *que;
     rt_size_t bufsz;
 
     bufsz = item_nr * (sizeof(struct rt_prio_queue_item)
@@ -118,38 +117,38 @@ struct rt_prio_queue* rt_prio_queue_create(const char* name,
 
     que = rt_malloc(sizeof(*que) + bufsz);
     if (!que)
-    { return RT_NULL; }
+        return RT_NULL;
 
-    rt_prio_queue_init(que, name, que + 1, bufsz, item_sz);
+    rt_prio_queue_init(que, name, que+1, bufsz, item_sz);
 
     return que;
 }
 
-void rt_prio_queue_delete(struct rt_prio_queue* que)
+void rt_prio_queue_delete(struct rt_prio_queue *que)
 {
     rt_prio_queue_detach(que);
     rt_free(que);
 }
 #endif
 
-rt_err_t rt_prio_queue_push(struct rt_prio_queue* que,
+rt_err_t rt_prio_queue_push(struct rt_prio_queue *que,
                             rt_uint8_t prio,
-                            void* data,
+                            void *data,
                             rt_int32_t timeout)
 {
-    rt_ubase_t level;
-    struct rt_prio_queue_item* item;
+    rt_base_t level;
+    struct rt_prio_queue_item *item;
 
     RT_ASSERT(que);
 
     if (prio >= RT_PRIO_QUEUE_PRIO_MAX)
-    { return -RT_ERROR; }
+        return -RT_ERROR;
 
     item = rt_mp_alloc(&que->pool, timeout);
     if (item == RT_NULL)
-    { return -RT_ENOMEM; }
+        return -RT_ENOMEM;
 
-    rt_memcpy(item + 1, data, que->item_sz);
+    rt_memcpy(item+1, data, que->item_sz);
     item->next = RT_NULL;
 
     level = rt_hw_interrupt_disable();
@@ -179,12 +178,12 @@ rt_err_t rt_prio_queue_push(struct rt_prio_queue* que,
     return RT_EOK;
 }
 
-rt_err_t rt_prio_queue_pop(struct rt_prio_queue* que,
-                           void* data,
+rt_err_t rt_prio_queue_pop(struct rt_prio_queue *que,
+                           void *data,
                            rt_int32_t timeout)
 {
-    rt_ubase_t level;
-    struct rt_prio_queue_item* item;
+    rt_base_t level;
+    struct rt_prio_queue_item *item;
 
     RT_ASSERT(que);
     RT_ASSERT(data);
@@ -224,26 +223,26 @@ rt_err_t rt_prio_queue_pop(struct rt_prio_queue* que,
 
         /* thread is waked up */
         if (thread->error != RT_EOK)
-        { return thread->error; }
+            return thread->error;
         level = rt_hw_interrupt_disable();
     }
 
     rt_hw_interrupt_enable(level);
 
-    rt_memcpy(data, item + 1, que->item_sz);
+    rt_memcpy(data, item+1, que->item_sz);
     rt_mp_free(item);
 
     return RT_EOK;
 }
 
-void rt_prio_queue_dump(struct rt_prio_queue* que)
+void rt_prio_queue_dump(struct rt_prio_queue *que)
 {
     int level = 0;
 
     rt_kprintf("bitmap: %08x\n", que->bitmap);
     for (level = 0; level < RT_PRIO_QUEUE_PRIO_MAX; level++)
     {
-        struct rt_prio_queue_item* item;
+        struct rt_prio_queue_item *item;
 
         rt_kprintf("%2d: ", level);
         for (item = que->head[level];

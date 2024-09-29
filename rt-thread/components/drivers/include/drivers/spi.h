@@ -16,7 +16,7 @@
 #include <rtthread.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"{
 #endif
 
 /**
@@ -60,10 +60,10 @@ extern "C" {
  */
 struct rt_spi_message
 {
-    const void* send_buf;
-    void* recv_buf;
+    const void *send_buf;
+    void *recv_buf;
     rt_size_t length;
-    struct rt_spi_message* next;
+    struct rt_spi_message *next;
 
     unsigned cs_take    : 1;
     unsigned cs_release : 1;
@@ -86,10 +86,10 @@ struct rt_spi_bus
 {
     struct rt_device parent;
     rt_uint8_t mode;
-    const struct rt_spi_ops* ops;
+    const struct rt_spi_ops *ops;
 
     struct rt_mutex lock;
-    struct rt_spi_device* owner;
+    struct rt_spi_device *owner;
 };
 
 /**
@@ -97,8 +97,8 @@ struct rt_spi_bus
  */
 struct rt_spi_ops
 {
-    rt_err_t (*configure)(struct rt_spi_device* device, struct rt_spi_configuration* configuration);
-    rt_uint32_t (*xfer)(struct rt_spi_device* device, struct rt_spi_message* message);
+    rt_err_t (*configure)(struct rt_spi_device *device, struct rt_spi_configuration *configuration);
+    rt_uint32_t (*xfer)(struct rt_spi_device *device, struct rt_spi_message *message);
 };
 
 /**
@@ -107,10 +107,10 @@ struct rt_spi_ops
 struct rt_spi_device
 {
     struct rt_device parent;
-    struct rt_spi_bus* bus;
+    struct rt_spi_bus *bus;
 
     struct rt_spi_configuration config;
-    void*   user_data;
+    void   *user_data;
 };
 
 struct rt_qspi_message
@@ -156,23 +156,23 @@ struct rt_qspi_device
 
     struct rt_qspi_configuration config;
 
-    void (*enter_qspi_mode)(struct rt_qspi_device* device);
+    void (*enter_qspi_mode)(struct rt_qspi_device *device);
 
-    void (*exit_qspi_mode)(struct rt_qspi_device* device);
+    void (*exit_qspi_mode)(struct rt_qspi_device *device);
 };
 
 #define SPI_DEVICE(dev) ((struct rt_spi_device *)(dev))
 
 /* register a SPI bus */
-rt_err_t rt_spi_bus_register(struct rt_spi_bus*       bus,
-                             const char*              name,
-                             const struct rt_spi_ops* ops);
+rt_err_t rt_spi_bus_register(struct rt_spi_bus       *bus,
+                             const char              *name,
+                             const struct rt_spi_ops *ops);
 
 /* attach a device on SPI bus */
-rt_err_t rt_spi_bus_attach_device(struct rt_spi_device* device,
-                                  const char*           name,
-                                  const char*           bus_name,
-                                  void*                 user_data);
+rt_err_t rt_spi_bus_attach_device(struct rt_spi_device *device,
+                                  const char           *name,
+                                  const char           *bus_name,
+                                  void                 *user_data);
 
 /**
  * This function takes SPI bus.
@@ -181,7 +181,7 @@ rt_err_t rt_spi_bus_attach_device(struct rt_spi_device* device,
  *
  * @return RT_EOK on taken SPI bus successfully. others on taken SPI bus failed.
  */
-rt_err_t rt_spi_take_bus(struct rt_spi_device* device);
+rt_err_t rt_spi_take_bus(struct rt_spi_device *device);
 
 /**
  * This function releases SPI bus.
@@ -190,7 +190,7 @@ rt_err_t rt_spi_take_bus(struct rt_spi_device* device);
  *
  * @return RT_EOK on release SPI bus successfully.
  */
-rt_err_t rt_spi_release_bus(struct rt_spi_device* device);
+rt_err_t rt_spi_release_bus(struct rt_spi_device *device);
 
 /**
  * This function take SPI device (takes CS of SPI device).
@@ -199,7 +199,7 @@ rt_err_t rt_spi_release_bus(struct rt_spi_device* device);
  *
  * @return RT_EOK on release SPI bus successfully. others on taken SPI bus failed.
  */
-rt_err_t rt_spi_take(struct rt_spi_device* device);
+rt_err_t rt_spi_take(struct rt_spi_device *device);
 
 /**
  * This function releases SPI device (releases CS of SPI device).
@@ -208,23 +208,23 @@ rt_err_t rt_spi_take(struct rt_spi_device* device);
  *
  * @return RT_EOK on release SPI device successfully.
  */
-rt_err_t rt_spi_release(struct rt_spi_device* device);
+rt_err_t rt_spi_release(struct rt_spi_device *device);
 
 /* set configuration on SPI device */
-rt_err_t rt_spi_configure(struct rt_spi_device*        device,
-                          struct rt_spi_configuration* cfg);
+rt_err_t rt_spi_configure(struct rt_spi_device        *device,
+                          struct rt_spi_configuration *cfg);
 
 /* send data then receive data from SPI device */
-rt_err_t rt_spi_send_then_recv(struct rt_spi_device* device,
-                               const void*           send_buf,
+rt_err_t rt_spi_send_then_recv(struct rt_spi_device *device,
+                               const void           *send_buf,
                                rt_size_t             send_length,
-                               void*                 recv_buf,
+                               void                 *recv_buf,
                                rt_size_t             recv_length);
 
-rt_err_t rt_spi_send_then_send(struct rt_spi_device* device,
-                               const void*           send_buf1,
+rt_err_t rt_spi_send_then_send(struct rt_spi_device *device,
+                               const void           *send_buf1,
                                rt_size_t             send_length1,
-                               const void*           send_buf2,
+                               const void           *send_buf2,
                                rt_size_t             send_length2);
 
 /**
@@ -237,9 +237,9 @@ rt_err_t rt_spi_send_then_send(struct rt_spi_device* device,
  *
  * @return the actual length of transmitted.
  */
-rt_size_t rt_spi_transfer(struct rt_spi_device* device,
-                          const void*           send_buf,
-                          void*                 recv_buf,
+rt_size_t rt_spi_transfer(struct rt_spi_device *device,
+                          const void           *send_buf,
+                          void                 *recv_buf,
                           rt_size_t             length);
 
 /**
@@ -251,37 +251,37 @@ rt_size_t rt_spi_transfer(struct rt_spi_device* device,
  * @return RT_NULL if transmits message list successfully,
  *         SPI message which be transmitted failed.
  */
-struct rt_spi_message* rt_spi_transfer_message(struct rt_spi_device*  device,
-                                               struct rt_spi_message* message);
+struct rt_spi_message *rt_spi_transfer_message(struct rt_spi_device  *device,
+                                               struct rt_spi_message *message);
 
-rt_inline rt_size_t rt_spi_recv(struct rt_spi_device* device,
-                                void*                 recv_buf,
+rt_inline rt_size_t rt_spi_recv(struct rt_spi_device *device,
+                                void                 *recv_buf,
                                 rt_size_t             length)
 {
     return rt_spi_transfer(device, RT_NULL, recv_buf, length);
 }
 
-rt_inline rt_size_t rt_spi_send(struct rt_spi_device* device,
-                                const void*           send_buf,
+rt_inline rt_size_t rt_spi_send(struct rt_spi_device *device,
+                                const void           *send_buf,
                                 rt_size_t             length)
 {
     return rt_spi_transfer(device, send_buf, RT_NULL, length);
 }
 
-rt_inline rt_uint8_t rt_spi_sendrecv8(struct rt_spi_device* device,
+rt_inline rt_uint8_t rt_spi_sendrecv8(struct rt_spi_device *device,
                                       rt_uint8_t            data)
 {
-    rt_uint8_t value;
+    rt_uint8_t value = 0;
 
     rt_spi_send_then_recv(device, &data, 1, &value, 1);
 
     return value;
 }
 
-rt_inline rt_uint16_t rt_spi_sendrecv16(struct rt_spi_device* device,
+rt_inline rt_uint16_t rt_spi_sendrecv16(struct rt_spi_device *device,
                                         rt_uint16_t           data)
 {
-    rt_uint16_t value;
+    rt_uint16_t value = 0;
 
     rt_spi_send_then_recv(device, &data, 2, &value, 2);
 
@@ -294,12 +294,12 @@ rt_inline rt_uint16_t rt_spi_sendrecv16(struct rt_spi_device* device,
  * @param list the SPI message list header.
  * @param message the message pointer to be appended to the message list.
  */
-rt_inline void rt_spi_message_append(struct rt_spi_message* list,
-                                     struct rt_spi_message* message)
+rt_inline void rt_spi_message_append(struct rt_spi_message *list,
+                                     struct rt_spi_message *message)
 {
     RT_ASSERT(list != RT_NULL);
     if (message == RT_NULL)
-    { return; } /* not append */
+        return; /* not append */
 
     while (list->next != RT_NULL)
     {
@@ -318,7 +318,7 @@ rt_inline void rt_spi_message_append(struct rt_spi_message* list,
  *
  * @return the actual length of transmitted.
  */
-rt_err_t rt_qspi_configure(struct rt_qspi_device* device, struct rt_qspi_configuration* cfg);
+rt_err_t rt_qspi_configure(struct rt_qspi_device *device, struct rt_qspi_configuration *cfg);
 
 /**
  * This function can register a SPI bus for QSPI mode.
@@ -329,7 +329,7 @@ rt_err_t rt_qspi_configure(struct rt_qspi_device* device, struct rt_qspi_configu
  *
  * @return the actual length of transmitted.
  */
-rt_err_t rt_qspi_bus_register(struct rt_spi_bus* bus, const char* name, const struct rt_spi_ops* ops);
+rt_err_t rt_qspi_bus_register(struct rt_spi_bus *bus, const char *name, const struct rt_spi_ops *ops);
 
 /**
  * This function transmits data to QSPI device.
@@ -339,7 +339,7 @@ rt_err_t rt_qspi_bus_register(struct rt_spi_bus* bus, const char* name, const st
  *
  * @return the actual length of transmitted.
  */
-rt_size_t rt_qspi_transfer_message(struct rt_qspi_device*  device, struct rt_qspi_message* message);
+rt_size_t rt_qspi_transfer_message(struct rt_qspi_device  *device, struct rt_qspi_message *message);
 
 /**
  * This function can send data then receive data from QSPI device
@@ -352,7 +352,7 @@ rt_size_t rt_qspi_transfer_message(struct rt_qspi_device*  device, struct rt_qsp
  *
  * @return the status of transmit.
  */
-rt_err_t rt_qspi_send_then_recv(struct rt_qspi_device* device, const void* send_buf, rt_size_t send_length, void* recv_buf, rt_size_t recv_length);
+rt_err_t rt_qspi_send_then_recv(struct rt_qspi_device *device, const void *send_buf, rt_size_t send_length,void *recv_buf, rt_size_t recv_length);
 
 /**
  * This function can send data to QSPI device
@@ -363,7 +363,7 @@ rt_err_t rt_qspi_send_then_recv(struct rt_qspi_device* device, const void* send_
  *
  * @return the status of transmit.
  */
-rt_err_t rt_qspi_send(struct rt_qspi_device* device, const void* send_buf, rt_size_t length);
+rt_err_t rt_qspi_send(struct rt_qspi_device *device, const void *send_buf, rt_size_t length);
 
 #ifdef __cplusplus
 }

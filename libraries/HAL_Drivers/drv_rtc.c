@@ -1,84 +1,85 @@
-
-#include "board.h"
-#include<rtthread.h>
-#include<rtdevice.h>
+#include "drv_rtc.h"
 
 #ifdef RT_USING_RTC
+#ifndef RT_USING_SOFT_RTC
 
-#include "uc_rtc.h"
+#if !defined(BSP_USING_RTC)
+#error "Please define at least one BSP_USING_RTC"
+/* this driver can be disabled at menuconfig → RT-Thread Components → Device Drivers */
+#endif
 
-//#define DRV_DEBUG
-#define LOG_TAG             "drv.rtc"
+// #define DRV_DEBUG
+#define LOG_TAG "drv.rtc"
 #include <drv_log.h>
 
-static struct rt_device rtc;
+static rt_rtc_dev_t rtc_dev;
 
-static time_t get_rtc_timestamp(void)
+#ifdef RT_USING_ALARM
+struct rt_rtc_wkalarm wkalarm;
+#endif
+
+static time_t drv_rtc_get_timestamp(void)
 {
     struct tm tm_new;
     rtc_time_t rtc_time;
 
     rtc_get_time(UC_RTC, &rtc_time);
-    //LOG_D("get_rtc_timestamp: %04d-%02d-%02d %02d:%02d:%02d", rtc_time.year, rtc_time.mon, rtc_time.day,
-    //            rtc_time.hour, rtc_time.min, rtc_time.sec);
+    LOG_D("drv_rtc_get_timestamp: %04d-%02d-%02d %02d:%02d:%02d", rtc_time.year, rtc_time.mon, rtc_time.day,
+          rtc_time.hour, rtc_time.min, rtc_time.sec);
 
-    tm_new.tm_sec  = rtc_time.sec;
-    tm_new.tm_min  = rtc_time.min;
+    tm_new.tm_sec = rtc_time.sec;
+    tm_new.tm_min = rtc_time.min;
     tm_new.tm_hour = rtc_time.hour;
     tm_new.tm_mday = rtc_time.day;
-    tm_new.tm_mon  = rtc_time.mon - 1;
+    tm_new.tm_mon = rtc_time.mon - 1;
     tm_new.tm_year = rtc_time.year - 1900;
-    tm_new.tm_wday  = rtc_time.week - 1;
+    tm_new.tm_wday = rtc_time.week - 1;
 
     LOG_D("get rtc time.");
-    return mktime(&tm_new);
+    return timegm(&tm_new);
 }
 
-static rt_err_t set_rtc_time_stamp(time_t time_stamp)
+static rt_err_t drv_rtc_set_timestamp(time_t timestamp)
 {
-    struct tm* p_tm;
+    struct tm tm_new;
     rtc_time_t rtc_time;
 
-    p_tm = localtime(&time_stamp);
-    if (p_tm->tm_year < 100)
+    gmtime_r(&timestamp, &tm_new);
+    if (tm_new.tm_year < 100)
     {
-        LOG_D("set rtc time. tm_year Err!");
+        LOG_E("set rtc time. tm_year Err!");
         return -RT_ERROR;
     }
-    //LOG_D("set_rtc_time_stamp: %04d-%02d-%02d %02d:%02d:%02d", p_tm->tm_year, p_tm->tm_mon, p_tm->tm_mday,
-    //            p_tm->tm_hour, p_tm->tm_min, p_tm->tm_sec);
+    LOG_D("set_rtc_time_stamp: %04d-%02d-%02d %02d:%02d:%02d",
+          tm_new.tm_year + 1900, tm_new.tm_mon + 1, tm_new.tm_mday,
+          tm_new.tm_hour, tm_new.tm_min, tm_new.tm_sec);
 
-    LOG_D("set rtc time.");
-    rtc_time.sec = p_tm->tm_sec;
-    rtc_time.min = p_tm->tm_min;
-    rtc_time.hour = p_tm->tm_hour;
-    rtc_time.day = p_tm->tm_mday;
-    rtc_time.mon = p_tm->tm_mon + 1;
-    rtc_time.year = p_tm->tm_year + 1900;
+    rtc_time.sec = tm_new.tm_sec;
+    rtc_time.min = tm_new.tm_min;
+    rtc_time.hour = tm_new.tm_hour;
+    rtc_time.day = tm_new.tm_mday;
+    rtc_time.mon = tm_new.tm_mon + 1;
+    rtc_time.year = tm_new.tm_year + 1900;
 
     /* struct tm.tm_wday 0 is Sunday */
-    if (p_tm->tm_wday == 0)
+    if (tm_new.tm_wday == 0)
         rtc_time.week = RTC_WDAY_SUN;
     else
-        rtc_time.week = p_tm->tm_wday;
+        rtc_time.week = tm_new.tm_wday;
 
     rtc_set_time(UC_RTC, &rtc_time);
+
+    LOG_D("set rtc time.");
 
     return RT_EOK;
 }
 
-static rt_err_t rt_rtc_config(struct rt_device* dev)
+static rt_err_t drv_rtc_config(void)
 {
     rtc_time_t rtc_time;
 
     rtc_get_time(UC_RTC, &rtc_time);
-    if ((rtc_time.year > 2099)
-        || (rtc_time.mon > 12)
-        || (rtc_time.day > 31)
-        || (rtc_time.week > 7)
-        || (rtc_time.hour > 23)
-        || (rtc_time.min > 59)
-        || (rtc_time.sec > 59))
+    if ((rtc_time.year > 2099) || (rtc_time.mon > 12) || (rtc_time.day > 31) || (rtc_time.week > 7) || (rtc_time.hour > 23) || (rtc_time.min > 59) || (rtc_time.sec > 59))
     {
         rtc_time.sec = 0;
         rtc_time.min = 0;
@@ -86,21 +87,21 @@ static rt_err_t rt_rtc_config(struct rt_device* dev)
         rtc_time.day = 1;
         rtc_time.mon = 6;
         rtc_time.year = 2020;
-        rtc_time.week = 1;      // Monday
+        rtc_time.week = 1; // Monday
         rtc_set_time(UC_RTC, &rtc_time);
-        LOG_D("rt_rtc_config set timestamp");
+        LOG_D("drv_rtc_config set timestamp");
     }
 
     return RT_EOK;
 }
 
-static rt_err_t rt_rtc_init(rt_device_t dev)
+static rt_err_t uc8x88_rtc_init(void)
 {
     /* calibrate */
     rtc_calibrate();
 
     rtc_init(UC_RTC);
-    if (rt_rtc_config(&rtc) != RT_EOK)
+    if (drv_rtc_config() != RT_EOK)
     {
         return -RT_ERROR;
     }
@@ -108,104 +109,107 @@ static rt_err_t rt_rtc_init(rt_device_t dev)
     return RT_EOK;
 }
 
-void (*rtc_alarm_irq_user_handler) (void *arg);
-
-void *rtc_alarm_irq_user_arg;
-
-void rtc_handler(void)
+static rt_err_t uc8x88_rtc_get_secs(time_t *sec)
 {
-    if(rtc_alarm_irq_user_handler)
-        rtc_alarm_irq_user_handler(rtc_alarm_irq_user_arg);
+    *sec = drv_rtc_get_timestamp();
+    LOG_D("RTC: get rtc_time %d", *sec);
+
+    return RT_EOK;
 }
 
-static rt_err_t rt_rtc_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t uc8x88_rtc_set_secs(time_t *sec)
 {
     rt_err_t result = RT_EOK;
-    rtc_alarm_t rtc_time;
-    RT_ASSERT(dev != RT_NULL);
-    switch (cmd)
+
+    if (drv_rtc_set_timestamp(*sec))
     {
-        case RT_DEVICE_CTRL_RTC_GET_TIME:
-            *(time_t*)args = get_rtc_timestamp();
-            LOG_D("RTC: get rtc_time %d\n", *(time_t*)args);
-            break;
-
-        case RT_DEVICE_CTRL_RTC_SET_TIME:
-            if (set_rtc_time_stamp(*(time_t*)args))
-            {
-                result = -RT_ERROR;
-            }
-            LOG_D("RTC: set rtc_time %d\n", *(time_t*)args);
-            break;
-        case RT_DEVICE_CTRL_RTC_GET_ALARM:
-            rtc_get_alarm(UC_RTC,&rtc_time);
-            *((rtc_alarm_t*)args) = rtc_time;
-            LOG_D("RTC: get rtc_alarm\n");
-            break;
-        case RT_DEVICE_CTRL_RTC_SET_ALARM:
-            rtc_time = *((rtc_alarm_t*)args);
-
-            // record call_back
-            if (rtc_time.call_back) {
-                rtc_alarm_irq_user_handler = rtc_time.call_back;
-                rtc_alarm_irq_user_arg = rtc_time.call_back_arg;
-            }
-            
-            /* set alarm time */
-            rtc_set_alarm(UC_RTC,&rtc_time);
-
-            LOG_D("RTC: set rtc_alarm\n");
-            break;
+        result = -RT_ERROR;
     }
+    LOG_D("RTC: set rtc_time %d", *sec);
+
+#ifdef RT_USING_ALARM
+    rt_alarm_update(&rtc_dev.parent, 1);
+#endif
 
     return result;
 }
 
-#ifdef RT_USING_DEVICE_OPS
-const static struct rt_device_ops rtc_ops =
+static rt_err_t uc8x88_rtc_get_alarm(struct rt_rtc_wkalarm *alarm)
 {
-    rt_rtc_init,
-    RT_NULL,
-    RT_NULL,
-    RT_NULL,
-    RT_NULL,
-    rt_rtc_control
-};
-#endif
-
-static rt_err_t rt_hw_rtc_register(rt_device_t device, const char* name, rt_uint32_t flag)
-{
-    RT_ASSERT(device != RT_NULL);
-
-    /* rt_rtc_init(UC_RTC);
-    if (rt_rtc_config(device) != RT_EOK)
-    {
-        return -RT_ERROR;
-    } */
-#ifdef RT_USING_DEVICE_OPS
-    device->ops         = &rtc_ops;
+#ifdef RT_USING_ALARM
+    *alarm = wkalarm;
+    LOG_D("GET_ALARM %d:%d:%d", wkalarm.tm_hour, wkalarm.tm_min, wkalarm.tm_sec);
+    return RT_EOK;
 #else
-    device->init        = rt_rtc_init;
-    device->open        = RT_NULL;
-    device->close       = RT_NULL;
-    device->read        = RT_NULL;
-    device->write       = RT_NULL;
-    device->control     = rt_rtc_control;
+    return -RT_ERROR;
 #endif
-    device->type        = RT_Device_Class_RTC;
-    device->rx_indicate = RT_NULL;
-    device->tx_complete = RT_NULL;
-    device->user_data   = RT_NULL;
-
-    /* register a character device */
-    return rt_device_register(device, name, flag);
 }
+
+static rt_err_t uc8x88_rtc_set_alarm(struct rt_rtc_wkalarm *alarm)
+{
+#ifdef RT_USING_ALARM
+    rtc_alarm_t rtc_time;
+    if (alarm != RT_NULL)
+    {
+        wkalarm = *alarm;
+        if (wkalarm.enable)
+        {
+            rtc_time.year = 2020;
+            rtc_time.mon = 1;
+            rtc_time.day = 1;
+            rtc_time.week = 3;
+            rtc_time.hour = wkalarm.tm_hour;
+            rtc_time.min = wkalarm.tm_min;
+            rtc_time.sec = wkalarm.tm_sec;
+            rtc_time.mask = RTC_AM_YEAR | RTC_AM_MON | RTC_AM_DAY | RTC_AM_WEEK;
+            /* set alarm time */
+            rtc_set_alarm(UC_RTC, &rtc_time);
+            /* enable rtc irq */
+            rtc_enable_alarm_interrupt(UC_RTC);
+        }
+    }
+    else
+    {
+        LOG_E("RT_DEVICE_CTRL_RTC_SET_ALARM error!!");
+        return -RT_ERROR;
+    }
+
+    LOG_D("SET_ALARM %d:%d:%d", alarm->tm_hour, alarm->tm_min, alarm->tm_sec);
+    return RT_EOK;
+#else
+    return -RT_ERROR;
+#endif
+}
+
+void rtc_handler(void)
+{
+#ifdef RT_USING_ALARM
+    rt_interrupt_enter();
+    /* disable rtc irq */
+    rtc_disable_alarm_interrupt(UC_RTC);
+    /* update alarm */
+    rt_alarm_update(&rtc_dev.parent, 1);
+    /* clear irq pending */
+    rtc_clear_alarm_pending(UC_RTC);
+    rt_interrupt_leave();
+#endif
+}
+
+static const struct rt_rtc_ops _rtc_ops = {
+    uc8x88_rtc_init,
+    uc8x88_rtc_get_secs,
+    uc8x88_rtc_set_secs,
+    uc8x88_rtc_get_alarm,
+    uc8x88_rtc_set_alarm,
+    RT_NULL,
+    RT_NULL,
+};
 
 int rt_hw_rtc_init(void)
 {
     rt_err_t result;
-
-    result = rt_hw_rtc_register(&rtc, "rtc", RT_DEVICE_FLAG_RDWR);
+    rtc_dev.ops = &_rtc_ops;
+    result = rt_hw_rtc_register(&rtc_dev, "rtc", RT_DEVICE_FLAG_RDWR, RT_NULL);
     if (result != RT_EOK)
     {
         LOG_E("rtc register err code: %d", result);
@@ -216,4 +220,5 @@ int rt_hw_rtc_init(void)
 }
 INIT_DEVICE_EXPORT(rt_hw_rtc_init);
 
+#endif /* RT_USING_SOFT_RTC */
 #endif /* BSP_USING_ONCHIP_RTC */

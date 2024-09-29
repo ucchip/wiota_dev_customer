@@ -117,7 +117,7 @@
 
 /* parameters for ZCOMMAND frame ZF0 (otherwise 0) */
 #define ZCACK1    1    /* acknowledge, then do command */
-extern char Attn[ZATTNLEN + 1]; /* Attention string rx sends to tx on err */
+extern char Attn[ZATTNLEN+1];   /* Attention string rx sends to tx on err */
 
 /* globals used by ZMODEM functions */
 extern rt_uint8_t  Rxframeind;     /* ZBIN ZBIN32, or ZHEX type of frame */
@@ -179,7 +179,7 @@ extern struct zmodemf zmodem;
 
 struct zfile
 {
-    char* fname;
+    char *fname;
     rt_int32_t   fd;
     rt_uint32_t  ctime;
     rt_uint32_t  mode;
@@ -193,17 +193,17 @@ extern struct finsh_shell* shell;
 
 #define ZDEBUG 0
 /* sz.c */
-extern void zs_start(char* path);
+extern void zs_start(char *path);
 /* rz.c */
-extern void zr_start(char* path);
+extern void zr_start(char *path);
 
 /* zcore.c */
 extern void zinit_parameter(void);
-extern rt_int16_t zget_header(rt_uint8_t* hdr);
-extern void zsend_bin_header(rt_uint8_t type, rt_uint8_t* hdr);
-extern void zsend_hex_header(rt_uint8_t type, rt_uint8_t* hdr);
-extern rt_int16_t zget_data(rt_uint8_t* buf, rt_uint16_t len);
-extern void zsend_bin_data(rt_uint8_t* buf, rt_int16_t len, rt_uint8_t frameend);
+extern rt_int16_t zget_header(rt_uint8_t *hdr);
+extern void zsend_bin_header(rt_uint8_t type, rt_uint8_t *hdr);
+extern void zsend_hex_header(rt_uint8_t type, rt_uint8_t *hdr);
+extern rt_int16_t zget_data(rt_uint8_t *buf, rt_uint16_t len);
+extern void zsend_bin_data(rt_uint8_t *buf, rt_int16_t len, rt_uint8_t frameend);
 extern void zput_pos(rt_uint32_t pos);
 extern void zget_pos(rt_uint32_t pos);
 /* zdevice.c */
@@ -211,7 +211,7 @@ extern rt_uint32_t get_device_baud(void);
 extern void zsend_byte(rt_uint16_t c);
 extern void zsend_line(rt_uint16_t c);
 extern rt_int16_t zread_line(rt_uint16_t timeout);
-extern void zsend_break(char* cmd);
+extern void zsend_break(char *cmd);
 extern void zsend_can(void);
 
 #endif  /* __ZDEF_H__ */

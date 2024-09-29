@@ -2,7 +2,7 @@
 
 
 /* ========================================================= [ entry ] === */
-.section .reset  
+.section .reset
 reset_handler:
   call pmc_init
   csrw mtvec, x0
@@ -13,10 +13,10 @@ reset_handler:
   mv  x3, x1
   mv  x4, x1
   mv  x5, x1
-  mv  x6, x1  
-  mv  x7, x1 
-  mv  x8, x1  
-  mv  x9, x1 
+  mv  x6, x1
+  mv  x7, x1
+  mv  x8, x1
+  mv  x9, x1
   mv x10, x1
   mv x11, x1
   mv x12, x1
@@ -46,8 +46,8 @@ reset_handler:
 
 _start:
   .global _start
-  li a0, 0 
-  jal init_puf 
+  li a0, 0
+  jal init_puf
   /* clear BSS */
   la x26, _bss_start
   la x27, _bss_end
@@ -67,13 +67,13 @@ zero_loop_end:
   //call  boot_download
   call  __libc_init_array
   j main_entry
-  
 
-.section .crt0, "ax" 
+
+.section .crt0, "ax"
 
 main_entry:
   addi   x10, x0, 0
-  /* Baud Rate 156250 
+  /* Baud Rate 156250
   *clock divider, SYSCLK/156250/16-1
   *5MHZ 1; 50MHZ 19
   * 103.68Mhz clk, 115200 sv model 89
@@ -83,8 +83,8 @@ main_entry:
   //addi   x11, x0, 84 //98Mhz, 1152000 for sim
   //addi   x11, x0, 70  //131.072Mhz, 115200 for sim
   //addi   x11, x0, 22 //26M DCXO, just leave it here, not necessary
-  //jal  uart_set_cfg 
-  
+  //jal  uart_set_cfg
+
   /* jump to main program entry point (argc = argv = 0) */
   addi x10, x0, 0
   addi x11, x0, 0
@@ -158,7 +158,7 @@ store_regs:
   //csrr x5, mepc
   //sw  x5, 0x60(x2)  //mepc
   jalr x0, x1
-  
+
 // load back registers from stack
 end_except:
   lw  x5, 0x60(x2)  //mepc
@@ -196,7 +196,7 @@ end_except:
   addi x2, x2, EXCEPTION_STACK_SIZE
   mret
 
-    
+
 /* ================== [ all interrupt handler] =========== */
 .weak default_int_handler
 default_int_handler:
@@ -209,7 +209,7 @@ ISR_ALL_ASM:
     sw x1,   1 * 4(sp)
     li t0, 0x80
     sw t0,   2 * 4(sp)
-    sw x4,   4 * 4(sp)   
+    sw x4,   4 * 4(sp)
     sw x6,   6 * 4(sp)
     sw x7,   7 * 4(sp)
     sw x8,   8 * 4(sp)
@@ -275,13 +275,13 @@ ISR_ALL_ASM_BAK:
 
 spurious_interrupt_all:
     lw x1,   1 * 4(sp)
-    
+
     // Remain in M-mode after mret
     li t0, 0x00001800
     csrs mstatus, t0
     lw t0,   2 * 4(sp)
-    csrs mstatus, t0 
-    
+    csrs mstatus, t0
+
     lw x4,   4 * 4(sp)
     lw x5,   5 * 4(sp)
     lw x6,   6 * 4(sp)
@@ -312,7 +312,7 @@ spurious_interrupt_all:
     lw x31, 31 * 4(sp)
 
     addi sp, sp, 32 * 4
-    mret 
+    mret
 
 /* ================== [ all interrupt handler end] =========== */
 
@@ -337,11 +337,11 @@ _fini:
   j ISR_ALL_ASM //ISR_PLS_CNT_CMP_AMS     //2: pulse counter compare
   j ISR_ALL_ASM //ISR_UDMA_ASM            //3: udma
   j ISR_ALL_ASM //ISR_ACC_DEN_ASM            //4: access denied
-  j ISR_ALL_ASM //ISR_CNT_32K_CMP_AMS     //5: counter 32k compare 
+  j ISR_ALL_ASM //ISR_CNT_32K_CMP_AMS     //5: counter 32k compare
   .rept 14
    nop                       // unused
   .endr
-//.global ISA_TA_CMP_ASM  
+//.global ISA_TA_CMP_ASM
   j   ISR_ALL_ASM //ISR_ADC_ASM           // 20: ADC
   j   ISR_ALL_ASM //ISR_DAC_ASM           // 21: DAC
   j   ISR_ALL_ASM //ISR_I2C_ASM 	    // 22: i2c
@@ -351,7 +351,7 @@ _fini:
   j   ISR_ALL_ASM //ISR_SPIM0_ASM     // 26: spim	end of transmission
   j   ISR_ALL_ASM //ISR_SPIM1_ASM     // 27: spim R/T finished
   j   ISR_ALL_ASM //ISR_TA_OVF_ASM    // 28: timer A overflow
-  j   ISR_ALL_ASM //ISR_TA_CMP_ASM    // 29: timer A compare 
+  j   ISR_ALL_ASM //ISR_TA_CMP_ASM    // 29: timer A compare
   j   ISR_ALL_ASM //ISR_TB_OVF_ASM    // 30: timer B overflow
   j   ISR_ALL_ASM //ISR_TB_CMP_ASM    // 31: timer B compare
 
@@ -379,4 +379,4 @@ _fini:
    j default_exception_handler_c
   /* magic word for spi dummy autoadapt */
   .word 0xefbeadde
- 
+

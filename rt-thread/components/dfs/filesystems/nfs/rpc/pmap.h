@@ -54,14 +54,13 @@
 #define PMAPPROC_DUMP       ((unsigned long)4)
 #define PMAPPROC_CALLIT     ((unsigned long)5)
 
-struct pmap
-{
+struct pmap {
     long unsigned pm_prog;
     long unsigned pm_vers;
     long unsigned pm_prot;
     long unsigned pm_port;
 };
 
-extern bool_t xdr_pmap (XDR* __xdrs, struct pmap* __regs);
+extern bool_t xdr_pmap (XDR *__xdrs, struct pmap *__regs);
 
 #endif

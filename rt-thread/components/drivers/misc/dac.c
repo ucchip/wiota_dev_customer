@@ -8,7 +8,6 @@
  * 2020-06-19     thread-liu   the first version
  */
 
-#include <rtthread.h>
 #include <rtdevice.h>
 
 #include <string.h>
@@ -18,12 +17,12 @@
 #define DBG_LVL DBG_INFO
 #include <rtdbg.h>
 
-static rt_size_t _dac_write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size)
+static rt_size_t _dac_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     rt_err_t result = RT_EOK;
     rt_size_t i;
-    struct rt_dac_device* dac = (struct rt_dac_device*)dev;
-    rt_uint32_t* value = (rt_uint32_t*)buffer;
+    struct rt_dac_device *dac = (struct rt_dac_device *)dev;
+    rt_uint32_t *value = (rt_uint32_t *)buffer;
 
     for (i = 0; i < size; i += sizeof(int))
     {
@@ -38,22 +37,28 @@ static rt_size_t _dac_write(rt_device_t dev, rt_off_t pos, const void* buffer, r
     return i;
 }
 
-static rt_err_t _dac_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t _dac_control(rt_device_t dev, int cmd, void *args)
 {
-    rt_err_t result = RT_EOK;
-    rt_dac_device_t dac = (struct rt_dac_device*)dev;
+    rt_err_t result = -RT_EINVAL;
+    rt_dac_device_t dac = (struct rt_dac_device *)dev;
 
-    if (dac->ops->enabled == RT_NULL)
-    {
-        return -RT_ENOSYS;
-    }
-    if (cmd == RT_DAC_CMD_ENABLE)
+    if (cmd == RT_DAC_CMD_ENABLE && dac->ops->enabled)
     {
         result = dac->ops->enabled(dac, (rt_uint32_t)args);
     }
-    else if (cmd == RT_DAC_CMD_DISABLE)
+    else if (cmd == RT_DAC_CMD_DISABLE && dac->ops->enabled)
     {
         result = dac->ops->disabled(dac, (rt_uint32_t)args);
+    }
+    else if (cmd == RT_DAC_CMD_GET_RESOLUTION && dac->ops->get_resolution)
+    {
+        rt_uint8_t resolution = dac->ops->get_resolution(dac);
+        if(resolution != 0)
+        {
+            *((rt_uint8_t*)args) = resolution;
+            LOG_D("resolution: %d bits", resolution);
+            result = RT_EOK;
+        }
     }
 
     return result;
@@ -71,12 +76,12 @@ const static struct rt_device_ops dac_ops =
 };
 #endif
 
-rt_err_t rt_hw_dac_register(rt_dac_device_t device, const char* name, const struct rt_dac_ops* ops, const void* user_data)
+rt_err_t rt_hw_dac_register(rt_dac_device_t device, const char *name, const struct rt_dac_ops *ops, const void *user_data)
 {
     rt_err_t result = RT_EOK;
     RT_ASSERT(ops != RT_NULL && ops->convert != RT_NULL);
 
-    device->parent.type = RT_Device_Class_Miscellaneous;
+    device->parent.type = RT_Device_Class_DAC;
     device->parent.rx_indicate = RT_NULL;
     device->parent.tx_complete = RT_NULL;
 
@@ -91,20 +96,18 @@ rt_err_t rt_hw_dac_register(rt_dac_device_t device, const char* name, const stru
     device->parent.control     = _dac_control;
 #endif
     device->ops = ops;
-    device->parent.user_data = (void*)user_data;
+    device->parent.user_data = (void *)user_data;
 
     result = rt_device_register(&device->parent, name, RT_DEVICE_FLAG_RDWR);
 
     return result;
 }
 
-rt_uint32_t rt_dac_write(rt_dac_device_t dev, rt_uint32_t channel, rt_uint32_t value)
+rt_err_t rt_dac_write(rt_dac_device_t dev, rt_uint32_t channel, rt_uint32_t value)
 {
     RT_ASSERT(dev);
 
-    dev->ops->convert(dev, channel, &value);
-
-    return RT_EOK;
+    return dev->ops->convert(dev, channel, &value);
 }
 
 rt_err_t rt_dac_enable(rt_dac_device_t dev, rt_uint32_t channel)
@@ -141,13 +144,13 @@ rt_err_t rt_dac_disable(rt_dac_device_t dev, rt_uint32_t channel)
     return result;
 }
 
-#ifdef FINSH_USING_MSH
+#ifdef RT_USING_FINSH
 
-static int dac(int argc, char** argv)
+static int dac(int argc, char **argv)
 {
     int result = RT_EOK;
     static rt_dac_device_t dac_device = RT_NULL;
-    char* result_str;
+    char *result_str;
 
     if (argc > 1)
     {
@@ -228,4 +231,4 @@ static int dac(int argc, char** argv)
 }
 MSH_CMD_EXPORT(dac, dac function);
 
-#endif /* FINSH_USING_MSH */
+#endif /* RT_USING_FINSH */

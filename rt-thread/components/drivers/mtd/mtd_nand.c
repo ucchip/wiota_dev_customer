@@ -12,7 +12,7 @@
  * COPYRIGHT (C) 2012, Shanghai Real Thread
  */
 
-#include <drivers/mtd_nand.h>
+#include <rtdevice.h>
 
 #ifdef RT_USING_MTD_NAND
 
@@ -36,7 +36,7 @@ static rt_err_t _mtd_close(rt_device_t dev)
 
 static rt_size_t _mtd_read(rt_device_t dev,
                            rt_off_t    pos,
-                           void*       buffer,
+                           void       *buffer,
                            rt_size_t   size)
 {
     return size;
@@ -44,13 +44,13 @@ static rt_size_t _mtd_read(rt_device_t dev,
 
 static rt_size_t _mtd_write(rt_device_t dev,
                             rt_off_t    pos,
-                            const void* buffer,
+                            const void *buffer,
                             rt_size_t   size)
 {
     return size;
 }
 
-static rt_err_t _mtd_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t _mtd_control(rt_device_t dev, int cmd, void *args)
 {
     return RT_EOK;
 }
@@ -67,8 +67,8 @@ const static struct rt_device_ops mtd_nand_ops =
 };
 #endif
 
-rt_err_t rt_mtd_nand_register_device(const char*                name,
-                                     struct rt_mtd_nand_device* device)
+rt_err_t rt_mtd_nand_register_device(const char                *name,
+                                     struct rt_mtd_nand_device *device)
 {
     rt_device_t dev;
 
@@ -95,33 +95,96 @@ rt_err_t rt_mtd_nand_register_device(const char*                name,
     return rt_device_register(dev, name, RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_STANDALONE);
 }
 
+rt_uint32_t rt_mtd_nand_read_id(struct rt_mtd_nand_device *device)
+{
+    RT_ASSERT(device->ops->read_id);
+    return device->ops->read_id(device);
+}
+
+rt_err_t rt_mtd_nand_read(
+    struct rt_mtd_nand_device *device,
+    rt_off_t page,
+    rt_uint8_t *data, rt_uint32_t data_len,
+    rt_uint8_t *spare, rt_uint32_t spare_len)
+{
+    RT_ASSERT(device->ops->read_page);
+    return device->ops->read_page(device, page, data, data_len, spare, spare_len);
+}
+
+rt_err_t rt_mtd_nand_write(
+    struct rt_mtd_nand_device *device,
+    rt_off_t page,
+    const rt_uint8_t *data, rt_uint32_t data_len,
+    const rt_uint8_t *spare, rt_uint32_t spare_len)
+{
+    RT_ASSERT(device->ops->write_page);
+    return device->ops->write_page(device, page, data, data_len, spare, spare_len);
+}
+
+rt_err_t rt_mtd_nand_move_page(struct rt_mtd_nand_device *device,
+        rt_off_t src_page, rt_off_t dst_page)
+{
+    RT_ASSERT(device->ops->move_page);
+    return device->ops->move_page(device, src_page, dst_page);
+}
+
+rt_err_t rt_mtd_nand_erase_block(struct rt_mtd_nand_device *device, rt_uint32_t block)
+{
+    RT_ASSERT(device->ops->erase_block);
+    return device->ops->erase_block(device, block);
+}
+
+rt_err_t rt_mtd_nand_check_block(struct rt_mtd_nand_device *device, rt_uint32_t block)
+{
+    if (device->ops->check_block)
+    {
+        return device->ops->check_block(device, block);
+    }
+    else
+    {
+        return -RT_ENOSYS;
+    }
+}
+
+rt_err_t rt_mtd_nand_mark_badblock(struct rt_mtd_nand_device *device, rt_uint32_t block)
+{
+    if (device->ops->mark_badblock)
+    {
+        return device->ops->mark_badblock(device, block);
+    }
+    else
+    {
+        return -RT_ENOSYS;
+    }
+}
+
 #if defined(RT_MTD_NAND_DEBUG) && defined(RT_USING_FINSH)
 #include <finsh.h>
 #define __is_print(ch) ((unsigned int)((ch) - ' ') < 127u - ' ')
 
-static void mtd_dump_hex(const rt_uint8_t* ptr, rt_size_t buflen)
+static void mtd_dump_hex(const rt_uint8_t *ptr, rt_size_t buflen)
 {
-    unsigned char* buf = (unsigned char*)ptr;
+    unsigned char *buf = (unsigned char *)ptr;
     int i, j;
     for (i = 0; i < buflen; i += 16)
     {
         rt_kprintf("%06x: ", i);
         for (j = 0; j < 16; j++)
             if (i + j < buflen)
-            { rt_kprintf("%02x ", buf[i + j]); }
+                rt_kprintf("%02x ", buf[i + j]);
             else
-            { rt_kprintf("   "); }
+                rt_kprintf("   ");
         rt_kprintf(" ");
         for (j = 0; j < 16; j++)
             if (i + j < buflen)
-            { rt_kprintf("%c", __is_print(buf[i + j]) ? buf[i + j] : '.'); }
+                rt_kprintf("%c", __is_print(buf[i + j]) ? buf[i + j] : '.');
         rt_kprintf("\n");
     }
 }
 
-int mtd_nandid(const char* name)
+int mtd_nandid(const char *name)
 {
-    struct rt_mtd_nand_device* nand;
+    struct rt_mtd_nand_device *nand;
     nand = RT_MTD_NAND_DEVICE(rt_device_find(name));
     if (nand == RT_NULL)
     {
@@ -132,12 +195,12 @@ int mtd_nandid(const char* name)
     return rt_mtd_nand_read_id(nand);
 }
 
-int mtd_nand_read(const char* name, int block, int page)
+int mtd_nand_read(const char *name, int block, int page)
 {
     rt_err_t result;
-    rt_uint8_t* page_ptr;
-    rt_uint8_t* oob_ptr;
-    struct rt_mtd_nand_device* nand;
+    rt_uint8_t *page_ptr;
+    rt_uint8_t *oob_ptr;
+    struct rt_mtd_nand_device *nand;
 
     nand = RT_MTD_NAND_DEVICE(rt_device_find(name));
     if (nand == RT_NULL)
@@ -169,10 +232,10 @@ int mtd_nand_read(const char* name, int block, int page)
     return 0;
 }
 
-int mtd_nand_readoob(const char* name, int block, int page)
+int mtd_nand_readoob(const char *name, int block, int page)
 {
-    struct rt_mtd_nand_device* nand;
-    rt_uint8_t* oob_ptr;
+    struct rt_mtd_nand_device *nand;
+    rt_uint8_t *oob_ptr;
 
     nand = RT_MTD_NAND_DEVICE(rt_device_find(name));
     if (nand == RT_NULL)
@@ -198,13 +261,13 @@ int mtd_nand_readoob(const char* name, int block, int page)
     return 0;
 }
 
-int mtd_nand_write(const char* name, int block, int page)
+int mtd_nand_write(const char *name, int block, int page)
 {
     rt_err_t result;
-    rt_uint8_t* page_ptr;
-    rt_uint8_t* oob_ptr;
+    rt_uint8_t *page_ptr;
+    rt_uint8_t *oob_ptr;
     rt_uint32_t index;
-    struct rt_mtd_nand_device* nand;
+    struct rt_mtd_nand_device *nand;
 
     nand = RT_MTD_NAND_DEVICE(rt_device_find(name));
     if (nand == RT_NULL)
@@ -245,9 +308,9 @@ int mtd_nand_write(const char* name, int block, int page)
     return 0;
 }
 
-int mtd_nand_erase(const char* name, int block)
+int mtd_nand_erase(const char *name, int block)
 {
-    struct rt_mtd_nand_device* nand;
+    struct rt_mtd_nand_device *nand;
     nand = RT_MTD_NAND_DEVICE(rt_device_find(name));
     if (nand == RT_NULL)
     {
@@ -258,10 +321,10 @@ int mtd_nand_erase(const char* name, int block)
     return rt_mtd_nand_erase_block(nand, block);
 }
 
-int mtd_nand_erase_all(const char* name)
+int mtd_nand_erase_all(const char *name)
 {
     rt_uint32_t index = 0;
-    struct rt_mtd_nand_device* nand;
+    struct rt_mtd_nand_device *nand;
 
     nand = RT_MTD_NAND_DEVICE(rt_device_find(name));
     if (nand == RT_NULL)
@@ -278,8 +341,8 @@ int mtd_nand_erase_all(const char* name)
     return 0;
 }
 
-#ifdef FINSH_USING_MSH
-static void mtd_nand(int argc, char** argv)
+#ifdef RT_USING_FINSH
+static void mtd_nand(int argc, char **argv)
 {
     /* If the number of arguments less than 2 */
     if (argc < 3)
@@ -295,11 +358,11 @@ help:
         rt_kprintf("         eraseall <name>            Erase all block on device <name>\n");
         return ;
     }
-    else if (!strcmp(argv[1], "id"))
+    else if (!rt_strcmp(argv[1], "id"))
     {
         mtd_nandid(argv[2]);
     }
-    else if (!strcmp(argv[1], "read"))
+    else if (!rt_strcmp(argv[1], "read"))
     {
         if (argc < 5)
         {
@@ -308,7 +371,7 @@ help:
         }
         mtd_nand_read(argv[2], atoi(argv[3]), atoi(argv[4]));
     }
-    else if (!strcmp(argv[1], "readoob"))
+    else if (!rt_strcmp(argv[1], "readoob"))
     {
         if (argc < 5)
         {
@@ -317,7 +380,7 @@ help:
         }
         mtd_nand_readoob(argv[2], atoi(argv[3]), atoi(argv[4]));
     }
-    else if (!strcmp(argv[1], "write"))
+    else if (!rt_strcmp(argv[1], "write"))
     {
         if (argc < 5)
         {
@@ -326,7 +389,7 @@ help:
         }
         mtd_nand_write(argv[2], atoi(argv[3]), atoi(argv[4]));
     }
-    else if (!strcmp(argv[1], "erase"))
+    else if (!rt_strcmp(argv[1], "erase"))
     {
         if (argc < 4)
         {
@@ -335,7 +398,7 @@ help:
         }
         mtd_nand_erase(argv[2], atoi(argv[3]));
     }
-    else if (!strcmp(argv[1], "eraseall"))
+    else if (!rt_strcmp(argv[1], "eraseall"))
     {
         mtd_nand_erase_all(argv[2]);
     }
@@ -346,16 +409,16 @@ help:
     }
 }
 MSH_CMD_EXPORT(mtd_nand, MTD nand device test function);
-#endif /* FINSH_USING_MSH */
+#endif /* RT_USING_FINSH */
 
-#ifndef FINSH_USING_MSH_ONLY
+#ifndef RT_USING_FINSH_ONLY
 FINSH_FUNCTION_EXPORT_ALIAS(mtd_nandid, nand_id, read ID - nandid(name));
 FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_read, nand_read, read page in nand - nand_read(name, block, page));
 FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_readoob, nand_readoob, read spare data in nand - nand_readoob(name, block, page));
 FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_write, nand_write, write dump data to nand - nand_write(name, block, page));
 FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_erase, nand_erase, nand_erase(name, block));
 FINSH_FUNCTION_EXPORT_ALIAS(mtd_nand_erase_all, nand_erase_all, erase all of nand device - nand_erase_all(name, block));
-#endif /* FINSH_USING_MSH_ONLY */
+#endif /* RT_USING_FINSH_ONLY */
 
 #endif /* defined(RT_MTD_NAND_DEBUG) && defined(RT_USING_FINSH) */
 

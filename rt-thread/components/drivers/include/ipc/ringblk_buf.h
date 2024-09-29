@@ -41,13 +41,13 @@ typedef enum rt_rbb_status rt_rbb_status_t;
  */
 struct rt_rbb_blk
 {
-    rt_rbb_status_t status : 8;
+    rt_rbb_status_t status :8;
     /* less then 2^24 */
-    rt_size_t size : 24;
-    rt_uint8_t* buf;
+    rt_size_t size :24;
+    rt_uint8_t *buf;
     rt_slist_t list;
 };
-typedef struct rt_rbb_blk* rt_rbb_blk_t;
+typedef struct rt_rbb_blk *rt_rbb_blk_t;
 
 /**
  * Rbb block queue: the blocks (from block1->buf to blockn->buf) memory which on this queue is continuous.
@@ -57,41 +57,48 @@ struct rt_rbb_blk_queue
     rt_rbb_blk_t blocks;
     rt_size_t blk_num;
 };
-typedef struct rt_rbb_blk_queue* rt_rbb_blk_queue_t;
+typedef struct rt_rbb_blk_queue *rt_rbb_blk_queue_t;
 
 /**
  * ring block buffer
  */
 struct rt_rbb
 {
-    rt_uint8_t* buf;
+    rt_uint8_t *buf;
     rt_size_t buf_size;
     /* all of blocks */
     rt_rbb_blk_t blk_set;
     rt_size_t blk_max_num;
     /* saved the initialized and put status blocks */
     rt_slist_t blk_list;
+    /* point to tail node */
+    rt_slist_t *tail;
+    /* free node list */
+    rt_slist_t free_list;
 };
-typedef struct rt_rbb* rt_rbb_t;
+typedef struct rt_rbb *rt_rbb_t;
 
 /* rbb (ring block buffer) API */
-void rt_rbb_init(rt_rbb_t rbb, rt_uint8_t* buf, rt_size_t buf_size, rt_rbb_blk_t block_set, rt_size_t blk_max_num);
+void rt_rbb_init(rt_rbb_t rbb, rt_uint8_t *buf, rt_size_t buf_size, rt_rbb_blk_t block_set, rt_size_t blk_max_num);
+rt_size_t rt_rbb_get_buf_size(rt_rbb_t rbb);
+
+#ifdef RT_USING_HEAP
 rt_rbb_t rt_rbb_create(rt_size_t buf_size, rt_size_t blk_max_num);
 void rt_rbb_destroy(rt_rbb_t rbb);
-rt_size_t rt_rbb_get_buf_size(rt_rbb_t rbb);
+#endif
 
 /* rbb block API */
 rt_rbb_blk_t rt_rbb_blk_alloc(rt_rbb_t rbb, rt_size_t blk_size);
 void rt_rbb_blk_put(rt_rbb_blk_t block);
 rt_rbb_blk_t rt_rbb_blk_get(rt_rbb_t rbb);
 rt_size_t rt_rbb_blk_size(rt_rbb_blk_t block);
-rt_uint8_t* rt_rbb_blk_buf(rt_rbb_blk_t block);
+rt_uint8_t *rt_rbb_blk_buf(rt_rbb_blk_t block);
 void rt_rbb_blk_free(rt_rbb_t rbb, rt_rbb_blk_t block);
 
 /* rbb block queue API */
 rt_size_t rt_rbb_blk_queue_get(rt_rbb_t rbb, rt_size_t queue_data_len, rt_rbb_blk_queue_t blk_queue);
 rt_size_t rt_rbb_blk_queue_len(rt_rbb_blk_queue_t blk_queue);
-rt_uint8_t* rt_rbb_blk_queue_buf(rt_rbb_blk_queue_t blk_queue);
+rt_uint8_t *rt_rbb_blk_queue_buf(rt_rbb_blk_queue_t blk_queue);
 void rt_rbb_blk_queue_free(rt_rbb_t rbb, rt_rbb_blk_queue_t blk_queue);
 rt_size_t rt_rbb_next_blk_queue_len(rt_rbb_t rbb);
 

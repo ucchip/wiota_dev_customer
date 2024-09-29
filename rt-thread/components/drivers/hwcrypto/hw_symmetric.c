@@ -20,9 +20,9 @@
  *
  * @return          Symmetric crypto context
  */
-struct rt_hwcrypto_ctx* rt_hwcrypto_symmetric_create(struct rt_hwcrypto_device* device, hwcrypto_type type)
+struct rt_hwcrypto_ctx *rt_hwcrypto_symmetric_create(struct rt_hwcrypto_device *device, hwcrypto_type type)
 {
-    struct rt_hwcrypto_ctx* ctx;
+    struct rt_hwcrypto_ctx *ctx;
 
     ctx = rt_hwcrypto_ctx_create(device, type, sizeof(struct hwcrypto_symmetric));
     return ctx;
@@ -33,7 +33,7 @@ struct rt_hwcrypto_ctx* rt_hwcrypto_symmetric_create(struct rt_hwcrypto_device* 
  *
  * @param ctx       Symmetric crypto context
  */
-void rt_hwcrypto_symmetric_destroy(struct rt_hwcrypto_ctx* ctx)
+void rt_hwcrypto_symmetric_destroy(struct rt_hwcrypto_ctx *ctx)
 {
     rt_hwcrypto_ctx_destroy(ctx);
 }
@@ -49,9 +49,9 @@ void rt_hwcrypto_symmetric_destroy(struct rt_hwcrypto_ctx* ctx)
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_symmetric_crypt(struct rt_hwcrypto_ctx* ctx, hwcrypto_mode mode, rt_size_t length, const rt_uint8_t* in, rt_uint8_t* out)
+rt_err_t rt_hwcrypto_symmetric_crypt(struct rt_hwcrypto_ctx *ctx, hwcrypto_mode mode, rt_size_t length, const rt_uint8_t *in, rt_uint8_t *out)
 {
-    struct hwcrypto_symmetric* symmetric_ctx;
+    struct hwcrypto_symmetric *symmetric_ctx;
     struct hwcrypto_symmetric_info symmetric_info;
     rt_err_t err;
 
@@ -59,14 +59,14 @@ rt_err_t rt_hwcrypto_symmetric_crypt(struct rt_hwcrypto_ctx* ctx, hwcrypto_mode 
     {
         return -RT_EINVAL;
     }
-    symmetric_ctx = (struct hwcrypto_symmetric*)ctx;
+    symmetric_ctx = (struct hwcrypto_symmetric *)ctx;
     if (symmetric_ctx->ops->crypt == RT_NULL)
     {
         return -RT_ERROR;
     }
     if (mode != HWCRYPTO_MODE_ENCRYPT && mode != HWCRYPTO_MODE_DECRYPT)
     {
-        return -EINVAL;
+        return -RT_EINVAL;
     }
 
     /* Input information packaging */
@@ -92,13 +92,13 @@ rt_err_t rt_hwcrypto_symmetric_crypt(struct rt_hwcrypto_ctx* ctx, hwcrypto_mode 
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_symmetric_setkey(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* key, rt_uint32_t bitlen)
+rt_err_t rt_hwcrypto_symmetric_setkey(struct rt_hwcrypto_ctx *ctx, const rt_uint8_t *key, rt_uint32_t bitlen)
 {
-    struct hwcrypto_symmetric* symmetric_ctx;
+    struct hwcrypto_symmetric *symmetric_ctx;
 
     if (ctx && bitlen <= RT_HWCRYPTO_KEYBIT_MAX_SIZE)
     {
-        symmetric_ctx = (struct hwcrypto_symmetric*)ctx;
+        symmetric_ctx = (struct hwcrypto_symmetric *)ctx;
         rt_memcpy(symmetric_ctx->key, key, bitlen >> 3);
         /* Record key length */
         symmetric_ctx->key_bitlen = bitlen;
@@ -119,9 +119,9 @@ rt_err_t rt_hwcrypto_symmetric_setkey(struct rt_hwcrypto_ctx* ctx, const rt_uint
  *
  * @return          Key length of copy
  */
-int rt_hwcrypto_symmetric_getkey(struct rt_hwcrypto_ctx* ctx, rt_uint8_t* key, rt_uint32_t bitlen)
+int rt_hwcrypto_symmetric_getkey(struct rt_hwcrypto_ctx *ctx, rt_uint8_t *key, rt_uint32_t bitlen)
 {
-    struct hwcrypto_symmetric* symmetric_ctx = (struct hwcrypto_symmetric*)ctx;
+    struct hwcrypto_symmetric *symmetric_ctx = (struct hwcrypto_symmetric *)ctx;
 
     if (ctx && bitlen >= symmetric_ctx->key_bitlen)
     {
@@ -141,13 +141,13 @@ int rt_hwcrypto_symmetric_getkey(struct rt_hwcrypto_ctx* ctx, rt_uint8_t* key, r
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_symmetric_setiv(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* iv, rt_size_t len)
+rt_err_t rt_hwcrypto_symmetric_setiv(struct rt_hwcrypto_ctx *ctx, const rt_uint8_t *iv, rt_size_t len)
 {
-    struct hwcrypto_symmetric* symmetric_ctx;
+    struct hwcrypto_symmetric *symmetric_ctx;
 
     if (ctx && len <= RT_HWCRYPTO_IV_MAX_SIZE)
     {
-        symmetric_ctx = (struct hwcrypto_symmetric*)ctx;
+        symmetric_ctx = (struct hwcrypto_symmetric *)ctx;
         rt_memcpy(symmetric_ctx->iv, iv, len);
         symmetric_ctx->iv_len = len;
         /* IV change flag set up */
@@ -167,9 +167,9 @@ rt_err_t rt_hwcrypto_symmetric_setiv(struct rt_hwcrypto_ctx* ctx, const rt_uint8
  *
  * @return          IV length of copy
  */
-int rt_hwcrypto_symmetric_getiv(struct rt_hwcrypto_ctx* ctx, rt_uint8_t* iv, rt_size_t len)
+int rt_hwcrypto_symmetric_getiv(struct rt_hwcrypto_ctx *ctx, rt_uint8_t *iv, rt_size_t len)
 {
-    struct hwcrypto_symmetric* symmetric_ctx = (struct hwcrypto_symmetric*)ctx;;
+    struct hwcrypto_symmetric *symmetric_ctx = (struct hwcrypto_symmetric *)ctx;;
 
     if (ctx && len >= symmetric_ctx->iv_len)
     {
@@ -186,13 +186,13 @@ int rt_hwcrypto_symmetric_getiv(struct rt_hwcrypto_ctx* ctx, rt_uint8_t* iv, rt_
  * @param ctx       Symmetric crypto context
  * @param iv_off    The offset in IV
  */
-void rt_hwcrypto_symmetric_set_ivoff(struct rt_hwcrypto_ctx* ctx, rt_int32_t iv_off)
+void rt_hwcrypto_symmetric_set_ivoff(struct rt_hwcrypto_ctx *ctx, rt_int32_t iv_off)
 {
     if (ctx)
     {
-        ((struct hwcrypto_symmetric*)ctx)->iv_off = iv_off;
+        ((struct hwcrypto_symmetric *)ctx)->iv_off = iv_off;
         /* iv_off change flag set up */
-        ((struct hwcrypto_symmetric*)ctx)->flags |= SYMMTRIC_MODIFY_IVOFF;
+        ((struct hwcrypto_symmetric *)ctx)->flags |= SYMMTRIC_MODIFY_IVOFF;
     }
 }
 
@@ -202,11 +202,11 @@ void rt_hwcrypto_symmetric_set_ivoff(struct rt_hwcrypto_ctx* ctx, rt_int32_t iv_
  * @param ctx       Symmetric crypto context
  * @param iv_off    It must point to a valid memory
  */
-void rt_hwcrypto_symmetric_get_ivoff(struct rt_hwcrypto_ctx* ctx, rt_int32_t* iv_off)
+void rt_hwcrypto_symmetric_get_ivoff(struct rt_hwcrypto_ctx *ctx, rt_int32_t *iv_off)
 {
     if (ctx && iv_off)
     {
-        *iv_off = ((struct hwcrypto_symmetric*)ctx)->iv_off;
+        *iv_off = ((struct hwcrypto_symmetric *)ctx)->iv_off;
     }
 }
 
@@ -218,10 +218,10 @@ void rt_hwcrypto_symmetric_get_ivoff(struct rt_hwcrypto_ctx* ctx, rt_int32_t* iv
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_symmetric_cpy(struct rt_hwcrypto_ctx* des, const struct rt_hwcrypto_ctx* src)
+rt_err_t rt_hwcrypto_symmetric_cpy(struct rt_hwcrypto_ctx *des, const struct rt_hwcrypto_ctx *src)
 {
-    struct hwcrypto_symmetric* symmetric_des = (struct hwcrypto_symmetric*)des;
-    struct hwcrypto_symmetric* symmetric_src = (struct hwcrypto_symmetric*)src;
+    struct hwcrypto_symmetric *symmetric_des = (struct hwcrypto_symmetric *)des;
+    struct hwcrypto_symmetric *symmetric_src = (struct hwcrypto_symmetric *)src;
 
     if (des != RT_NULL && src != RT_NULL)
     {
@@ -244,9 +244,9 @@ rt_err_t rt_hwcrypto_symmetric_cpy(struct rt_hwcrypto_ctx* des, const struct rt_
  *
  * @param ctx       Symmetric crypto context
  */
-void rt_hwcrypto_symmetric_reset(struct rt_hwcrypto_ctx* ctx)
+void rt_hwcrypto_symmetric_reset(struct rt_hwcrypto_ctx *ctx)
 {
-    struct hwcrypto_symmetric* symmetric_ctx = (struct hwcrypto_symmetric*)ctx;
+    struct hwcrypto_symmetric *symmetric_ctx = (struct hwcrypto_symmetric *)ctx;
     if (ctx != RT_NULL)
     {
         /* Copy Symmetric Encryption and Decryption Context Information */
@@ -270,7 +270,7 @@ void rt_hwcrypto_symmetric_reset(struct rt_hwcrypto_ctx* ctx)
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_symmetric_set_type(struct rt_hwcrypto_ctx* ctx, hwcrypto_type type)
+rt_err_t rt_hwcrypto_symmetric_set_type(struct rt_hwcrypto_ctx *ctx, hwcrypto_type type)
 {
     return rt_hwcrypto_set_type(ctx, type);
 }

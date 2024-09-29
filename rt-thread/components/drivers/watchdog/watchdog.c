@@ -16,12 +16,12 @@
 /*
  * This function initializes watchdog
  */
-static rt_err_t rt_watchdog_init(struct rt_device* dev)
+static rt_err_t rt_watchdog_init(struct rt_device *dev)
 {
-    rt_watchdog_t* wtd;
+    rt_watchdog_t *wtd;
 
     RT_ASSERT(dev != RT_NULL);
-    wtd = (rt_watchdog_t*)dev;
+    wtd = (rt_watchdog_t *)dev;
     if (wtd->ops->init)
     {
         return (wtd->ops->init(wtd));
@@ -30,17 +30,17 @@ static rt_err_t rt_watchdog_init(struct rt_device* dev)
     return (-RT_ENOSYS);
 }
 
-static rt_err_t rt_watchdog_open(struct rt_device* dev, rt_uint16_t oflag)
+static rt_err_t rt_watchdog_open(struct rt_device *dev, rt_uint16_t oflag)
 {
     return (RT_EOK);
 }
 
-static rt_err_t rt_watchdog_close(struct rt_device* dev)
+static rt_err_t rt_watchdog_close(struct rt_device *dev)
 {
-    rt_watchdog_t* wtd;
+    rt_watchdog_t *wtd;
 
     RT_ASSERT(dev != RT_NULL);
-    wtd = (rt_watchdog_t*)dev;
+    wtd = (rt_watchdog_t *)dev;
 
     if (wtd->ops->control(wtd, RT_DEVICE_CTRL_WDT_STOP, RT_NULL) != RT_EOK)
     {
@@ -52,14 +52,14 @@ static rt_err_t rt_watchdog_close(struct rt_device* dev)
     return (RT_EOK);
 }
 
-static rt_err_t rt_watchdog_control(struct rt_device* dev,
+static rt_err_t rt_watchdog_control(struct rt_device *dev,
                                     int              cmd,
-                                    void*             args)
+                                    void             *args)
 {
-    rt_watchdog_t* wtd;
+    rt_watchdog_t *wtd;
 
     RT_ASSERT(dev != RT_NULL);
-    wtd = (rt_watchdog_t*)dev;
+    wtd = (rt_watchdog_t *)dev;
 
     return (wtd->ops->control(wtd, cmd, args));
 }
@@ -79,17 +79,17 @@ const static struct rt_device_ops wdt_ops =
 /**
  * This function register a watchdog device
  */
-rt_err_t rt_hw_watchdog_register(struct rt_watchdog_device* wtd,
-                                 const char*                name,
+rt_err_t rt_hw_watchdog_register(struct rt_watchdog_device *wtd,
+                                 const char                *name,
                                  rt_uint32_t                flag,
-                                 void*                      data)
+                                 void                      *data)
 {
-    struct rt_device* device;
+    struct rt_device *device;
     RT_ASSERT(wtd != RT_NULL);
 
     device = &(wtd->parent);
 
-    device->type        = RT_Device_Class_Miscellaneous;
+    device->type        = RT_Device_Class_WDT;
     device->rx_indicate = RT_NULL;
     device->tx_complete = RT_NULL;
 

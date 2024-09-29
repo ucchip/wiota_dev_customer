@@ -13,40 +13,40 @@
 /* #define ETH_TX_DUMP */
 
 #ifdef NET_TRACE
-#define NET_DEBUG         rt_kprintf
+    #define NET_DEBUG         rt_kprintf
 #else
-#define NET_DEBUG(...)
+    #define NET_DEBUG(...)
 #endif /* #ifdef NET_TRACE */
 
 struct enc28j60_tx_list_typedef
 {
-    struct enc28j60_tx_list_typedef* prev;
-    struct enc28j60_tx_list_typedef* next;
+    struct enc28j60_tx_list_typedef *prev;
+    struct enc28j60_tx_list_typedef *next;
     rt_uint32_t addr; /* pkt addr in buffer */
     rt_uint32_t len;  /* pkt len */
     volatile rt_bool_t free; /* 0:busy, 1:free */
 };
 static struct enc28j60_tx_list_typedef enc28j60_tx_list[2];
-static volatile struct enc28j60_tx_list_typedef* tx_current;
-static volatile struct enc28j60_tx_list_typedef* tx_ack;
+static volatile struct enc28j60_tx_list_typedef *tx_current;
+static volatile struct enc28j60_tx_list_typedef *tx_ack;
 static struct rt_event tx_event;
 
 /* private enc28j60 define */
 /* enc28j60 spi interface function */
-static uint8_t spi_read_op(struct rt_spi_device* spi_device, uint8_t op, uint8_t address);
-static void spi_write_op(struct rt_spi_device* spi_device, uint8_t op, uint8_t address, uint8_t data);
+static uint8_t spi_read_op(struct rt_spi_device *spi_device, uint8_t op, uint8_t address);
+static void spi_write_op(struct rt_spi_device *spi_device, uint8_t op, uint8_t address, uint8_t data);
 
-static uint8_t spi_read(struct rt_spi_device* spi_device, uint8_t address);
-static void spi_write(struct rt_spi_device* spi_device, rt_uint8_t address, rt_uint8_t data);
+static uint8_t spi_read(struct rt_spi_device *spi_device, uint8_t address);
+static void spi_write(struct rt_spi_device *spi_device, rt_uint8_t address, rt_uint8_t data);
 
-static void enc28j60_clkout(struct rt_spi_device* spi_device, rt_uint8_t clk);
-static void enc28j60_set_bank(struct rt_spi_device* spi_device, uint8_t address);
-static uint32_t enc28j60_interrupt_disable(struct rt_spi_device* spi_device);
-static void enc28j60_interrupt_enable(struct rt_spi_device* spi_device, uint32_t level);
+static void enc28j60_clkout(struct rt_spi_device *spi_device, rt_uint8_t clk);
+static void enc28j60_set_bank(struct rt_spi_device *spi_device, uint8_t address);
+static uint32_t enc28j60_interrupt_disable(struct rt_spi_device *spi_device);
+static void enc28j60_interrupt_enable(struct rt_spi_device *spi_device, uint32_t level);
 
-static uint16_t enc28j60_phy_read(struct rt_spi_device* spi_device, rt_uint8_t address);
-static void enc28j60_phy_write(struct rt_spi_device* spi_device, rt_uint8_t address, uint16_t data);
-static rt_bool_t enc28j60_check_link_status(struct rt_spi_device* spi_device);
+static uint16_t enc28j60_phy_read(struct rt_spi_device *spi_device, rt_uint8_t address);
+static void enc28j60_phy_write(struct rt_spi_device *spi_device, rt_uint8_t address, uint16_t data);
+static rt_bool_t enc28j60_check_link_status(struct rt_spi_device *spi_device);
 
 #define enc28j60_lock(dev)      rt_mutex_take(&((struct net_device*)dev)->lock, RT_WAITING_FOREVER);
 #define enc28j60_unlock(dev)    rt_mutex_release(&((struct net_device*)dev)->lock);
@@ -64,7 +64,7 @@ static void _delay_us(uint32_t us)
 }
 
 /* enc28j60 spi interface function */
-static uint8_t spi_read_op(struct rt_spi_device* spi_device, uint8_t op, uint8_t address)
+static uint8_t spi_read_op(struct rt_spi_device *spi_device, uint8_t op, uint8_t address)
 {
     uint8_t send_buffer[2];
     uint8_t recv_buffer[1];
@@ -83,9 +83,9 @@ static uint8_t spi_read_op(struct rt_spi_device* spi_device, uint8_t op, uint8_t
     return (recv_buffer[0]);
 }
 
-static void spi_write_op(struct rt_spi_device* spi_device, uint8_t op, uint8_t address, uint8_t data)
+static void spi_write_op(struct rt_spi_device *spi_device, uint8_t op, uint8_t address, uint8_t data)
 {
-    uint32_t level;
+    rt_base_t level;
     uint8_t buffer[2];
 
     level = rt_hw_interrupt_disable();
@@ -98,13 +98,13 @@ static void spi_write_op(struct rt_spi_device* spi_device, uint8_t op, uint8_t a
 }
 
 /* enc28j60 function */
-static void enc28j60_clkout(struct rt_spi_device* spi_device, rt_uint8_t clk)
+static void enc28j60_clkout(struct rt_spi_device *spi_device, rt_uint8_t clk)
 {
     /* setup clkout: 2 is 12.5MHz: */
     spi_write(spi_device, ECOCON, clk & 0x7);
 }
 
-static void enc28j60_set_bank(struct rt_spi_device* spi_device, uint8_t address)
+static void enc28j60_set_bank(struct rt_spi_device *spi_device, uint8_t address)
 {
     /* set the bank (if needed) .*/
     if ((address & BANK_MASK) != Enc28j60Bank)
@@ -116,7 +116,7 @@ static void enc28j60_set_bank(struct rt_spi_device* spi_device, uint8_t address)
     }
 }
 
-static uint8_t spi_read(struct rt_spi_device* spi_device, uint8_t address)
+static uint8_t spi_read(struct rt_spi_device *spi_device, uint8_t address)
 {
     /* set the bank. */
     enc28j60_set_bank(spi_device, address);
@@ -124,7 +124,7 @@ static uint8_t spi_read(struct rt_spi_device* spi_device, uint8_t address)
     return spi_read_op(spi_device, ENC28J60_READ_CTRL_REG, address);
 }
 
-static void spi_write(struct rt_spi_device* spi_device, rt_uint8_t address, rt_uint8_t data)
+static void spi_write(struct rt_spi_device *spi_device, rt_uint8_t address, rt_uint8_t data)
 {
     /* set the bank. */
     enc28j60_set_bank(spi_device, address);
@@ -132,7 +132,7 @@ static void spi_write(struct rt_spi_device* spi_device, rt_uint8_t address, rt_u
     spi_write_op(spi_device, ENC28J60_WRITE_CTRL_REG, address, data);
 }
 
-static uint16_t enc28j60_phy_read(struct rt_spi_device* spi_device, rt_uint8_t address)
+static uint16_t enc28j60_phy_read(struct rt_spi_device *spi_device, rt_uint8_t address)
 {
     uint16_t value;
 
@@ -153,7 +153,7 @@ static uint16_t enc28j60_phy_read(struct rt_spi_device* spi_device, rt_uint8_t a
     return (value);
 }
 
-static void enc28j60_phy_write(struct rt_spi_device* spi_device, rt_uint8_t address, uint16_t data)
+static void enc28j60_phy_write(struct rt_spi_device *spi_device, rt_uint8_t address, uint16_t data)
 {
     /* set the PHY register address. */
     spi_write(spi_device, MIREGADR, address);
@@ -169,7 +169,7 @@ static void enc28j60_phy_write(struct rt_spi_device* spi_device, rt_uint8_t addr
     }
 }
 
-static uint32_t enc28j60_interrupt_disable(struct rt_spi_device* spi_device)
+static uint32_t enc28j60_interrupt_disable(struct rt_spi_device *spi_device)
 {
     uint32_t level;
 
@@ -184,7 +184,7 @@ static uint32_t enc28j60_interrupt_disable(struct rt_spi_device* spi_device)
     return level;
 }
 
-static void enc28j60_interrupt_enable(struct rt_spi_device* spi_device, uint32_t level)
+static void enc28j60_interrupt_enable(struct rt_spi_device *spi_device, uint32_t level)
 {
     /* switch to bank 0 */
     enc28j60_set_bank(spi_device, EIE);
@@ -194,7 +194,7 @@ static void enc28j60_interrupt_enable(struct rt_spi_device* spi_device, uint32_t
 /*
  * Access the PHY to determine link status
  */
-static rt_bool_t enc28j60_check_link_status(struct rt_spi_device* spi_device)
+static rt_bool_t enc28j60_check_link_status(struct rt_spi_device *spi_device)
 {
     uint16_t reg;
 
@@ -240,8 +240,8 @@ static void _tx_chain_init(void)
 /* initialize the interface */
 static rt_err_t enc28j60_init(rt_device_t dev)
 {
-    struct net_device* enc28j60 = (struct net_device*)dev;
-    struct rt_spi_device* spi_device = enc28j60->spi_device;
+    struct net_device *enc28j60 = (struct net_device *)dev;
+    struct rt_spi_device *spi_device = enc28j60->spi_device;
 
     enc28j60_lock(dev);
 
@@ -350,25 +350,19 @@ static rt_err_t enc28j60_init(rt_device_t dev)
 }
 
 /* control the interface */
-static rt_err_t enc28j60_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t enc28j60_control(rt_device_t dev, int cmd, void *args)
 {
-    struct net_device* enc28j60 = (struct net_device*)dev;
+    struct net_device *enc28j60 = (struct net_device *)dev;
     switch (cmd)
     {
-        case NIOCTL_GADDR:
-            /* get mac address */
-            if (args)
-            {
-                rt_memcpy(args, enc28j60->dev_addr, 6);
-            }
-            else
-            {
-                return -RT_ERROR;
-            }
-            break;
+    case NIOCTL_GADDR:
+        /* get mac address */
+        if (args) rt_memcpy(args, enc28j60->dev_addr, 6);
+        else return -RT_ERROR;
+        break;
 
-        default :
-            break;
+    default :
+        break;
     }
 
     return RT_EOK;
@@ -387,14 +381,14 @@ static rt_err_t enc28j60_close(rt_device_t dev)
 }
 
 /* Read */
-static rt_size_t enc28j60_read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t size)
+static rt_size_t enc28j60_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     rt_set_errno(-RT_ENOSYS);
     return RT_EOK;
 }
 
 /* Write */
-static rt_size_t enc28j60_write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size)
+static rt_size_t enc28j60_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     rt_set_errno(-RT_ENOSYS);
     return 0;
@@ -402,15 +396,15 @@ static rt_size_t enc28j60_write(rt_device_t dev, rt_off_t pos, const void* buffe
 
 /* ethernet device interface */
 /* Transmit packet. */
-static rt_err_t enc28j60_tx(rt_device_t dev, struct pbuf* p)
+static rt_err_t enc28j60_tx(rt_device_t dev, struct pbuf *p)
 {
-    struct net_device* enc28j60 = (struct net_device*)dev;
-    struct rt_spi_device* spi_device = enc28j60->spi_device;
-    struct pbuf* q;
+    struct net_device *enc28j60 = (struct net_device *)dev;
+    struct rt_spi_device *spi_device = enc28j60->spi_device;
+    struct pbuf *q;
     rt_uint32_t level;
 #ifdef ETH_TX_DUMP
     rt_size_t dump_count = 0;
-    rt_uint8_t* dump_ptr;
+    rt_uint8_t *dump_ptr;
     rt_size_t dump_i;
 #endif
 
@@ -437,14 +431,14 @@ static rt_err_t enc28j60_tx(rt_device_t dev, struct pbuf* p)
     level = enc28j60_interrupt_disable(spi_device);
 
     // Set the write pointer to start of transmit buffer area
-    //    spi_write(EWRPTL, TXSTART_INIT&0xFF);
-    //    spi_write(EWRPTH, TXSTART_INIT>>8);
+//    spi_write(EWRPTL, TXSTART_INIT&0xFF);
+//    spi_write(EWRPTH, TXSTART_INIT>>8);
     spi_write(spi_device, EWRPTL, (tx_current->addr) & 0xFF);
     spi_write(spi_device, EWRPTH, (tx_current->addr) >> 8);
     // Set the TXND pointer to correspond to the packet size given
     tx_current->len = p->tot_len;
-    //    spi_write(ETXNDL, (TXSTART_INIT+ p->tot_len + 1)&0xFF);
-    //    spi_write(ETXNDH, (TXSTART_INIT+ p->tot_len + 1)>>8);
+//    spi_write(ETXNDL, (TXSTART_INIT+ p->tot_len + 1)&0xFF);
+//    spi_write(ETXNDH, (TXSTART_INIT+ p->tot_len + 1)>>8);
 
     // write per-packet control byte (0x00 means use macon3 settings)
     spi_write_op(spi_device, ENC28J60_WRITE_BUF_MEM, 0, 0x00);
@@ -514,11 +508,11 @@ static rt_err_t enc28j60_tx(rt_device_t dev, struct pbuf* p)
 }
 
 /* recv packet. */
-static struct pbuf* enc28j60_rx(rt_device_t dev)
+static struct pbuf *enc28j60_rx(rt_device_t dev)
 {
-    struct net_device* enc28j60 = (struct net_device*)dev;
-    struct rt_spi_device* spi_device = enc28j60->spi_device;
-    struct pbuf* p = RT_NULL;
+    struct net_device *enc28j60 = (struct net_device *)dev;
+    struct rt_spi_device *spi_device = enc28j60->spi_device;
+    struct pbuf *p = RT_NULL;
 
     uint8_t eir, eir_clr;
     uint32_t pk_counter;
@@ -548,8 +542,8 @@ static struct pbuf* enc28j60_rx(rt_device_t dev)
             /* disable rx interrutps. */
             spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIE, EIE_PKTIE);
             eir_clr |= EIR_PKTIF;
-            //            enc28j60_set_bank(spi_device, EIR);
-            //            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_PKTIF);
+//            enc28j60_set_bank(spi_device, EIR);
+//            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_PKTIF);
         }
 
         /* clear DMAIF */
@@ -557,8 +551,8 @@ static struct pbuf* enc28j60_rx(rt_device_t dev)
         {
             NET_DEBUG("EIR_DMAIF\r\n");
             eir_clr |= EIR_DMAIF;
-            //            enc28j60_set_bank(spi_device, EIR);
-            //            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_DMAIF);
+//            enc28j60_set_bank(spi_device, EIR);
+//            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_DMAIF);
         }
 
         /* LINK changed handler */
@@ -572,8 +566,8 @@ static struct pbuf* enc28j60_rx(rt_device_t dev)
             /* read PHIR to clear the flag */
             enc28j60_phy_read(spi_device, PHIR);
             eir_clr |= EIR_LINKIF;
-            //            enc28j60_set_bank(spi_device, EIR);
-            //            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_LINKIF);
+//            enc28j60_set_bank(spi_device, EIR);
+//            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_LINKIF);
 
             eth_device_linkchange(&(enc28j60->parent), link_status);
         }
@@ -612,8 +606,8 @@ static struct pbuf* enc28j60_rx(rt_device_t dev)
         {
             NET_DEBUG("EIR_WOLIF\r\n");
             eir_clr |= EIR_WOLIF;
-            //            enc28j60_set_bank(spi_device, EIR);
-            //            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_WOLIF);
+//            enc28j60_set_bank(spi_device, EIR);
+//            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_WOLIF);
         }
 
         /* TX Error handler */
@@ -624,8 +618,8 @@ static struct pbuf* enc28j60_rx(rt_device_t dev)
             spi_write_op(spi_device, ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRST);
             spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRST);
             eir_clr |= EIR_TXERIF;
-            //            enc28j60_set_bank(spi_device, EIR);
-            //            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF);
+//            enc28j60_set_bank(spi_device, EIR);
+//            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF);
 
             /* re-init tx chain */
             _tx_chain_init();
@@ -645,8 +639,8 @@ static struct pbuf* enc28j60_rx(rt_device_t dev)
             /* enable packet reception. */
             spi_write_op(spi_device, ENC28J60_BIT_FIELD_SET, ECON1, ECON1_RXEN);
             eir_clr |= EIR_RXERIF;
-            //            enc28j60_set_bank(spi_device, EIR);
-            //            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_RXERIF);
+//            enc28j60_set_bank(spi_device, EIR);
+//            spi_write_op(spi_device, ENC28J60_BIT_FIELD_CLR, EIR, EIR_RXERIF);
         }
 
         enc28j60_set_bank(spi_device, EIR);
@@ -691,10 +685,10 @@ static struct pbuf* enc28j60_rx(rt_device_t dev)
             p = pbuf_alloc(PBUF_LINK, len, PBUF_POOL);
             if (p != RT_NULL)
             {
-                struct pbuf* q;
+                struct pbuf *q;
 #ifdef ETH_RX_DUMP
                 rt_size_t dump_count = 0;
-                rt_uint8_t* dump_ptr;
+                rt_uint8_t *dump_ptr;
                 rt_size_t dump_i;
                 NET_DEBUG("rx_dump, size:%d\r\n", len);
 #endif
@@ -764,11 +758,11 @@ const static struct rt_device_ops enc28j60_ops =
 };
 #endif
 
-rt_err_t enc28j60_attach(const char* spi_device_name)
+rt_err_t enc28j60_attach(const char *spi_device_name)
 {
-    struct rt_spi_device* spi_device;
+    struct rt_spi_device *spi_device;
 
-    spi_device = (struct rt_spi_device*)rt_device_find(spi_device_name);
+    spi_device = (struct rt_spi_device *)rt_device_find(spi_device_name);
     if (spi_device == RT_NULL)
     {
         NET_DEBUG("spi device %s not found!\r\n", spi_device_name);
@@ -784,7 +778,7 @@ rt_err_t enc28j60_attach(const char* spi_device_name)
         rt_spi_configure(spi_device, &cfg);
     } /* config spi */
 
-    memset(&enc28j60_dev, 0, sizeof(enc28j60_dev));
+    rt_memset(&enc28j60_dev, 0, sizeof(enc28j60_dev));
 
     rt_event_init(&tx_event, "eth_tx", RT_IPC_FLAG_FIFO);
     enc28j60_dev.spi_device = spi_device;
@@ -840,7 +834,7 @@ rt_err_t enc28j60_attach(const char* spi_device_name)
     enc28j60_dev.parent.eth_rx  = enc28j60_rx;
     enc28j60_dev.parent.eth_tx  = enc28j60_tx;
 
-    rt_mutex_init(&enc28j60_dev.lock, "enc28j60", RT_IPC_FLAG_FIFO);
+    rt_mutex_init(&enc28j60_dev.lock, "enc28j60", RT_IPC_FLAG_PRIO);
 
     eth_device_init(&(enc28j60_dev.parent), "e0");
 
@@ -854,7 +848,7 @@ rt_err_t enc28j60_attach(const char* spi_device_name)
  */
 static void enc28j60(void)
 {
-    struct rt_spi_device* spi_device = enc28j60_dev.spi_device;
+    struct rt_spi_device *spi_device = enc28j60_dev.spi_device;
     enc28j60_lock(&enc28j60_dev);
 
     rt_kprintf("-- enc28j60 registers:\n");

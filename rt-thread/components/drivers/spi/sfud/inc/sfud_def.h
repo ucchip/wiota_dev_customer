@@ -56,11 +56,11 @@ extern "C" {
 /* assert for developer. */
 #ifdef SFUD_DEBUG_MODE
 #define SFUD_ASSERT(EXPR)                                                      \
-    if (!(EXPR))                                                                   \
-    {                                                                              \
-        SFUD_DEBUG("(%s) has assert failed at %s.", #EXPR, __FUNCTION__);          \
-        while (1);                                                                 \
-    }
+if (!(EXPR))                                                                   \
+{                                                                              \
+    SFUD_DEBUG("(%s) has assert failed at %s.", #EXPR, __FUNCTION__);          \
+    while (1);                                                                 \
+}
 #else
 #define SFUD_ASSERT(EXPR)
 #endif
@@ -181,8 +181,7 @@ extern "C" {
 /**
  * status register bits
  */
-enum
-{
+enum {
     SFUD_STATUS_REGISTER_BUSY = (1 << 0),                  /**< busing */
     SFUD_STATUS_REGISTER_WEL = (1 << 1),                   /**< write enable latch */
     SFUD_STATUS_REGISTER_SRP = (1 << 7),                   /**< status register protect */
@@ -191,8 +190,7 @@ enum
 /**
  * error code
  */
-typedef enum
-{
+typedef enum {
     SFUD_SUCCESS = 0,                                      /**< success */
     SFUD_ERR_NOT_FOUND = 1,                                /**< not found or not supported */
     SFUD_ERR_WRITE = 2,                                    /**< write error */
@@ -205,8 +203,7 @@ typedef enum
 /**
  * QSPI flash read cmd format
  */
-typedef struct
-{
+typedef struct {
     uint8_t instruction;
     uint8_t instruction_lines;
     uint8_t address_size;
@@ -218,14 +215,13 @@ typedef struct
 #endif /* SFUD_USING_QSPI */
 
 /* SPI bus write read data function type */
-typedef sfud_err (*spi_write_read_func)(const uint8_t* write_buf, size_t write_size, uint8_t* read_buf, size_t read_size);
+typedef sfud_err (*spi_write_read_func)(const uint8_t *write_buf, size_t write_size, uint8_t *read_buf, size_t read_size);
 
 #ifdef SFUD_USING_SFDP
 /**
  * the SFDP (Serial Flash Discoverable Parameters) parameter info which used on this library
  */
-typedef struct
-{
+typedef struct {
     bool available;                              /**< available when read SFDP OK */
     uint8_t major_rev;                           /**< SFDP Major Revision */
     uint8_t minor_rev;                           /**< SFDP Minor Revision */
@@ -237,8 +233,7 @@ typedef struct
     bool addr_3_byte;                            /**< supports 3-Byte addressing */
     bool addr_4_byte;                            /**< supports 4-Byte addressing */
     uint32_t capacity;                           /**< flash capacity (bytes) */
-    struct
-    {
+    struct {
         uint32_t size;                           /**< erase sector size (bytes). 0x00: not available */
         uint8_t cmd;                             /**< erase command */
     } eraser[SFUD_SFDP_ERASE_TYPE_MAX_NUM];      /**< supported eraser types table */
@@ -249,43 +244,40 @@ typedef struct
 /**
  * SPI device
  */
-typedef struct __sfud_spi
-{
+typedef struct __sfud_spi {
     /* SPI device name */
-    char* name;
+    char *name;
     /* SPI bus write read data function */
-    sfud_err (*wr)(const struct __sfud_spi* spi, const uint8_t* write_buf, size_t write_size, uint8_t* read_buf,
+    sfud_err (*wr)(const struct __sfud_spi *spi, const uint8_t *write_buf, size_t write_size, uint8_t *read_buf,
                    size_t read_size);
 #ifdef SFUD_USING_QSPI
     /* QSPI fast read function */
-    sfud_err (*qspi_read)(const struct __sfud_spi* spi, uint32_t addr, sfud_qspi_read_cmd_format* qspi_read_cmd_format,
-                          uint8_t* read_buf, size_t read_size);
+    sfud_err (*qspi_read)(const struct __sfud_spi *spi, uint32_t addr, sfud_qspi_read_cmd_format *qspi_read_cmd_format,
+                          uint8_t *read_buf, size_t read_size);
 #endif
     /* lock SPI bus */
-    void (*lock)(const struct __sfud_spi* spi);
+    void (*lock)(const struct __sfud_spi *spi);
     /* unlock SPI bus */
-    void (*unlock)(const struct __sfud_spi* spi);
+    void (*unlock)(const struct __sfud_spi *spi);
     /* some user data */
-    void* user_data;
+    void *user_data;
 } sfud_spi, *sfud_spi_t;
 
 /**
  * serial flash device
  */
-typedef struct
-{
-    char* name;                                  /**< serial flash name */
+typedef struct {
+    char *name;                                  /**< serial flash name */
     size_t index;                                /**< index of flash device information table  @see flash_table */
     sfud_flash_chip chip;                        /**< flash chip information */
     sfud_spi spi;                                /**< SPI device */
     bool init_ok;                                /**< initialize OK flag */
     bool addr_in_4_byte;                         /**< flash is in 4-Byte addressing */
-    struct
-    {
+    struct {
         void (*delay)(void);                     /**< every retry's delay */
         size_t times;                            /**< default times for error retry */
     } retry;
-    void* user_data;                             /**< some user data */
+    void *user_data;                             /**< some user data */
 
 #ifdef SFUD_USING_QSPI
     sfud_qspi_read_cmd_format read_cmd_format;   /**< fast read cmd format */

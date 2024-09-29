@@ -49,14 +49,14 @@ static char sccsid[] = "@(#)clnt_generic.c 1.4 87/08/11 (C) 1987 SMI";
  * returns client handle. Default options are set, which the user can
  * change using the rpc equivalent of ioctl()'s.
  */
-CLIENT* clnt_create(const char* hostname, const unsigned long prog,
-                    const unsigned long vers, const char* proto)
+CLIENT *clnt_create(const char *hostname, const unsigned long prog,
+                    const unsigned long vers, const char *proto)
 {
     int sock;
     struct sockaddr_in server;
     struct addrinfo hint, *res = NULL;
     struct timeval tv;
-    CLIENT* client;
+    CLIENT *client;
     int ret;
 
     memset(&hint, 0, sizeof(hint));
@@ -76,12 +76,9 @@ CLIENT* clnt_create(const char* hostname, const unsigned long prog,
         tv.tv_sec = 5;
         tv.tv_usec = 0;
         client = clntudp_create(&server, prog, vers, tv, &sock);
-        if (client == NULL)
-        {
-            return NULL;
-        }
+        if (client == NULL) return NULL;
         tv.tv_sec = 1;
-        clnt_control(client, CLSET_TIMEOUT, (char*)&tv);
+        clnt_control(client, CLSET_TIMEOUT, (char *)&tv);
     }
     else
     {
@@ -92,7 +89,7 @@ CLIENT* clnt_create(const char* hostname, const unsigned long prog,
     return (client);
 }
 
-void clnt_perror(CLIENT* rpch, const char* s)
+void clnt_perror(CLIENT *rpch, const char *s)
 {
     rt_kprintf("rpc client error:%s\n", s);
 }

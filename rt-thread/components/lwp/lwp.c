@@ -11,10 +11,13 @@
 
 #include <rtthread.h>
 #include <rthw.h>
-#include <dfs_posix.h>
+#include <dfs_file.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
 
 #ifndef RT_USING_DFS
-#error  "lwp need file system(RT_USING_DFS)"
+    #error  "lwp need file system(RT_USING_DFS)"
 #endif
 
 #include "lwp.h"
@@ -23,32 +26,32 @@
 #define DBG_LVL    DBG_WARNING
 #include <rtdbg.h>
 
-extern void lwp_user_entry(void* args, const void* text, void* data);
+extern void lwp_user_entry(void *args, const void *text, void *data);
 
 /**
  * RT-Thread light-weight process
  */
-void lwp_set_kernel_sp(uint32_t* sp)
+void lwp_set_kernel_sp(uint32_t *sp)
 {
-    struct rt_lwp* user_data;
-    user_data = (struct rt_lwp*)rt_thread_self()->lwp;
+    struct rt_lwp *user_data;
+    user_data = (struct rt_lwp *)rt_thread_self()->lwp;
     user_data->kernel_sp = sp;
 }
 
-uint32_t* lwp_get_kernel_sp(void)
+uint32_t *lwp_get_kernel_sp(void)
 {
-    struct rt_lwp* user_data;
-    user_data = (struct rt_lwp*)rt_thread_self()->lwp;
+    struct rt_lwp *user_data;
+    user_data = (struct rt_lwp *)rt_thread_self()->lwp;
 
     return user_data->kernel_sp;
 }
 
-static int lwp_argscopy(struct rt_lwp* lwp, int argc, char** argv)
+static int lwp_argscopy(struct rt_lwp *lwp, int argc, char **argv)
 {
-    int size = sizeof(int) * 3; /* store argc, argv, NULL */
-    int* args;
-    char* str;
-    char** new_argv;
+    int size = sizeof(int)*3; /* store argc, argv, NULL */
+    int *args;
+    char *str;
+    char **new_argv;
     int i;
     int len;
 
@@ -60,7 +63,7 @@ static int lwp_argscopy(struct rt_lwp* lwp, int argc, char** argv)
 
     args = (int*)rt_malloc(size);
     if (args == RT_NULL)
-    { return -1; }
+        return -1;
 
     str = (char*)((int)args + (argc + 3) * sizeof(int));
     new_argv = (char**)&args[2];
@@ -80,10 +83,10 @@ static int lwp_argscopy(struct rt_lwp* lwp, int argc, char** argv)
     return 0;
 }
 
-static int lwp_load(const char* filename, struct rt_lwp* lwp, uint8_t* load_addr, size_t addr_size)
+static int lwp_load(const char *filename, struct rt_lwp *lwp, uint8_t *load_addr, size_t addr_size)
 {
     int fd;
-    uint8_t* ptr;
+    uint8_t *ptr;
     int result = RT_EOK;
     int nbytes;
     struct lwp_header header;
@@ -147,13 +150,13 @@ static int lwp_load(const char* filename, struct rt_lwp* lwp, uint8_t* load_addr
     {
         lwp->text_size = RT_ALIGN(chunk.data_len_space, 4);
         if (load_addr)
-        { lwp->text_entry = ptr; }
+            lwp->text_entry = ptr;
         else
         {
 #ifdef RT_USING_CACHE
-            lwp->text_entry = (rt_uint8_t*)rt_malloc_align(lwp->text_size, RT_CPU_CACHE_LINE_SZ);
+            lwp->text_entry = (rt_uint8_t *)rt_malloc_align(lwp->text_size, RT_CPU_CACHE_LINE_SZ);
 #else
-            lwp->text_entry = (rt_uint8_t*)rt_malloc(lwp->text_size);
+            lwp->text_entry = (rt_uint8_t *)rt_malloc(lwp->text_size);
 #endif
 
             if (lwp->text_entry == RT_NULL)
@@ -184,10 +187,7 @@ static int lwp_load(const char* filename, struct rt_lwp* lwp, uint8_t* load_addr
         }
 #endif
 
-        if (ptr != RT_NULL)
-        {
-            ptr += nbytes;
-        }
+        if (ptr != RT_NULL) ptr += nbytes;
 
         /* skip text hole */
         if ((chunk.total_len - sizeof(struct lwp_chunk) - chunk.data_len))
@@ -212,7 +212,7 @@ static int lwp_load(const char* filename, struct rt_lwp* lwp, uint8_t* load_addr
     {
         lwp->data_size = RT_ALIGN(chunk.data_len_space, 4);
         if (load_addr)
-        { lwp->data = ptr; }
+            lwp->data = ptr;
         else
         {
             lwp->data = rt_malloc(lwp->data_size);
@@ -241,7 +241,7 @@ static int lwp_load(const char* filename, struct rt_lwp* lwp, uint8_t* load_addr
 
 _exit:
     if (fd >= 0)
-    { close(fd); }
+        close(fd);
 
     if (result != RT_EOK)
     {
@@ -268,13 +268,13 @@ _exit:
     return result;
 }
 
-static void lwp_cleanup(struct rt_thread* tid)
+static void lwp_cleanup(struct rt_thread *tid)
 {
-    struct rt_lwp* lwp;
+    struct rt_lwp *lwp;
 
     dbg_log(DBG_INFO, "thread: %s, stack_addr: %08X\n", tid->name, tid->stack_addr);
 
-    lwp = (struct rt_lwp*)tid->lwp;
+    lwp = (struct rt_lwp *)tid->lwp;
 
     if (lwp->lwp_type == LWP_TYPE_DYN_ADDR)
     {
@@ -308,12 +308,12 @@ static void lwp_cleanup(struct rt_thread* tid)
     /* TODO: cleanup fd table */
 }
 
-static void lwp_thread(void* parameter)
+static void lwp_thread(void *parameter)
 {
     rt_thread_t tid;
-    struct rt_lwp* lwp;
+    struct rt_lwp *lwp;
 
-    lwp = (struct rt_lwp*)parameter;
+    lwp = (struct rt_lwp *)parameter;
     rt_lwp_mem_init(lwp);
     tid = rt_thread_self();
     tid->lwp = lwp;
@@ -322,20 +322,20 @@ static void lwp_thread(void* parameter)
     lwp_user_entry(lwp->args, lwp->text_entry, lwp->data);
 }
 
-struct rt_lwp* rt_lwp_self(void)
+struct rt_lwp *rt_lwp_self(void)
 {
-    return (struct rt_lwp*)rt_thread_self()->lwp;
+    return (struct rt_lwp *)rt_thread_self()->lwp;
 }
 
-int exec(char* filename, int argc, char** argv)
+int exec(char *filename, int argc, char **argv)
 {
-    struct rt_lwp* lwp;
+    struct rt_lwp *lwp;
     int result;
 
     if (filename == RT_NULL)
-    { return -RT_ERROR; }
+        return -RT_ERROR;
 
-    lwp = (struct rt_lwp*)rt_malloc(sizeof(struct rt_lwp));
+    lwp = (struct rt_lwp *)rt_malloc(sizeof(struct rt_lwp));
     if (lwp == RT_NULL)
     {
         dbg_log(DBG_ERROR, "lwp struct out of memory!\n");
@@ -355,7 +355,7 @@ int exec(char* filename, int argc, char** argv)
     {
         rt_thread_t tid;
 
-        tid = rt_thread_create("user", lwp_thread, (void*)lwp,
+        tid = rt_thread_create("user", lwp_thread, (void *)lwp,
                                1024 * 4, 2, 200);
         if (tid != RT_NULL)
         {

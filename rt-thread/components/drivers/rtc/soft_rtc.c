@@ -32,12 +32,12 @@ static time_t init_time;
 static struct rt_rtc_wkalarm wkalarm;
 static struct rt_timer alarm_time;
 
-static void alarm_timeout(void* param)
+static void alarm_timeout(void *param)
 {
     rt_alarm_update(param, 1);
 }
 
-static void soft_rtc_alarm_update(struct rt_rtc_wkalarm* palarm)
+static void soft_rtc_alarm_update(struct rt_rtc_wkalarm *palarm)
 {
     rt_tick_t next_tick;
 
@@ -55,37 +55,37 @@ static void soft_rtc_alarm_update(struct rt_rtc_wkalarm* palarm)
 
 #endif
 
-static rt_err_t soft_rtc_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t soft_rtc_control(rt_device_t dev, int cmd, void *args)
 {
-    time_t* t;
+    time_t *t;
     struct tm time_temp;
 
     RT_ASSERT(dev != RT_NULL);
-    memset(&time_temp, 0, sizeof(struct tm));
+    rt_memset(&time_temp, 0, sizeof(struct tm));
 
     switch (cmd)
     {
-        case RT_DEVICE_CTRL_RTC_GET_TIME:
-            t = (time_t*) args;
-            *t = init_time + (rt_tick_get() - init_tick) / RT_TICK_PER_SECOND;
-            break;
-        case RT_DEVICE_CTRL_RTC_SET_TIME:
-        {
-            t = (time_t*) args;
-            init_time = *t - (rt_tick_get() - init_tick) / RT_TICK_PER_SECOND;
+    case RT_DEVICE_CTRL_RTC_GET_TIME:
+        t = (time_t *) args;
+        *t = init_time + (rt_tick_get() - init_tick) / RT_TICK_PER_SECOND;
+        break;
+    case RT_DEVICE_CTRL_RTC_SET_TIME:
+    {
+        t = (time_t *) args;
+        init_time = *t - (rt_tick_get() - init_tick) / RT_TICK_PER_SECOND;
 #ifdef RT_USING_ALARM
-            soft_rtc_alarm_update(&wkalarm);
+        soft_rtc_alarm_update(&wkalarm);
 #endif
-            break;
-        }
+        break;
+    }
 #ifdef RT_USING_ALARM
-        case RT_DEVICE_CTRL_RTC_GET_ALARM:
-            *((struct rt_rtc_wkalarm*)args) = wkalarm;
-            break;
-        case RT_DEVICE_CTRL_RTC_SET_ALARM:
-            wkalarm = *((struct rt_rtc_wkalarm*)args);
-            soft_rtc_alarm_update(&wkalarm);
-            break;
+    case RT_DEVICE_CTRL_RTC_GET_ALARM:
+        *((struct rt_rtc_wkalarm *)args) = wkalarm;
+        break;
+    case RT_DEVICE_CTRL_RTC_SET_ALARM:
+        wkalarm = *((struct rt_rtc_wkalarm *)args);
+        soft_rtc_alarm_update(&wkalarm);
+        break;
 #endif
     }
 
@@ -104,7 +104,7 @@ const static struct rt_device_ops soft_rtc_ops =
 };
 #endif
 
-int rt_soft_rtc_init(void)
+static int rt_soft_rtc_init(void)
 {
     static rt_bool_t init_ok = RT_FALSE;
     struct tm time_new = SOFT_RTC_TIME_DEFAULT;
@@ -122,7 +122,7 @@ int rt_soft_rtc_init(void)
                   alarm_timeout,
                   &soft_rtc_dev,
                   0,
-                  RT_TIMER_FLAG_SOFT_TIMER | RT_TIMER_FLAG_ONE_SHOT);
+                  RT_TIMER_FLAG_SOFT_TIMER|RT_TIMER_FLAG_ONE_SHOT);
 #endif
 
     init_tick = rt_tick_get();

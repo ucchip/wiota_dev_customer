@@ -30,11 +30,17 @@
 #include "uc_timer.h"
 #include "uc_event.h"
 
-void timer_init(TIMER_TYPE* TIMERx, TIMER_CFG_Type* cfg)
+void timer_init(TIMER_TYPE *TIMERx, TIMER_CFG_Type *cfg)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
     CHECK_PARAM(PARAM_TIMER_PRESCALER(cfg->pre));
 
+    if (cfg->pre > 0x07)
+    {
+        cfg->pre = 0x07;
+    }
+
+    TIMERx->CTR &= ~(0x07 << 3);
     TIMERx->CTR |= (cfg->pre << 3);
     TIMERx->CMP = cfg->cmp;
     TIMERx->TRR = cfg->cnt;
@@ -45,21 +51,21 @@ void timer_deinit(TIMER_TYPE *TIMERx, TIMER_CFG_Type *cfg)
     TIMERx->CMP = cfg->cmp;
 }
 
-void timer_enable(TIMER_TYPE* TIMERx)
+void timer_enable(TIMER_TYPE *TIMERx)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
 
     TIMERx->CTR |= (TIMER_ENABLE_MASK);
 }
 
-void timer_disable(TIMER_TYPE* TIMERx)
+void timer_disable(TIMER_TYPE *TIMERx)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
 
     TIMERx->CTR &= ~(TIMER_ENABLE_MASK);
 }
 
-void timer_int_enable(TIMER_TYPE* TIMERx, TIMER_INT_TYPE it)
+void timer_int_enable(TIMER_TYPE *TIMERx, TIMER_INT_TYPE it)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
     CHECK_PARAM(PARAM_TIMER_IT_TYPE(it));
@@ -87,7 +93,7 @@ void timer_int_enable(TIMER_TYPE* TIMERx, TIMER_INT_TYPE it)
     }
 }
 
-void timer_int_disable(TIMER_TYPE* TIMERx, TIMER_INT_TYPE it)
+void timer_int_disable(TIMER_TYPE *TIMERx, TIMER_INT_TYPE it)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
     CHECK_PARAM(PARAM_TIMER_IT_TYPE(it));
@@ -115,7 +121,7 @@ void timer_int_disable(TIMER_TYPE* TIMERx, TIMER_INT_TYPE it)
     }
 }
 
-void timer_int_clear_pending(TIMER_TYPE* TIMERx, TIMER_INT_TYPE it)
+void timer_int_clear_pending(TIMER_TYPE *TIMERx, TIMER_INT_TYPE it)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
     CHECK_PARAM(PARAM_TIMER_IT_TYPE(it));
@@ -143,28 +149,28 @@ void timer_int_clear_pending(TIMER_TYPE* TIMERx, TIMER_INT_TYPE it)
     }
 }
 
-void timer_set_count(TIMER_TYPE* TIMERx, uint32_t count)
+void timer_set_count(TIMER_TYPE *TIMERx, uint32_t count)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
 
     TIMERx->TRR = count;
 }
 
-uint32_t timer_get_count(TIMER_TYPE* TIMERx)
+uint32_t timer_get_count(TIMER_TYPE *TIMERx)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
 
     return TIMERx->TRR;
 }
 
-void timer_set_compare_value(TIMER_TYPE* TIMERx, uint32_t cmp)
+void timer_set_compare_value(TIMER_TYPE *TIMERx, uint32_t cmp)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
 
     TIMERx->CMP = cmp;
 }
 
-void timer_set_prescaler_value(TIMER_TYPE* TIMERx, uint8_t pre)
+void timer_set_prescaler_value(TIMER_TYPE *TIMERx, uint8_t pre)
 {
     CHECK_PARAM(PARAM_TIMER(TIMERx));
 
@@ -173,6 +179,6 @@ void timer_set_prescaler_value(TIMER_TYPE* TIMERx, uint8_t pre)
         pre = 0x07;
     }
 
-    TIMERx->CTR &= (0x07 << 3);
+    TIMERx->CTR &= ~(0x07 << 3);
     TIMERx->CTR |= (pre << 3);
 }

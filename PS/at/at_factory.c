@@ -26,10 +26,11 @@ enum factory_command_type
     FACTORY_GPIO = 1, // 1
     FACTORY_AD = 3,   // 3
     FACTORY_DA = 4,   // 4
+    FACTORY_GPIO_IN = 8, // 8
 #ifdef UC8288_DRV_TEST
-    FACTORY_I2C = 2, // 2
-    FACTORY_UART1 = 5,   //5
-    FACTORY_PWM = 6,     // 6
+    FACTORY_I2C = 2,   // 2
+    FACTORY_UART1 = 5, // 5
+    FACTORY_PWM = 6,   // 6
     FACTORY_CAN = 7,
 #endif
 };
@@ -73,7 +74,7 @@ static int at_test_da(unsigned int channel, unsigned int value)
 
     rt_dac_write(dac_dev, channel, value);
 
-    //rt_dac_disable(dac_dev, channel);
+    // rt_dac_disable(dac_dev, channel);
 
     return 0;
 }
@@ -92,7 +93,7 @@ static rt_err_t write_reg(struct rt_i2c_bus_device *bus, rt_uint8_t reg, rt_uint
     struct rt_i2c_msg msgs;
     rt_uint32_t buf_size = 1;
 
-    buf[0] = reg; //cmd
+    buf[0] = reg; // cmd
     if (data != RT_NULL)
     {
         buf[1] = data[0];
@@ -223,7 +224,7 @@ static int at_factory_test_can(int type, void *data)
 {
     static rt_device_t can_dev;
     struct rt_can_msg msg = {0};
-    //struct rt_can_msg rxmsg = {0};
+    // struct rt_can_msg rxmsg = {0};
     rt_err_t res;
     rt_size_t size;
 
@@ -265,7 +266,7 @@ static int at_factory_test_can(int type, void *data)
     else if (type == FACTORY_CAN_READ)
     {
         int len = 0;
-        //rxmsg.hdr = -1;
+        // rxmsg.hdr = -1;
         rt_device_read(can_dev, 0, data, 8);
         rt_kprintf("recv data:");
         for (len = 0; len < 8; len++)
@@ -309,6 +310,13 @@ static at_result_t at_factory_setup(const char *args)
 
         rt_pin_mode(pin, PIN_MODE_OUTPUT);
         rt_pin_write(pin, value);
+        break;
+    }
+    case FACTORY_GPIO_IN:
+    {
+        rt_base_t pin = data;
+        rt_pin_mode(pin, PIN_MODE_INPUT);
+        at_server_printfln("+FACTORY=%d,%d", type, rt_pin_read(pin));
         break;
     }
     case FACTORY_AD:

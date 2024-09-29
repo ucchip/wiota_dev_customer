@@ -24,7 +24,10 @@ if GetDepend(['RT_USING_SERIAL']):
 if GetDepend(['RT_USING_PWM']):
     src += ['src/uc_pwm.c']
 
-if GetDepend(['RT_USING_ADC', 'RT_USING_DAC']):
+if GetDepend(['RT_USING_ADC']):
+    src += ['src/uc_adda.c']
+
+if GetDepend(['RT_USING_DAC']):
     src += ['src/uc_adda.c']
 
 if GetDepend(['RT_USING_WDT']):
@@ -38,6 +41,9 @@ if GetDepend(['RT_USING_I2C']):
 
 if GetDepend('RT_USING_RTC'):
     src += ['src/uc_rtc.c']
+
+if GetDepend('RT_USING_SPI'):
+    src += ['src/uc_spim.c']
 
 path = [cwd + '/inc']
 

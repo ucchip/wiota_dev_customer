@@ -13,14 +13,8 @@ if GetDepend(['RT_USING_PIN']):
 if GetDepend(['RT_USING_SERIAL']):
     src += ['drv_usart.c']
 
-if GetDepend(['RT_USING_HWTIMER']):
-    src += ['drv_hwtimer.c']
-
 if GetDepend(['RT_USING_PWM']):
     src += ['drv_pwm.c']
-
-if GetDepend(['RT_USING_SPI']):
-    src += ['drv_spi.c']
 
 if GetDepend(['RT_USING_ADC']):
     src += Glob('drv_adc.c')
@@ -34,16 +28,23 @@ if GetDepend('RT_USING_RTC'):
 if GetDepend(['RT_USING_WDT']):
     src += ['drv_wdt.c']
 
-if GetDepend(['RT_USING_CAN']):
-    src += ['drv_can.c']
-
 if GetDepend(['RT_USING_I2C']):
-    src += ['drv_hw_i2c.c']
     if GetDepend(['RT_USING_I2C_BITOPS']):
         src += ['drv_soft_i2c.c']
+    else:
+        src += ['drv_hard_i2c.c']
 
-if GetDepend(['_SPI_FLASH_APP_']):
-    src += ['drv_onchip_flash.c']
+if GetDepend(['RT_USING_SPI']):
+    if GetDepend(['RT_USING_SPI_BITOPS']):
+        src += ['drv_soft_spi.c']
+    else:
+        src += ['drv_hard_spi.c']
+
+if GetDepend(['BSP_USING_ON_CHIP_FLASH']):
+    src += ['drv_flash.c']
+
+if GetDepend(['RT_USING_HWTIMER']):
+    src += ['drv_hwtimer.c']
 
 path = [cwd]
 

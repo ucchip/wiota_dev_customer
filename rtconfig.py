@@ -52,6 +52,7 @@ if PLATFORM == 'gcc':
     LFLAGS = ' -nostartfiles -Wl,--gc-sections '
     LFLAGS += ' -T ' + LINK_FILE
     LFLAGS += ' -Wl,-Map=' + MAP_FILE
+    CFLAGS += ' -D _WANT_USE_LONG_TIME_T'
 
     CPATH = ''
     LPATH = ''

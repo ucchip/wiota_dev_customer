@@ -13,8 +13,8 @@
 
 #include "watermark_queue.h"
 
-void rt_wm_que_set_mark(struct rt_watermark_queue* wg,
-                        unsigned int low, unsigned int high)
+void rt_wm_que_set_mark(struct rt_watermark_queue *wg,
+                             unsigned int low, unsigned int high)
 {
     RT_ASSERT(low <= high);
 
@@ -22,17 +22,17 @@ void rt_wm_que_set_mark(struct rt_watermark_queue* wg,
     wg->low_mark = low;
 }
 
-void rt_wm_que_init(struct rt_watermark_queue* wg,
-                    unsigned int low, unsigned int high)
+void rt_wm_que_init(struct rt_watermark_queue *wg,
+                         unsigned int low, unsigned int high)
 {
     rt_wm_que_set_mark(wg, low, high);
     rt_list_init(&wg->suspended_threads);
     wg->level = 0;
 }
 
-void rt_wm_que_dump(struct rt_watermark_queue* wg)
+void rt_wm_que_dump(struct rt_watermark_queue *wg)
 {
-    struct rt_list_node* node;
+    struct rt_list_node *node;
 
     rt_kprintf("wg %p: low: %d, high: %d, cur: %d\n",
                wg, wg->low_mark, wg->high_mark, wg->level);

@@ -52,19 +52,19 @@ static char sccsid[] = "@(#)clnt_udp.c 1.39 87/08/11 Copyr 1984 Sun Micro";
 /*
  * UDP bases client side rpc operations
  */
-static enum clnt_stat clntudp_call(register CLIENT* cl,         /* client handle */
-                                   unsigned long proc,          /* procedure number */
-                                   xdrproc_t xargs,             /* xdr routine for args */
-                                   char* argsp,                 /* pointer to args */
-                                   xdrproc_t xresults,          /* xdr routine for results */
-                                   char* resultsp,              /* pointer to results */
-                                   struct timeval utimeout);
+static enum clnt_stat clntudp_call(register CLIENT *cl,         /* client handle */
+    unsigned long proc,          /* procedure number */
+    xdrproc_t xargs,             /* xdr routine for args */
+    char* argsp,                 /* pointer to args */
+    xdrproc_t xresults,          /* xdr routine for results */
+    char* resultsp,              /* pointer to results */
+    struct timeval utimeout);
 
 static void clntudp_abort(void);
-static void clntudp_geterr(CLIENT*, struct rpc_err*);
-static bool_t clntudp_freeres(CLIENT*, xdrproc_t, char*);
-static bool_t clntudp_control(CLIENT*, int, char*);
-static void clntudp_destroy(CLIENT*);
+static void clntudp_geterr(CLIENT *, struct rpc_err *);
+static bool_t clntudp_freeres(CLIENT *, xdrproc_t, char*);
+static bool_t clntudp_control(CLIENT *, int, char *);
+static void clntudp_destroy(CLIENT *);
 
 static struct clnt_ops udp_ops =
 {
@@ -91,7 +91,7 @@ struct cu_data
     XDR cu_outxdrs;
     unsigned int cu_xdrpos;
     unsigned int cu_sendsz;
-    char* cu_outbuf;
+    char *cu_outbuf;
     unsigned int cu_recvsz;
     char cu_inbuf[1];
 };
@@ -112,20 +112,20 @@ struct cu_data
  * sendsz and recvsz are the maximum allowable packet sizes that can be
  * sent and received.
  */
-CLIENT* clntudp_bufcreate(struct sockaddr_in* raddr,
-                          unsigned long program,
-                          unsigned long version,
-                          struct timeval wait,
-                          int* sockp,
-                          unsigned int sendsz,
-                          unsigned int recvsz)
+CLIENT *clntudp_bufcreate(struct sockaddr_in *raddr,
+    unsigned long program,
+    unsigned long version,
+    struct timeval wait,
+    int *sockp,
+    unsigned int sendsz,
+    unsigned int recvsz)
 {
-    CLIENT* cl;
-    register struct cu_data* cu = NULL;
+    CLIENT *cl;
+    register struct cu_data *cu = NULL;
     struct rpc_msg call_msg;
     static int xid_count = 0;
 
-    cl = (CLIENT*) rt_malloc (sizeof(CLIENT));
+    cl = (CLIENT *) rt_malloc (sizeof(CLIENT));
     if (cl == NULL)
     {
         rt_kprintf("clntudp_create: out of memory\n");
@@ -133,7 +133,7 @@ CLIENT* clntudp_bufcreate(struct sockaddr_in* raddr,
     }
     sendsz = ((sendsz + 3) / 4) * 4;
     recvsz = ((recvsz + 3) / 4) * 4;
-    cu = (struct cu_data*) rt_malloc (sizeof(*cu) + sendsz + recvsz);
+    cu = (struct cu_data *) rt_malloc (sizeof(*cu) + sendsz + recvsz);
     if (cu == NULL)
     {
         rt_kprintf("clntudp_create: out of memory\n");
@@ -141,17 +141,15 @@ CLIENT* clntudp_bufcreate(struct sockaddr_in* raddr,
     }
     cu->cu_outbuf = &cu->cu_inbuf[recvsz];
 
-    if (raddr->sin_port == 0)
-    {
+    if (raddr->sin_port == 0) {
         unsigned short port;
-        extern unsigned short pmap_getport(struct sockaddr_in * address,
-                                           unsigned long program,
-                                           unsigned long version,
-                                           unsigned int protocol);
+        extern unsigned short pmap_getport(struct sockaddr_in *address,
+            unsigned long program,
+            unsigned long version,
+            unsigned int protocol);
 
         if ((port =
-                 pmap_getport(raddr, program, version, IPPROTO_UDP)) == 0)
-        {
+             pmap_getport(raddr, program, version, IPPROTO_UDP)) == 0) {
             goto fooy;
         }
         raddr->sin_port = htons(port);
@@ -196,35 +194,29 @@ CLIENT* clntudp_bufcreate(struct sockaddr_in* raddr,
     return (cl);
 
 fooy:
-    if (cu)
-    {
-        rt_free(cu);
-    }
-    if (cl)
-    {
-        rt_free(cl);
-    }
+    if (cu) rt_free(cu);
+    if (cl) rt_free(cl);
 
-    return ((CLIENT*) NULL);
+    return ((CLIENT *) NULL);
 }
 
-CLIENT* clntudp_create(struct sockaddr_in* raddr,
-                       unsigned long program,
-                       unsigned long version,
-                       struct timeval wait,
-                       int* sockp)
+CLIENT *clntudp_create(struct sockaddr_in *raddr,
+    unsigned long program,
+    unsigned long version,
+    struct timeval wait,
+    int *sockp)
 {
     return (clntudp_bufcreate(raddr, program, version, wait, sockp,
                               UDPMSGSIZE, UDPMSGSIZE));
 }
 
-static enum clnt_stat clntudp_call(CLIENT* cl, unsigned long proc,
-                                   xdrproc_t xargs, char* argsp,
-                                   xdrproc_t xresults, char* resultsp,
-                                   struct timeval utimeout)
+static enum clnt_stat clntudp_call(CLIENT *cl, unsigned long proc,
+    xdrproc_t xargs, char* argsp,
+    xdrproc_t xresults, char* resultsp,
+    struct timeval utimeout)
 {
-    register struct cu_data* cu = (struct cu_data*) cl->cl_private;
-    register XDR* xdrs;
+    register struct cu_data *cu = (struct cu_data *) cl->cl_private;
+    register XDR *xdrs;
     register int outlen;
     register int inlen;
     socklen_t fromlen;
@@ -243,10 +235,10 @@ call_again:
     /*
      * the transaction is the first thing in the out buffer
      */
-    (*(unsigned long*) (cu->cu_outbuf))++;
+    (*(unsigned long *) (cu->cu_outbuf))++;
 
-    if ((!XDR_PUTLONG(xdrs, (long*) &proc)) ||
-        (!AUTH_MARSHALL(cl->cl_auth, xdrs)) || (!(*xargs) (xdrs, argsp)))
+    if ((!XDR_PUTLONG(xdrs, (long *) &proc)) ||
+            (!AUTH_MARSHALL(cl->cl_auth, xdrs)) || (!(*xargs) (xdrs, argsp)))
     {
         cu->cu_error.re_status = RPC_CANTENCODEARGS;
         return RPC_CANTENCODEARGS;
@@ -255,8 +247,8 @@ call_again:
 
 send_again:
     if (sendto(cu->cu_sock, cu->cu_outbuf, outlen, 0,
-               (struct sockaddr*) & (cu->cu_raddr), cu->cu_rlen)
-        != outlen)
+               (struct sockaddr *) &(cu->cu_raddr), cu->cu_rlen)
+            != outlen)
     {
         cu->cu_error.re_errno = errno;
         cu->cu_error.re_status = RPC_CANTSEND;
@@ -280,8 +272,8 @@ send_again:
 
         inlen = recvfrom(cu->cu_sock, cu->cu_inbuf,
                          (int) cu->cu_recvsz, 0,
-                         (struct sockaddr*) &from, &fromlen);
-    } while (inlen < 0 && errno == EINTR);
+                         (struct sockaddr *) &from, &fromlen);
+    }while (inlen < 0 && errno == EINTR);
 
     if (inlen < 4)
     {
@@ -293,8 +285,8 @@ send_again:
     }
 
     /* see if reply transaction id matches sent id */
-    if (*((uint32_t*) (cu->cu_inbuf)) != *((uint32_t*) (cu->cu_outbuf)))
-    { goto send_again; }
+    if (*((uint32_t *) (cu->cu_inbuf)) != *((uint32_t *) (cu->cu_outbuf)))
+        goto send_again;
 
     /* we now assume we have the proper reply */
 
@@ -317,7 +309,7 @@ send_again:
             }
             if (reply_msg.acpted_rply.ar_verf.oa_base != NULL)
             {
-                extern bool_t xdr_opaque_auth(XDR * xdrs, struct opaque_auth * ap);
+                extern bool_t xdr_opaque_auth(XDR *xdrs, struct opaque_auth *ap);
 
                 xdrs->x_op = XDR_FREE;
                 (void) xdr_opaque_auth(xdrs, &(reply_msg.acpted_rply.ar_verf));
@@ -341,17 +333,17 @@ send_again:
     return (enum clnt_stat)(cu->cu_error.re_status);
 }
 
-static void clntudp_geterr(CLIENT* cl, struct rpc_err* errp)
+static void clntudp_geterr(CLIENT *cl, struct rpc_err *errp)
 {
-    register struct cu_data* cu = (struct cu_data*) cl->cl_private;
+    register struct cu_data *cu = (struct cu_data *) cl->cl_private;
 
     *errp = cu->cu_error;
 }
 
-static bool_t clntudp_freeres(CLIENT* cl, xdrproc_t xdr_res, char* res_ptr)
+static bool_t clntudp_freeres(CLIENT *cl, xdrproc_t xdr_res, char* res_ptr)
 {
-    register struct cu_data* cu = (struct cu_data*) cl->cl_private;
-    register XDR* xdrs = &(cu->cu_outxdrs);
+    register struct cu_data *cu = (struct cu_data *) cl->cl_private;
+    register XDR *xdrs = &(cu->cu_outxdrs);
 
     xdrs->x_op = XDR_FREE;
     return ((*xdr_res) (xdrs, res_ptr));
@@ -361,45 +353,45 @@ static void clntudp_abort()
 {
 }
 
-static bool_t clntudp_control(CLIENT* cl, int request, char* info)
+static bool_t clntudp_control(CLIENT *cl, int request, char *info)
 {
-    register struct cu_data* cu = (struct cu_data*) cl->cl_private;
+    register struct cu_data *cu = (struct cu_data *) cl->cl_private;
 
     switch (request)
     {
-        case CLSET_TIMEOUT:
+    case CLSET_TIMEOUT:
         {
-            int mtimeout;
+        int mtimeout;
 
-            cu->cu_total = *(struct timeval*) info;
-            mtimeout = ((cu->cu_total.tv_sec * 1000) + ((cu->cu_total.tv_usec + 500) / 1000));
+        cu->cu_total = *(struct timeval *) info;
+        mtimeout = ((cu->cu_total.tv_sec * 1000) + ((cu->cu_total.tv_usec + 500)/1000));
 
-            /* set socket option, note: lwip only support msecond timeout */
-            setsockopt(cu->cu_sock, SOL_SOCKET, SO_RCVTIMEO,
-                       &mtimeout, sizeof(mtimeout));
+        /* set socket option, note: lwip only support msecond timeout */
+        setsockopt(cu->cu_sock, SOL_SOCKET, SO_RCVTIMEO,
+            &mtimeout, sizeof(mtimeout));
         }
         break;
-        case CLGET_TIMEOUT:
-            *(struct timeval*) info = cu->cu_total;
-            break;
-        case CLSET_RETRY_TIMEOUT:
-            cu->cu_wait = *(struct timeval*) info;
-            break;
-        case CLGET_RETRY_TIMEOUT:
-            *(struct timeval*) info = cu->cu_wait;
-            break;
-        case CLGET_SERVER_ADDR:
-            *(struct sockaddr_in*) info = cu->cu_raddr;
-            break;
-        default:
-            return (FALSE);
+    case CLGET_TIMEOUT:
+        *(struct timeval *) info = cu->cu_total;
+        break;
+    case CLSET_RETRY_TIMEOUT:
+        cu->cu_wait = *(struct timeval *) info;
+        break;
+    case CLGET_RETRY_TIMEOUT:
+        *(struct timeval *) info = cu->cu_wait;
+        break;
+    case CLGET_SERVER_ADDR:
+        *(struct sockaddr_in *) info = cu->cu_raddr;
+        break;
+    default:
+        return (FALSE);
     }
     return (TRUE);
 }
 
-static void clntudp_destroy(CLIENT* cl)
+static void clntudp_destroy(CLIENT *cl)
 {
-    register struct cu_data* cu = (struct cu_data*) cl->cl_private;
+    register struct cu_data *cu = (struct cu_data *) cl->cl_private;
 
     if (cu->cu_closeit)
     {

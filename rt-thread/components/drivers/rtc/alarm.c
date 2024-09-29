@@ -14,8 +14,6 @@
 #include <rtthread.h>
 #include <rtdevice.h>
 #include <sys/time.h>
-#include "uc_rtc.h"
-
 
 #define RT_RTC_YEARS_MAX         137
 #ifdef RT_USING_SOFT_RTC
@@ -23,14 +21,11 @@
 #else
 #define RT_ALARM_DELAY             2
 #endif
-#define RT_ALARM_STATE_INITED   0x02
-#define RT_ALARM_STATE_START    0x01
-#define RT_ALARM_STATE_STOP     0x00
 
 #if (defined(RT_USING_RTC) && defined(RT_USING_ALARM))
 static struct rt_alarm_container _container;
 
-rt_inline rt_uint32_t alarm_mkdaysec(struct tm* time)
+rt_inline rt_uint32_t alarm_mkdaysec(struct tm *time)
 {
     rt_uint32_t sec;
 
@@ -41,7 +36,7 @@ rt_inline rt_uint32_t alarm_mkdaysec(struct tm* time)
     return (sec);
 }
 
-static rt_err_t alarm_set(struct rt_alarm* alarm)
+static rt_err_t alarm_set(struct rt_alarm *alarm)
 {
     rt_device_t device;
     struct rt_rtc_wkalarm wkalarm;
@@ -55,9 +50,9 @@ static rt_err_t alarm_set(struct rt_alarm* alarm)
     }
 
     if (alarm->flag & RT_ALARM_STATE_START)
-    { wkalarm.enable = RT_TRUE; }
+        wkalarm.enable = RT_TRUE;
     else
-    { wkalarm.enable = RT_FALSE; }
+        wkalarm.enable = RT_FALSE;
 
     wkalarm.tm_sec = alarm->wktime.tm_sec;
     wkalarm.tm_min = alarm->wktime.tm_min;
@@ -82,7 +77,7 @@ static rt_err_t alarm_set(struct rt_alarm* alarm)
     return (ret);
 }
 
-static void alarm_wakeup(struct rt_alarm* alarm, struct tm* now)
+static void alarm_wakeup(struct rt_alarm *alarm, struct tm *now)
 {
     rt_uint32_t sec_alarm, sec_now;
     rt_bool_t wakeup = RT_FALSE;
@@ -95,115 +90,119 @@ static void alarm_wakeup(struct rt_alarm* alarm, struct tm* now)
     {
         switch (alarm->flag & 0xFF00)
         {
-            case RT_ALARM_ONESHOT:
+        case RT_ALARM_ONESHOT:
+        {
+            sec_alarm = timegm(&alarm->wktime);
+            sec_now = timegm(now);
+            if (((sec_now - sec_alarm) <= RT_ALARM_DELAY) && (sec_now >= sec_alarm))
             {
-                sec_alarm = timegm(&alarm->wktime);
-                sec_now = timegm(now);
-                if (((sec_now - sec_alarm) <= RT_ALARM_DELAY) && (sec_now >= sec_alarm))
-                {
-                    /* stop alarm */
-                    alarm->flag &= ~RT_ALARM_STATE_START;
-                    alarm_set(alarm);
-                    wakeup = RT_TRUE;
-                }
-            }
-            break;
-            case RT_ALARM_SECOND:
-            {
-                alarm->wktime.tm_hour = now->tm_hour;
-                alarm->wktime.tm_min = now->tm_min;
-                alarm->wktime.tm_sec = now->tm_sec + 1;
-                if (alarm->wktime.tm_sec > 59)
-                {
-                    alarm->wktime.tm_sec = 0;
-                    alarm->wktime.tm_min = alarm->wktime.tm_min + 1;
-                    if (alarm->wktime.tm_min > 59)
-                    {
-                        alarm->wktime.tm_min = 0;
-                        alarm->wktime.tm_hour = alarm->wktime.tm_hour + 1;
-                        if (alarm->wktime.tm_hour > 23)
-                        {
-                            alarm->wktime.tm_hour = 0;
-                        }
-                    }
-                }
+                /* stop alarm */
+                alarm->flag &= ~RT_ALARM_STATE_START;
+                alarm_set(alarm);
                 wakeup = RT_TRUE;
             }
-            break;
-            case RT_ALARM_MINUTE:
+        }
+        break;
+        case RT_ALARM_SECOND:
+        {
+            alarm->wktime.tm_hour = now->tm_hour;
+            alarm->wktime.tm_min = now->tm_min;
+            alarm->wktime.tm_sec = now->tm_sec + 1;
+            if (alarm->wktime.tm_sec > 59)
             {
-                alarm->wktime.tm_hour = now->tm_hour;
-                if (alarm->wktime.tm_sec == now->tm_sec)
+                alarm->wktime.tm_sec = 0;
+                alarm->wktime.tm_min = alarm->wktime.tm_min + 1;
+                if (alarm->wktime.tm_min > 59)
                 {
-                    alarm->wktime.tm_min = now->tm_min + 1;
-                    if (alarm->wktime.tm_min > 59)
-                    {
-                        alarm->wktime.tm_min = 0;
-                        alarm->wktime.tm_hour = alarm->wktime.tm_hour + 1;
-                        if (alarm->wktime.tm_hour > 23)
-                        {
-                            alarm->wktime.tm_hour = 0;
-                        }
-                    }
-                    wakeup = RT_TRUE;
-                }
-            }
-            break;
-            case RT_ALARM_HOUR:
-            {
-                if ((alarm->wktime.tm_min == now->tm_min) &&
-                    (alarm->wktime.tm_sec == now->tm_sec))
-                {
-                    alarm->wktime.tm_hour = now->tm_hour + 1;
+                    alarm->wktime.tm_min = 0;
+                    alarm->wktime.tm_hour = alarm->wktime.tm_hour + 1;
                     if (alarm->wktime.tm_hour > 23)
                     {
                         alarm->wktime.tm_hour = 0;
                     }
-                    wakeup = RT_TRUE;
                 }
             }
-            break;
-            case RT_ALARM_DAILY:
+            wakeup = RT_TRUE;
+        }
+        break;
+        case RT_ALARM_MINUTE:
+        {
+            alarm->wktime.tm_hour = now->tm_hour;
+            if (alarm->wktime.tm_sec == now->tm_sec)
             {
-                if (((sec_now - sec_alarm) <= RT_ALARM_DELAY) && (sec_now >= sec_alarm))
-                { wakeup = RT_TRUE; }
+                alarm->wktime.tm_min = now->tm_min + 1;
+                if (alarm->wktime.tm_min > 59)
+                {
+                    alarm->wktime.tm_min = 0;
+                    alarm->wktime.tm_hour = alarm->wktime.tm_hour + 1;
+                    if (alarm->wktime.tm_hour > 23)
+                    {
+                        alarm->wktime.tm_hour = 0;
+                    }
+                }
+                wakeup = RT_TRUE;
             }
-            break;
-            case RT_ALARM_WEEKLY:
+        }
+        break;
+        case RT_ALARM_HOUR:
+        {
+            if ((alarm->wktime.tm_min == now->tm_min) &&
+                (alarm->wktime.tm_sec == now->tm_sec))
             {
-                /* alarm at wday */
+                alarm->wktime.tm_hour = now->tm_hour + 1;
+                if (alarm->wktime.tm_hour > 23)
+                {
+                    alarm->wktime.tm_hour = 0;
+                }
+                wakeup = RT_TRUE;
+            }
+        }
+        break;
+        case RT_ALARM_DAILY:
+        {
+            if (((sec_now - sec_alarm) <= RT_ALARM_DELAY) && (sec_now >= sec_alarm))
+                wakeup = RT_TRUE;
+        }
+        break;
+        case RT_ALARM_WEEKLY:
+        {
+            /* alarm at wday */
+            if (alarm->wktime.tm_wday == now->tm_wday)
+            {
                 sec_alarm += alarm->wktime.tm_wday * 24 * 3600;
                 sec_now += now->tm_wday * 24 * 3600;
 
-                if (((sec_now - sec_alarm) <= RT_ALARM_DELAY) && (sec_now >= sec_alarm))
-                { wakeup = RT_TRUE; }
+                if (sec_now == sec_alarm)
+                    wakeup = RT_TRUE;
             }
-            break;
-            case RT_ALARM_MONTHLY:
+        }
+        break;
+        case RT_ALARM_MONTHLY:
+        {
+            /* monthly someday generate alarm signals */
+            if (alarm->wktime.tm_mday == now->tm_mday)
             {
-                /* monthly someday generate alarm signals */
-                if (alarm->wktime.tm_mday == now->tm_mday)
-                {
-                    if ((sec_now - sec_alarm) <= RT_ALARM_DELAY)
-                    { wakeup = RT_TRUE; }
-                }
+                if ((sec_now - sec_alarm) <= RT_ALARM_DELAY)
+                    wakeup = RT_TRUE;
             }
-            break;
-            case RT_ALARM_YAERLY:
-            {
-                if ((alarm->wktime.tm_mday == now->tm_mday) && \
+        }
+        break;
+        case RT_ALARM_YAERLY:
+        {
+            if ((alarm->wktime.tm_mday == now->tm_mday) && \
                     (alarm->wktime.tm_mon == now->tm_mon))
-                {
-                    if ((sec_now - sec_alarm) <= RT_ALARM_DELAY)
-                    { wakeup = RT_TRUE; }
-                }
+            {
+                if ((sec_now - sec_alarm) <= RT_ALARM_DELAY)
+                    wakeup = RT_TRUE;
             }
-            break;
+        }
+        break;
         }
 
         if ((wakeup == RT_TRUE) && (alarm->callback != RT_NULL))
         {
-            timestamp = time(RT_NULL);
+            timestamp = (time_t)0;
+            get_timestamp(&timestamp);
             alarm->callback(alarm, timestamp);
         }
     }
@@ -211,24 +210,20 @@ static void alarm_wakeup(struct rt_alarm* alarm, struct tm* now)
 
 static void alarm_update(rt_uint32_t event)
 {
-    struct rt_alarm* alm_prev = RT_NULL, *alm_next = RT_NULL;
-    struct rt_alarm* alarm;
+    struct rt_alarm *alm_prev = RT_NULL, *alm_next = RT_NULL;
+    struct rt_alarm *alarm;
     rt_int32_t sec_now, sec_alarm, sec_tmp;
     rt_int32_t sec_next = 24 * 3600, sec_prev = 0;
-    time_t timestamp;
+    time_t timestamp = (time_t)0;
     struct tm now;
-    rt_list_t* next;
+    rt_list_t *next;
 
     rt_mutex_take(&_container.mutex, RT_WAITING_FOREVER);
     if (!rt_list_isempty(&_container.head))
     {
         /* get time of now */
-        timestamp = time(RT_NULL);
-#ifdef _WIN32
-        _gmtime32_s(&now, &timestamp);
-#else
+        get_timestamp(&timestamp);
         gmtime_r(&timestamp, &now);
-#endif
 
         for (next = _container.head.next; next != &_container.head; next = next->next)
         {
@@ -237,12 +232,9 @@ static void alarm_update(rt_uint32_t event)
             alarm_wakeup(alarm, &now);
         }
 
-        timestamp = time(RT_NULL);
-#ifdef _WIN32
-        _gmtime32_s(&now, &timestamp);
-#else
+        /* get time of now */
+        get_timestamp(&timestamp);
         gmtime_r(&timestamp, &now);
-#endif
         sec_now = alarm_mkdaysec(&now);
 
         for (next = _container.head.next; next != &_container.head; next = next->next)
@@ -278,26 +270,26 @@ static void alarm_update(rt_uint32_t event)
         if (sec_next < 24 * 3600)
         {
             if (alarm_set(alm_next) == RT_EOK)
-            { _container.current = alm_next; }
+                _container.current = alm_next;
         }
         else if (sec_prev < 0)
         {
             /* enable the alarm before now */
             if (alarm_set(alm_prev) == RT_EOK)
-            { _container.current = alm_prev; }
+                _container.current = alm_prev;
         }
         else
         {
             if (_container.current != RT_NULL)
-            { alarm_set(_container.current); }
+                alarm_set(_container.current);
         }
     }
     rt_mutex_release(&_container.mutex);
 }
 
-static rt_uint32_t days_of_year_month(int tm_year, int tm_mon)
+static int days_of_year_month(int tm_year, int tm_mon)
 {
-    rt_uint32_t ret, year;
+    int ret, year;
 
     year = tm_year + 1900;
     if (tm_mon == 1)
@@ -316,7 +308,7 @@ static rt_uint32_t days_of_year_month(int tm_year, int tm_mon)
     return (ret);
 }
 
-static rt_bool_t is_valid_date(struct tm* date)
+static rt_bool_t is_valid_date(struct tm *date)
 {
     if ((date->tm_year < 0) || (date->tm_year > RT_RTC_YEARS_MAX))
     {
@@ -329,7 +321,7 @@ static rt_bool_t is_valid_date(struct tm* date)
     }
 
     if ((date->tm_mday < 1) || \
-        (date->tm_mday > days_of_year_month(date->tm_year, date->tm_mon)))
+            (date->tm_mday > days_of_year_month(date->tm_year, date->tm_mon)))
     {
         return (RT_FALSE);
     }
@@ -337,57 +329,37 @@ static rt_bool_t is_valid_date(struct tm* date)
     return (RT_TRUE);
 }
 
-static rt_err_t alarm_setup(rt_alarm_t alarm, struct tm* wktime)
+static rt_err_t alarm_setup(rt_alarm_t alarm, struct tm *wktime)
 {
     rt_err_t ret = RT_ERROR;
-    time_t timestamp;
-    struct tm* setup, now;
+    time_t timestamp = (time_t)0;
+    struct tm *setup, now;
 
     setup = &alarm->wktime;
     *setup = *wktime;
-    timestamp = time(RT_NULL);
-
-#ifdef _WIN32
-    _gmtime32_s(&now, &timestamp);
-#else
+    /* get time of now */
+    get_timestamp(&timestamp);
     gmtime_r(&timestamp, &now);
-#endif
 
     /* if these are a "don't care" value,we set them to now*/
     if ((setup->tm_sec > 59) || (setup->tm_sec < 0))
-    { setup->tm_sec = now.tm_sec; }
+        setup->tm_sec = now.tm_sec;
     if ((setup->tm_min > 59) || (setup->tm_min < 0))
-    { setup->tm_min = now.tm_min; }
+        setup->tm_min = now.tm_min;
     if ((setup->tm_hour > 23) || (setup->tm_hour < 0))
-    { setup->tm_hour = now.tm_hour; }
+        setup->tm_hour = now.tm_hour;
 
     switch (alarm->flag & 0xFF00)
     {
-        case RT_ALARM_SECOND:
+    case RT_ALARM_SECOND:
+    {
+        alarm->wktime.tm_hour = now.tm_hour;
+        alarm->wktime.tm_min = now.tm_min;
+        alarm->wktime.tm_sec = now.tm_sec + 1;
+        if (alarm->wktime.tm_sec > 59)
         {
-            alarm->wktime.tm_hour = now.tm_hour;
-            alarm->wktime.tm_min = now.tm_min;
-            alarm->wktime.tm_sec = now.tm_sec + 1;
-            if (alarm->wktime.tm_sec > 59)
-            {
-                alarm->wktime.tm_sec = 0;
-                alarm->wktime.tm_min = alarm->wktime.tm_min + 1;
-                if (alarm->wktime.tm_min > 59)
-                {
-                    alarm->wktime.tm_min = 0;
-                    alarm->wktime.tm_hour = alarm->wktime.tm_hour + 1;
-                    if (alarm->wktime.tm_hour > 23)
-                    {
-                        alarm->wktime.tm_hour = 0;
-                    }
-                }
-            }
-        }
-        break;
-        case RT_ALARM_MINUTE:
-        {
-            alarm->wktime.tm_hour = now.tm_hour;
-            alarm->wktime.tm_min = now.tm_min + 1;
+            alarm->wktime.tm_sec = 0;
+            alarm->wktime.tm_min = alarm->wktime.tm_min + 1;
             if (alarm->wktime.tm_min > 59)
             {
                 alarm->wktime.tm_min = 0;
@@ -398,84 +370,100 @@ static rt_err_t alarm_setup(rt_alarm_t alarm, struct tm* wktime)
                 }
             }
         }
-        break;
-        case RT_ALARM_HOUR:
+    }
+    break;
+    case RT_ALARM_MINUTE:
+    {
+        alarm->wktime.tm_hour = now.tm_hour;
+        alarm->wktime.tm_min = now.tm_min + 1;
+        if (alarm->wktime.tm_min > 59)
         {
-            alarm->wktime.tm_hour = now.tm_hour + 1;
+            alarm->wktime.tm_min = 0;
+            alarm->wktime.tm_hour = alarm->wktime.tm_hour + 1;
             if (alarm->wktime.tm_hour > 23)
             {
                 alarm->wktime.tm_hour = 0;
             }
         }
-        break;
-        case RT_ALARM_DAILY:
+    }
+    break;
+    case RT_ALARM_HOUR:
+    {
+        alarm->wktime.tm_hour = now.tm_hour + 1;
+        if (alarm->wktime.tm_hour > 23)
         {
-            /* do nothing but needed */
+            alarm->wktime.tm_hour = 0;
         }
-        break;
-        case RT_ALARM_ONESHOT:
-        {
-            /* if these are "don't care" value we set them to now */
-            if (setup->tm_year == RT_ALARM_TM_NOW)
-            { setup->tm_year = now.tm_year; }
-            if (setup->tm_mon == RT_ALARM_TM_NOW)
-            { setup->tm_mon = now.tm_mon; }
-            if (setup->tm_mday == RT_ALARM_TM_NOW)
-            { setup->tm_mday = now.tm_mday; }
-            /* make sure the setup is valid */
-            if (!is_valid_date(setup))
-            { goto _exit; }
-        }
-        break;
-        case RT_ALARM_WEEKLY:
-        {
-            /* if tm_wday is a "don't care" value we set it to now */
-            if ((setup->tm_wday < 0) || (setup->tm_wday > 6))
-            { setup->tm_wday = now.tm_wday; }
-        }
-        break;
-        case RT_ALARM_MONTHLY:
-        {
-            /* if tm_mday is a "don't care" value we set it to now */
-            if ((setup->tm_mday < 1) || (setup->tm_mday > 31))
-            { setup->tm_mday = now.tm_mday; }
-        }
-        break;
-        case RT_ALARM_YAERLY:
-        {
-            /* if tm_mon is a "don't care" value we set it to now */
-            if ((setup->tm_mon < 0) || (setup->tm_mon > 11))
-            { setup->tm_mon = now.tm_mon; }
-
-            if (setup->tm_mon == 1)
-            {
-                /* tm_mon is February */
-
-                /* tm_mday should be 1~29.otherwise,it's a "don't care" value */
-                if ((setup->tm_mday < 1) || (setup->tm_mday > 29))
-                { setup->tm_mday = now.tm_mday; }
-            }
-            else if (((setup->tm_mon <= 6) && (setup->tm_mon % 2 == 0)) || \
-                     ((setup->tm_mon > 6) && (setup->tm_mon % 2 == 1)))
-            {
-                /* Jan,Mar,May,Jul,Aug,Oct,Dec */
-
-                /* tm_mday should be 1~31.otherwise,it's a "don't care" value */
-                if ((setup->tm_mday < 1) || (setup->tm_mday > 31))
-                { setup->tm_mday = now.tm_mday; }
-            }
-            else
-            {
-                /* tm_mday should be 1~30.otherwise,it's a "don't care" value */
-                if ((setup->tm_mday < 1) || (setup->tm_mday > 30))
-                { setup->tm_mday = now.tm_mday; }
-            }
-        }
-        break;
-        default:
-        {
+    }
+    break;
+    case RT_ALARM_DAILY:
+    {
+        /* do nothing but needed */
+    }
+    break;
+    case RT_ALARM_ONESHOT:
+    {
+        /* if these are "don't care" value we set them to now */
+        if (setup->tm_year == RT_ALARM_TM_NOW)
+            setup->tm_year = now.tm_year;
+        if (setup->tm_mon == RT_ALARM_TM_NOW)
+            setup->tm_mon = now.tm_mon;
+        if (setup->tm_mday == RT_ALARM_TM_NOW)
+            setup->tm_mday = now.tm_mday;
+        /* make sure the setup is valid */
+        if (!is_valid_date(setup))
             goto _exit;
+    }
+    break;
+    case RT_ALARM_WEEKLY:
+    {
+        /* if tm_wday is a "don't care" value we set it to now */
+        if ((setup->tm_wday < 0) || (setup->tm_wday > 6))
+            setup->tm_wday = now.tm_wday;
+    }
+    break;
+    case RT_ALARM_MONTHLY:
+    {
+        /* if tm_mday is a "don't care" value we set it to now */
+        if ((setup->tm_mday < 1) || (setup->tm_mday > 31))
+            setup->tm_mday = now.tm_mday;
+    }
+    break;
+    case RT_ALARM_YAERLY:
+    {
+        /* if tm_mon is a "don't care" value we set it to now */
+        if ((setup->tm_mon < 0) || (setup->tm_mon > 11))
+            setup->tm_mon = now.tm_mon;
+
+        if (setup->tm_mon == 1)
+        {
+            /* tm_mon is February */
+
+            /* tm_mday should be 1~29.otherwise,it's a "don't care" value */
+            if ((setup->tm_mday < 1) || (setup->tm_mday > 29))
+                setup->tm_mday = now.tm_mday;
         }
+        else if (((setup->tm_mon <= 6) && (setup->tm_mon % 2 == 0)) || \
+                 ((setup->tm_mon > 6) && (setup->tm_mon % 2 == 1)))
+        {
+            /* Jan,Mar,May,Jul,Aug,Oct,Dec */
+
+            /* tm_mday should be 1~31.otherwise,it's a "don't care" value */
+            if ((setup->tm_mday < 1) || (setup->tm_mday > 31))
+                setup->tm_mday = now.tm_mday;
+        }
+        else
+        {
+            /* tm_mday should be 1~30.otherwise,it's a "don't care" value */
+            if ((setup->tm_mday < 1) || (setup->tm_mday > 30))
+                setup->tm_mday = now.tm_mday;
+        }
+    }
+    break;
+    default:
+    {
+        goto _exit;
+    }
     }
 
     if ((setup->tm_hour == 23) && (setup->tm_min == 59) && (setup->tm_sec == 59))
@@ -503,9 +491,7 @@ _exit:
  */
 void rt_alarm_update(rt_device_t dev, rt_uint32_t event)
 {
-#ifdef RT_USING_EVENT
     rt_event_send(&_container.event, 1);
-#endif
 }
 
 /** \brief modify the alarm setup
@@ -514,7 +500,7 @@ void rt_alarm_update(rt_device_t dev, rt_uint32_t event)
  * \param cmd control command
  * \param arg argument
  */
-rt_err_t rt_alarm_control(rt_alarm_t alarm, int cmd, void* arg)
+rt_err_t rt_alarm_control(rt_alarm_t alarm, int cmd, void *arg)
 {
     rt_err_t ret = RT_ERROR;
 
@@ -523,18 +509,18 @@ rt_err_t rt_alarm_control(rt_alarm_t alarm, int cmd, void* arg)
     rt_mutex_take(&_container.mutex, RT_WAITING_FOREVER);
     switch (cmd)
     {
-        case RT_ALARM_CTRL_MODIFY:
-        {
-            struct rt_alarm_setup* setup;
+    case RT_ALARM_CTRL_MODIFY:
+    {
+        struct rt_alarm_setup *setup;
 
-            RT_ASSERT(arg != RT_NULL);
-            setup = arg;
-            rt_alarm_stop(alarm);
-            alarm->flag = setup->flag & 0xFF00;
-            alarm->wktime = setup->wktime;
-            ret = alarm_setup(alarm, &alarm->wktime);
-        }
-        break;
+        RT_ASSERT(arg != RT_NULL);
+        setup = arg;
+        rt_alarm_stop(alarm);
+        alarm->flag = setup->flag & 0xFF00;
+        alarm->wktime = setup->wktime;
+        ret = alarm_setup(alarm, &alarm->wktime);
+    }
+    break;
     }
 
     rt_mutex_release(&_container.mutex);
@@ -551,11 +537,11 @@ rt_err_t rt_alarm_start(rt_alarm_t alarm)
 {
     rt_int32_t sec_now, sec_old, sec_new;
     rt_err_t ret = RT_EOK;
-    time_t timestamp;
+    time_t timestamp = (time_t)0;
     struct tm now;
 
     if (alarm == RT_NULL)
-    { return (RT_ERROR); }
+        return (RT_ERROR);
     rt_mutex_take(&_container.mutex, RT_WAITING_FOREVER);
 
     if (!(alarm->flag & RT_ALARM_STATE_START))
@@ -566,12 +552,9 @@ rt_err_t rt_alarm_start(rt_alarm_t alarm)
             goto _exit;
         }
 
-        timestamp = time(RT_NULL);
-#ifdef _WIN32
-        _gmtime32_s(&now, &timestamp);
-#else
+        /* get time of now */
+        get_timestamp(&timestamp);
         gmtime_r(&timestamp, &now);
-#endif
 
         alarm->flag |= RT_ALARM_STATE_START;
 
@@ -627,10 +610,10 @@ rt_err_t rt_alarm_stop(rt_alarm_t alarm)
     rt_err_t ret = RT_EOK;
 
     if (alarm == RT_NULL)
-    { return (RT_ERROR); }
+        return (RT_ERROR);
     rt_mutex_take(&_container.mutex, RT_WAITING_FOREVER);
     if (!(alarm->flag & RT_ALARM_STATE_START))
-    { goto _exit; }
+        goto _exit;
     /* stop alarm */
     alarm->flag &= ~RT_ALARM_STATE_START;
 
@@ -641,7 +624,7 @@ rt_err_t rt_alarm_stop(rt_alarm_t alarm)
     }
 
     if (ret == RT_EOK)
-    { alarm_update(0); }
+        alarm_update(0);
 
 _exit:
     rt_mutex_release(&_container.mutex);
@@ -659,7 +642,7 @@ rt_err_t rt_alarm_delete(rt_alarm_t alarm)
     rt_err_t ret = RT_EOK;
 
     if (alarm == RT_NULL)
-    { return RT_ERROR; }
+        return RT_ERROR;
     rt_mutex_take(&_container.mutex, RT_WAITING_FOREVER);
     /* stop the alarm */
     alarm->flag &= ~RT_ALARM_STATE_START;
@@ -683,16 +666,16 @@ rt_err_t rt_alarm_delete(rt_alarm_t alarm)
  * \param flag set alarm mode e.g: RT_ALARM_DAILY
  * \param setup pointer to setup infomation
  */
-rt_alarm_t rt_alarm_create(rt_alarm_callback_t callback, struct rt_alarm_setup* setup)
+rt_alarm_t rt_alarm_create(rt_alarm_callback_t callback, struct rt_alarm_setup *setup)
 {
-    struct rt_alarm* alarm;
+    struct rt_alarm *alarm;
 
     if (setup == RT_NULL)
-    { return (RT_NULL); }
+        return (RT_NULL);
 
     alarm = rt_malloc(sizeof(struct rt_alarm));
     if (alarm == RT_NULL)
-    { return (RT_NULL); }
+        return (RT_NULL);
 
     rt_list_init(&alarm->list);
 
@@ -709,10 +692,8 @@ rt_alarm_t rt_alarm_create(rt_alarm_callback_t callback, struct rt_alarm_setup* 
 /** \brief rtc alarm service thread entry
  *
  */
-/*
-static void rt_alarmsvc_thread_init(void* param)
+static void rt_alarmsvc_thread_init(void *param)
 {
-
     rt_uint32_t recv;
 
     _container.current = RT_NULL;
@@ -727,7 +708,6 @@ static void rt_alarmsvc_thread_init(void* param)
         }
     }
 }
-*/
 
 struct _alarm_flag
 {
@@ -738,7 +718,7 @@ struct _alarm_flag
 static const struct _alarm_flag _alarm_flag_tbl[] =
 {
     {"N",        0xffff}, /* none */
-    {"O",       RT_ALARM_ONESHOT}, /* only alarm onece */
+    {"O",       RT_ALARM_ONESHOT}, /* only alarm once */
     {"D",       RT_ALARM_DAILY}, /* alarm everyday */
     {"W",       RT_ALARM_WEEKLY}, /* alarm weekly at Monday or Friday etc. */
     {"Mo",      RT_ALARM_MONTHLY}, /* alarm monthly at someday */
@@ -766,25 +746,23 @@ static rt_uint8_t get_alarm_flag_index(rt_uint32_t alarm_flag)
 
 void rt_alarm_dump(void)
 {
-    rt_list_t* next;
+    rt_list_t *next;
     rt_alarm_t alarm;
-    rt_uint8_t index = 0;
 
-    rt_kprintf("| id | YYYY-MM-DD hh:mm:ss | week | flag | en |\n");
-    rt_kprintf("+----+---------------------+------+------+----+\n");
+    rt_kprintf("| hh:mm:ss | week | flag | en |\n");
+    rt_kprintf("+----------+------+------+----+\n");
     for (next = _container.head.next; next != &_container.head; next = next->next)
     {
         alarm = rt_list_entry(next, struct rt_alarm, list);
         rt_uint8_t flag_index = get_alarm_flag_index(alarm->flag);
-        rt_kprintf("| %2d | %04d-%02d-%02d %02d:%02d:%02d |  %2d  |  %2s  | %2d |\n",
-                   index++, alarm->wktime.tm_year + 1900, alarm->wktime.tm_mon + 1, alarm->wktime.tm_mday,
-                   alarm->wktime.tm_hour, alarm->wktime.tm_min, alarm->wktime.tm_sec,
-                   alarm->wktime.tm_wday, _alarm_flag_tbl[flag_index].name, alarm->flag & RT_ALARM_STATE_START);
+        rt_kprintf("| %02d:%02d:%02d |  %2d  |  %2s  | %2d |\n",
+            alarm->wktime.tm_hour, alarm->wktime.tm_min, alarm->wktime.tm_sec,
+            alarm->wktime.tm_wday, _alarm_flag_tbl[flag_index].name, alarm->flag & RT_ALARM_STATE_START);
     }
-    rt_kprintf("+----+---------------------+------+------+----+\n");
+    rt_kprintf("+----------+------+------+----+\n");
 }
 
-FINSH_FUNCTION_EXPORT_ALIAS(rt_alarm_dump, __cmd_alarm_dump, dump alarm info);
+MSH_CMD_EXPORT_ALIAS(rt_alarm_dump, list_alarm, list alarm info);
 
 /** \brief initialize alarm service system
  *
@@ -793,83 +771,20 @@ FINSH_FUNCTION_EXPORT_ALIAS(rt_alarm_dump, __cmd_alarm_dump, dump alarm info);
  */
 int rt_alarm_system_init(void)
 {
-/*
     rt_thread_t tid;
 
     rt_list_init(&_container.head);
-#ifdef RT_USING_EVENT
     rt_event_init(&_container.event, "alarmsvc", RT_IPC_FLAG_FIFO);
-#endif
-    rt_mutex_init(&_container.mutex, "alarmsvc", RT_IPC_FLAG_FIFO);
+    rt_mutex_init(&_container.mutex, "alarmsvc", RT_IPC_FLAG_PRIO);
 
     tid = rt_thread_create("alarmsvc",
                            rt_alarmsvc_thread_init, RT_NULL,
-                           2048, 7, 5);
+                           2048, 10, 5);
     if (tid != RT_NULL)
-    { rt_thread_startup(tid); }
-*/
+        rt_thread_startup(tid);
+
     return 0;
 }
 
 INIT_PREV_EXPORT(rt_alarm_system_init);
-
-
-//after alarm sec, alarm
-rt_err_t rt_alarm_simple(rt_int32_t alarm_sec)
-{
-    rt_err_t ret = RT_EOK;
-    time_t time_now;
-    time_t time_new;
-    struct tm p_tm;
-    rt_device_t device = rt_device_find("rtc");
-    rtc_alarm_t rtc_alarm_time;
-
-    if (alarm_sec == 0) { rtc_alarm_time.mask = 0x7F; }
-    else { rtc_alarm_time.mask = 0x78; }
-
-    rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_TIME, &time_now);
-
-    time_new = time_now + alarm_sec;
-    gmtime_r(&time_new, &p_tm);
-
-    rtc_alarm_time.sec = p_tm.tm_sec;
-    rtc_alarm_time.min = p_tm.tm_min;
-    rtc_alarm_time.hour = p_tm.tm_hour;
-    rtc_alarm_time.day = p_tm.tm_mday;
-    rtc_alarm_time.mon = p_tm.tm_mon + 1;
-    rtc_alarm_time.year = p_tm.tm_year + 1900;
-    rtc_alarm_time.week = p_tm.tm_wday + 1;
-//    rtc_alarm_time.mon = p_tm.tm_mon;
-//    rtc_alarm_time.year = p_tm.tm_year;
-//    rtc_alarm_time.week = p_tm.tm_wday;
-//    rtc_alarm_time.mask = 0x7E;
-
-    ret = rt_device_control(device, RT_DEVICE_CTRL_RTC_SET_ALARM, &rtc_alarm_time);
-
-    return (ret);
-}
-
-
-void rt_alarm_read(void) {
-    rtc_alarm_t rtc_alarm_time;
-    rt_device_t device = rt_device_find("rtc");
-    rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_ALARM, &rtc_alarm_time);
-}
-
-
-time_t rt_time_read(struct tm* p_tm)
-{
-    time_t time_now = 0;
-    rt_device_t device = rt_device_find("rtc");
-
-    if (NULL != device) {
-        rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_TIME, &time_now);
-        gmtime_r(&time_now, p_tm);
-    }
-
-    return time_now;
-}
-
-
-
 #endif

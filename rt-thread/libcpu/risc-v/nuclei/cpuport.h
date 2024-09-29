@@ -21,14 +21,14 @@ extern "C" {
 
 /* Scheduler utilities. */
 #define RT_YIELD()                                                              \
-    {                                                                               \
-        /* Set a software interrupt(SWI) request to request a context switch. */    \
-        SysTimer_SetSWIRQ();                                                        \
-        /* Barriers are normally not required but do ensure the code is completely  \
-        within the specified behaviour for the architecture. */                     \
-        __RWMB();                                                                   \
-        __FENCE_I();                                                                \
-    }
+{                                                                               \
+    /* Set a software interrupt(SWI) request to request a context switch. */    \
+    SysTimer_SetSWIRQ();                                                        \
+    /* Barriers are normally not required but do ensure the code is completely  \
+    within the specified behaviour for the architecture. */                     \
+    __RWMB();                                                                   \
+    __FENCE_I();                                                                \
+}
 
 extern void rt_hw_ticksetup(void);
 extern void rt_hw_taskswitch(void);

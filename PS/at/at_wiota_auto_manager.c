@@ -406,7 +406,7 @@ static int at_wiota_manager_run(void)
     uc_wiota_register_recv_data_callback(wiota_recv_callback, UC_CALLBACK_STATE_INFO);
     at_wiota_set_state(AT_WIOTA_RUN);
     uc_wiota_connect();
-    return uc_wiota_wait_sync(uc_wiota_get_frame_len() / 200);
+    return uc_wiota_wait_sync(uc_wiota_get_frame_len() / 200, 2);
 }
 
 static void at_wiota_manager_startegy(void)

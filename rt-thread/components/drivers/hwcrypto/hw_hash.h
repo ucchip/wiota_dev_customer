@@ -21,10 +21,10 @@ struct hwcrypto_hash;
 
 struct hwcrypto_hash_ops
 {
-    rt_err_t (*update)(struct hwcrypto_hash* hash_ctx,
-                       const rt_uint8_t* in, rt_size_t length);     /**< Processing a packet of data */
-    rt_err_t (*finish)(struct hwcrypto_hash* hash_ctx,
-                       rt_uint8_t* out, rt_size_t length);          /**< Get the final hash value */
+    rt_err_t (*update)(struct hwcrypto_hash *hash_ctx,
+                       const rt_uint8_t *in, rt_size_t length);     /**< Processing a packet of data */
+    rt_err_t (*finish)(struct hwcrypto_hash *hash_ctx,
+                       rt_uint8_t *out, rt_size_t length);          /**< Get the final hash value */
 };
 
 /**
@@ -33,7 +33,7 @@ struct hwcrypto_hash_ops
 struct hwcrypto_hash
 {
     struct rt_hwcrypto_ctx parent;              /**< Inheritance from hardware crypto context */
-    const struct hwcrypto_hash_ops* ops;        /**< !! Hardware initializes this value when creating context !! */
+    const struct hwcrypto_hash_ops *ops;        /**< !! Hardware initializes this value when creating context !! */
 };
 
 /**
@@ -44,7 +44,7 @@ struct hwcrypto_hash
  *
  * @return          Hash context
  */
-struct rt_hwcrypto_ctx* rt_hwcrypto_hash_create(struct rt_hwcrypto_device* device,
+struct rt_hwcrypto_ctx *rt_hwcrypto_hash_create(struct rt_hwcrypto_device *device,
                                                 hwcrypto_type type);
 
 /**
@@ -52,7 +52,7 @@ struct rt_hwcrypto_ctx* rt_hwcrypto_hash_create(struct rt_hwcrypto_device* devic
  *
  * @param ctx       Hash context
  */
-void rt_hwcrypto_hash_destroy(struct rt_hwcrypto_ctx* ctx);
+void rt_hwcrypto_hash_destroy(struct rt_hwcrypto_ctx *ctx);
 
 /**
  * @brief           Get the final hash value
@@ -63,7 +63,7 @@ void rt_hwcrypto_hash_destroy(struct rt_hwcrypto_ctx* ctx);
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_hash_finish(struct rt_hwcrypto_ctx* ctx, rt_uint8_t* output, rt_size_t length);
+rt_err_t rt_hwcrypto_hash_finish(struct rt_hwcrypto_ctx *ctx, rt_uint8_t *output, rt_size_t length);
 
 /**
  * @brief           Processing a packet of data
@@ -74,7 +74,7 @@ rt_err_t rt_hwcrypto_hash_finish(struct rt_hwcrypto_ctx* ctx, rt_uint8_t* output
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_hash_update(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* input, rt_size_t length);
+rt_err_t rt_hwcrypto_hash_update(struct rt_hwcrypto_ctx *ctx, const rt_uint8_t *input, rt_size_t length);
 
 /**
  * @brief           This function copy hash context
@@ -84,14 +84,14 @@ rt_err_t rt_hwcrypto_hash_update(struct rt_hwcrypto_ctx* ctx, const rt_uint8_t* 
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_hash_cpy(struct rt_hwcrypto_ctx* des, const struct rt_hwcrypto_ctx* src);
+rt_err_t rt_hwcrypto_hash_cpy(struct rt_hwcrypto_ctx *des, const struct rt_hwcrypto_ctx *src);
 
 /**
  * @brief           Reset hash context
  *
  * @param ctx       Hash context
  */
-void rt_hwcrypto_hash_reset(struct rt_hwcrypto_ctx* ctx);
+void rt_hwcrypto_hash_reset(struct rt_hwcrypto_ctx *ctx);
 
 /**
  * @brief           Setting hash context type
@@ -101,7 +101,7 @@ void rt_hwcrypto_hash_reset(struct rt_hwcrypto_ctx* ctx);
  *
  * @return          RT_EOK on success.
  */
-rt_err_t rt_hwcrypto_hash_set_type(struct rt_hwcrypto_ctx* ctx, hwcrypto_type type);
+rt_err_t rt_hwcrypto_hash_set_type(struct rt_hwcrypto_ctx *ctx, hwcrypto_type type);
 
 #ifdef __cplusplus
 }

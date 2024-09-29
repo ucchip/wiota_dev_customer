@@ -10,7 +10,6 @@
 #define __HWTIMER_H__
 
 #include <rtthread.h>
-#include <rtdevice.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,10 +18,10 @@ extern "C" {
 /* Timer Control Command */
 typedef enum
 {
-    HWTIMER_CTRL_FREQ_SET = 0x01,    /* set the count frequency */
-    HWTIMER_CTRL_STOP,               /* stop timer */
-    HWTIMER_CTRL_INFO_GET,           /* get a timer feature information */
-    HWTIMER_CTRL_MODE_SET            /* Setting the timing mode(oneshot/period) */
+    HWTIMER_CTRL_FREQ_SET = RT_DEVICE_CTRL_BASE(Timer) + 0x01,           /* set the count frequency */
+    HWTIMER_CTRL_STOP = RT_DEVICE_CTRL_BASE(Timer) + 0x02,               /* stop timer */
+    HWTIMER_CTRL_INFO_GET = RT_DEVICE_CTRL_BASE(Timer) + 0x03,           /* get a timer feature information */
+    HWTIMER_CTRL_MODE_SET = RT_DEVICE_CTRL_BASE(Timer) + 0x04            /* Setting the timing mode(oneshot/period) */
 } rt_hwtimer_ctrl_t;
 
 /* Timing Mode */
@@ -46,11 +45,11 @@ struct rt_hwtimer_device;
 
 struct rt_hwtimer_ops
 {
-    void (*init)(struct rt_hwtimer_device* timer, rt_uint32_t state);
-    rt_err_t (*start)(struct rt_hwtimer_device* timer, rt_uint32_t cnt, rt_hwtimer_mode_t mode);
-    void (*stop)(struct rt_hwtimer_device* timer);
-    rt_uint32_t (*count_get)(struct rt_hwtimer_device* timer);
-    rt_err_t (*control)(struct rt_hwtimer_device* timer, rt_uint32_t cmd, void* args);
+    void (*init)(struct rt_hwtimer_device *timer, rt_uint32_t state);
+    rt_err_t (*start)(struct rt_hwtimer_device *timer, rt_uint32_t cnt, rt_hwtimer_mode_t mode);
+    void (*stop)(struct rt_hwtimer_device *timer);
+    rt_uint32_t (*count_get)(struct rt_hwtimer_device *timer);
+    rt_err_t (*control)(struct rt_hwtimer_device *timer, rt_uint32_t cmd, void *args);
 };
 
 /* Timer Feature Information */
@@ -65,8 +64,8 @@ struct rt_hwtimer_info
 typedef struct rt_hwtimer_device
 {
     struct rt_device parent;
-    const struct rt_hwtimer_ops* ops;
-    const struct rt_hwtimer_info* info;
+    const struct rt_hwtimer_ops *ops;
+    const struct rt_hwtimer_info *info;
 
     rt_int32_t freq;                /* counting frequency set by the user */
     rt_int32_t overflow;            /* timer overflows */
@@ -76,8 +75,8 @@ typedef struct rt_hwtimer_device
     rt_hwtimer_mode_t mode;         /* timing mode(oneshot/period) */
 } rt_hwtimer_t;
 
-rt_err_t rt_device_hwtimer_register(rt_hwtimer_t* timer, const char* name, void* user_data);
-void rt_device_hwtimer_isr(rt_hwtimer_t* timer);
+rt_err_t rt_device_hwtimer_register(rt_hwtimer_t *timer, const char *name, void *user_data);
+void rt_device_hwtimer_isr(rt_hwtimer_t *timer);
 
 #ifdef __cplusplus
 }

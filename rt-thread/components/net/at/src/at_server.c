@@ -19,23 +19,23 @@
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
 
-#define LOG_TAG              "at.svr"
+#define LOG_TAG "at.svr"
 #include <at_log.h>
 
 #ifdef AT_USING_SERVER
 
-#define AT_CMD_CHAR_0                  '0'
-#define AT_CMD_CHAR_9                  '9'
-#define AT_CMD_QUESTION_MARK           '?'
-#define AT_CMD_EQUAL_MARK              '='
-#define AT_CMD_L_SQ_BRACKET            '['
-#define AT_CMD_R_SQ_BRACKET            ']'
-#define AT_CMD_L_ANGLE_BRACKET         '<'
-#define AT_CMD_R_ANGLE_BRACKET         '>'
-#define AT_CMD_COMMA_MARK              ','
-#define AT_CMD_SEMICOLON               ';'
-#define AT_CMD_CR                      '\r'
-#define AT_CMD_LF                      '\n'
+#define AT_CMD_CHAR_0 '0'
+#define AT_CMD_CHAR_9 '9'
+#define AT_CMD_QUESTION_MARK '?'
+#define AT_CMD_EQUAL_MARK '='
+#define AT_CMD_L_SQ_BRACKET '['
+#define AT_CMD_R_SQ_BRACKET ']'
+#define AT_CMD_L_ANGLE_BRACKET '<'
+#define AT_CMD_R_ANGLE_BRACKET '>'
+#define AT_CMD_COMMA_MARK ','
+#define AT_CMD_SEMICOLON ';'
+#define AT_CMD_CR '\r'
+#define AT_CMD_LF '\n'
 
 static at_server_t at_server_local = RT_NULL;
 static at_cmd_t cmd_table = RT_NULL;
@@ -45,11 +45,11 @@ dtu_send_t g_dtu_send = RT_NULL;
 #ifdef SUPPORT_SPI_AT
 __attribute__((section(".spicmd"))) volatile spi_at_buf spi_at_cmd;
 __attribute__((section(".spiresult"))) volatile spi_at_buf spi_at_result;
-extern void at_vprintf(spi_at_buf *buf, const char* format, va_list args);
-extern void at_vprintfln(spi_at_buf *buf, const char* format, va_list args);
+extern void at_vprintf(spi_at_buf *buf, const char *format, va_list args);
+extern void at_vprintfln(spi_at_buf *buf, const char *format, va_list args);
 #else
-extern void at_vprintf(rt_device_t device, const char* format, va_list args);
-extern void at_vprintfln(rt_device_t device, const char* format, va_list args);
+extern void at_vprintf(rt_device_t device, const char *format, va_list args);
+extern void at_vprintfln(rt_device_t device, const char *format, va_list args);
 #endif
 extern void dtu_send_process(void);
 /**
@@ -57,7 +57,7 @@ extern void dtu_send_process(void);
  *
  * @param format the input format
  */
-void at_server_printf(const char* format, ...)
+void at_server_printf(const char *format, ...)
 {
     va_list args;
 
@@ -70,13 +70,13 @@ void at_server_printf(const char* format, ...)
     va_end(args);
 }
 
-void at_send_data(const void* buffer, unsigned int len)
+void at_send_data(const void *buffer, unsigned int len)
 {
 #ifdef SUPPORT_SPI_AT
     const void *data = buffer;
-    int timeout = 5000;/* 5s */
+    int timeout = 5000; /* 5s */
 
-    while(len > 0 && timeout > 0)
+    while (len > 0 && timeout > 0)
     {
         if (SPI_FLAG_IDLE == at_server_local->spi_result->flag)
         {
@@ -108,7 +108,7 @@ void at_send_data(const void* buffer, unsigned int len)
  *
  * @param format the input format
  */
-void at_server_printfln(const char* format, ...)
+void at_server_printfln(const char *format, ...)
 {
     va_list args;
 
@@ -121,7 +121,6 @@ void at_server_printfln(const char* format, ...)
     va_end(args);
 }
 
-
 /**
  * AT server request arguments parse arguments
  *
@@ -132,7 +131,7 @@ void at_server_printfln(const char* format, ...)
  *           0 : parse without match
  *          >0 : The number of arguments successfully parsed
  */
-int at_req_parse_args(const char* req_args, const char* req_expr, ...)
+int at_req_parse_args(const char *req_args, const char *req_expr, ...)
 {
     va_list args;
     int req_args_num = 0;
@@ -158,47 +157,47 @@ void at_server_print_result(at_result_t result)
 {
     switch (result)
     {
-        case AT_RESULT_OK:
-//            at_server_printfln("");
-            at_server_printfln("OK");
-            break;
+    case AT_RESULT_OK:
+        //            at_server_printfln("");
+        at_server_printfln("OK");
+        break;
 
-        case AT_RESULT_FAILE:
-        case AT_RESULT_NULL:
-//            at_server_printfln("");
-            at_server_printfln("ERROR");
-            break;
+    case AT_RESULT_FAILE:
+    case AT_RESULT_NULL:
+        //            at_server_printfln("");
+        at_server_printfln("ERROR");
+        break;
 
-       // case AT_RESULT_NULL:
-       //     break;
+        // case AT_RESULT_NULL:
+        //     break;
 
-        case AT_RESULT_CMD_ERR:
-            at_server_printfln("ERR CMD MATCH FAILED!");
-            at_server_print_result(AT_RESULT_FAILE);
-            break;
+    case AT_RESULT_CMD_ERR:
+        at_server_printfln("ERR CMD MATCH FAILED!");
+        at_server_print_result(AT_RESULT_FAILE);
+        break;
 
-        case AT_RESULT_CHECK_FAILE:
-            at_server_printfln("ERR CHECK ARGS FORMAT FAILED!");
-            at_server_print_result(AT_RESULT_FAILE);
-            break;
+    case AT_RESULT_CHECK_FAILE:
+        at_server_printfln("ERR CHECK ARGS FORMAT FAILED!");
+        at_server_print_result(AT_RESULT_FAILE);
+        break;
 
-        case AT_RESULT_PARSE_FAILE:
-            at_server_printfln("ERR PARSE ARGS FAILED!");
-            at_server_print_result(AT_RESULT_FAILE);
-            break;
-       case AT_RESULT_REPETITIVE_FAILE:
-           at_server_printfln("ERR REPETITIVE OPERATION FAILED!");
-           at_server_print_result(AT_RESULT_FAILE);
-           break;
-      case AT_RESULT_REFUSED:
-           at_server_printfln("ERR REFUSED OPERATION!");
-           at_server_print_result(AT_RESULT_FAILE);
-           break;
-        default:
-            //at_server_printfln("");
-            //at_server_printfln("ERROR");
-            //break;
-            break;
+    case AT_RESULT_PARSE_FAILE:
+        at_server_printfln("ERR PARSE ARGS FAILED!");
+        at_server_print_result(AT_RESULT_FAILE);
+        break;
+    case AT_RESULT_REPETITIVE_FAILE:
+        at_server_printfln("ERR REPETITIVE OPERATION FAILED!");
+        at_server_print_result(AT_RESULT_FAILE);
+        break;
+    case AT_RESULT_REFUSED:
+        at_server_printfln("ERR REFUSED OPERATION!");
+        at_server_print_result(AT_RESULT_FAILE);
+        break;
+    default:
+        // at_server_printfln("");
+        // at_server_printfln("ERROR");
+        // break;
+        break;
     }
 }
 
@@ -236,7 +235,7 @@ void rt_at_server_print_all_cmd(void)
  * @return >0: send data size
  *         =0: send failed
  */
-rt_size_t at_server_send(at_server_t server, const char* buf, rt_size_t size)
+rt_size_t at_server_send(at_server_t server, const char *buf, rt_size_t size)
 {
     RT_ASSERT(buf);
 
@@ -262,7 +261,7 @@ rt_size_t at_server_send(at_server_t server, const char* buf, rt_size_t size)
  * @return >0: receive data size
  *         =0: receive failed
  */
-rt_size_t at_server_recv(at_server_t server, char* buf, rt_size_t size, rt_int32_t timeout)
+rt_size_t at_server_recv(at_server_t server, char *buf, rt_size_t size, rt_int32_t timeout)
 {
     rt_size_t read_idx = 0;
     rt_err_t result = RT_EOK;
@@ -307,7 +306,7 @@ at_server_t at_get_server(void)
     return at_server_local;
 }
 
-static rt_err_t at_check_args(const char* args, const char* args_format)
+static rt_err_t at_check_args(const char *args, const char *args_format)
 {
     rt_size_t left_sq_bracket_num = 0, right_sq_bracket_num = 0;
     rt_size_t left_angle_bracket_num = 0, right_angle_bracket_num = 0;
@@ -321,29 +320,28 @@ static rt_err_t at_check_args(const char* args, const char* args_format)
     {
         switch (args_format[i])
         {
-            case AT_CMD_L_SQ_BRACKET:
-                left_sq_bracket_num++;
-                break;
+        case AT_CMD_L_SQ_BRACKET:
+            left_sq_bracket_num++;
+            break;
 
-            case AT_CMD_R_SQ_BRACKET:
-                right_sq_bracket_num++;
-                break;
+        case AT_CMD_R_SQ_BRACKET:
+            right_sq_bracket_num++;
+            break;
 
-            case AT_CMD_L_ANGLE_BRACKET:
-                left_angle_bracket_num++;
-                break;
+        case AT_CMD_L_ANGLE_BRACKET:
+            left_angle_bracket_num++;
+            break;
 
-            case AT_CMD_R_ANGLE_BRACKET:
-                right_angle_bracket_num++;
-                break;
+        case AT_CMD_R_ANGLE_BRACKET:
+            right_angle_bracket_num++;
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
     }
 
-    if (left_sq_bracket_num != right_sq_bracket_num || left_angle_bracket_num != right_angle_bracket_num
-        || left_sq_bracket_num > left_angle_bracket_num)
+    if (left_sq_bracket_num != right_sq_bracket_num || left_angle_bracket_num != right_angle_bracket_num || left_sq_bracket_num > left_angle_bracket_num)
     {
         return -RT_ERROR;
     }
@@ -356,8 +354,7 @@ static rt_err_t at_check_args(const char* args, const char* args_format)
         }
     }
 
-    if ((comma_mark_num + 1 < left_angle_bracket_num - left_sq_bracket_num)
-        || comma_mark_num + 1 > left_angle_bracket_num)
+    if ((comma_mark_num + 1 < left_angle_bracket_num - left_sq_bracket_num) || comma_mark_num + 1 > left_angle_bracket_num)
     {
         return -RT_ERROR;
     }
@@ -365,7 +362,7 @@ static rt_err_t at_check_args(const char* args, const char* args_format)
     return RT_EOK;
 }
 
-static rt_err_t at_cmd_process(at_cmd_t cmd, const char* cmd_args)
+static rt_err_t at_cmd_process(at_cmd_t cmd, const char *cmd_args)
 {
     at_result_t result = AT_RESULT_OK;
 
@@ -394,8 +391,7 @@ static rt_err_t at_cmd_process(at_cmd_t cmd, const char* cmd_args)
         result = cmd->query();
         at_server_print_result(result);
     }
-    else if (cmd_args[0] == AT_CMD_EQUAL_MARK
-             || (cmd_args[0] >= AT_CMD_CHAR_0 && cmd_args[0] <= AT_CMD_CHAR_9 && cmd_args[1] == AT_CMD_CR))
+    else if (cmd_args[0] == AT_CMD_EQUAL_MARK || (cmd_args[0] >= AT_CMD_CHAR_0 && cmd_args[0] <= AT_CMD_CHAR_9 && cmd_args[1] == AT_CMD_CR))
     {
         if (cmd->setup == RT_NULL)
         {
@@ -431,7 +427,7 @@ static rt_err_t at_cmd_process(at_cmd_t cmd, const char* cmd_args)
     return RT_EOK;
 }
 
-static at_cmd_t at_find_cmd(const char* cmd)
+static at_cmd_t at_find_cmd(const char *cmd)
 {
     rt_size_t i = 0;
 
@@ -439,7 +435,7 @@ static at_cmd_t at_find_cmd(const char* cmd)
 
     for (i = 0; i < cmd_num; i++)
     {
-        if (!strcasecmp(cmd, cmd_table[i].name))
+        if (!rt_strcasecmp(cmd, cmd_table[i].name))
         {
             return &cmd_table[i];
         }
@@ -447,7 +443,7 @@ static at_cmd_t at_find_cmd(const char* cmd)
     return RT_NULL;
 }
 
-static rt_err_t at_cmd_get_name(const char* cmd_buffer, char* cmd_name)
+static rt_err_t at_cmd_get_name(const char *cmd_buffer, char *cmd_name)
 {
     rt_size_t cmd_name_len = 0, i = 0;
 
@@ -456,9 +452,7 @@ static rt_err_t at_cmd_get_name(const char* cmd_buffer, char* cmd_name)
 
     for (i = 0; i < strlen(cmd_buffer) + 1; i++)
     {
-        if (*(cmd_buffer + i) == AT_CMD_QUESTION_MARK || *(cmd_buffer + i) == AT_CMD_EQUAL_MARK
-            || *(cmd_buffer + i) == AT_CMD_CR
-            || (*(cmd_buffer + i) >= AT_CMD_CHAR_0 && *(cmd_buffer + i) <= AT_CMD_CHAR_9))
+        if (*(cmd_buffer + i) == AT_CMD_QUESTION_MARK || *(cmd_buffer + i) == AT_CMD_EQUAL_MARK || *(cmd_buffer + i) == AT_CMD_CR || (*(cmd_buffer + i) >= AT_CMD_CHAR_0 && *(cmd_buffer + i) <= AT_CMD_CHAR_9))
         {
             cmd_name_len = i;
             if (cmd_name_len >= AT_CMD_NAME_LEN)
@@ -475,18 +469,18 @@ static rt_err_t at_cmd_get_name(const char* cmd_buffer, char* cmd_name)
     return -RT_ERROR;
 }
 #ifdef SUPPORT_SPI_AT
-static rt_err_t at_server_getchar(at_server_t server, char* ch, rt_int32_t timeout)
+static rt_err_t at_server_getchar(at_server_t server, char *ch, rt_int32_t timeout)
 {
     static char *tmp = NULL;
     if (RT_NULL == tmp)
         tmp = server->spi_cmd->data;
 
-    while(timeout < 0? 1: timeout)
-   {
+    while (timeout < 0 ? 1 : timeout)
+    {
         if (SPI_FLAG_READY == server->spi_cmd->flag /*&& ((server->spi_cmd->len -- ) > 0)*/)
         {
-            * ch = *tmp;
-            tmp ++;
+            *ch = *tmp;
+            tmp++;
             return RT_EOK;
         }
         else
@@ -501,13 +495,13 @@ static rt_err_t at_server_getchar(at_server_t server, char* ch, rt_int32_t timeo
 }
 
 #else
-static rt_err_t at_server_getchar(at_server_t server, char* ch, rt_int32_t timeout)
+static rt_err_t at_server_getchar(at_server_t server, char *ch, rt_int32_t timeout)
 {
     rt_err_t result = RT_EOK;
 
     while (rt_device_read(at_server_local->device, 0, ch, 1) == 0)
     {
-//        rt_sem_control(at_server_local->rx_notice, RT_IPC_CMD_RESET, RT_NULL);
+        //        rt_sem_control(at_server_local->rx_notice, RT_IPC_CMD_RESET, RT_NULL);
         result = rt_sem_take(at_server_local->rx_notice, rt_tick_from_millisecond(timeout));
         if (result != RT_EOK)
         {
@@ -521,13 +515,13 @@ static rt_err_t at_server_getchar(at_server_t server, char* ch, rt_int32_t timeo
 
 static void server_parser(at_server_t server)
 {
-#define ESC_KEY                 0x1B
-#define BACKSPACE_KEY           0x08
-#define DELECT_KEY              0x7F
+#define ESC_KEY 0x1B
+#define BACKSPACE_KEY 0x08
+#define DELECT_KEY 0x7F
 
-    char cur_cmd_name[AT_CMD_NAME_LEN] = { 0 };
+    char cur_cmd_name[AT_CMD_NAME_LEN] = {0};
     at_cmd_t cur_cmd = RT_NULL;
-    char* cur_cmd_args = RT_NULL, ch = 0, last_ch = 0;
+    char *cur_cmd_args = RT_NULL, ch = 0, last_ch = 0;
 
     RT_ASSERT(server);
     RT_ASSERT(server->status != AT_STATUS_UNINITIALIZED);
@@ -586,7 +580,7 @@ static void server_parser(at_server_t server)
 
         if (!rt_strstr(server->recv_buffer, server->end_mark))
         {
-            if ((server->cur_recv_len+1) == AT_SERVER_RECV_BUFF_LEN)
+            if ((server->cur_recv_len + 1) == AT_SERVER_RECV_BUFF_LEN)
             {
                 server->cur_recv_len = 0;
                 memset(server->recv_buffer, 0x00, AT_SERVER_RECV_BUFF_LEN);
@@ -613,13 +607,13 @@ static void server_parser(at_server_t server)
             goto __retry;
         }
 
-__retry:
+    __retry:
         memset(server->recv_buffer, 0x00, AT_SERVER_RECV_BUFF_LEN);
         server->cur_recv_len = 0;
 
 #ifdef SUPPORT_SPI_AT
-    memset(server->spi_cmd->data, 0x00, SPI_AT_DATA_MAX);
-    server->spi_cmd->flag = SPI_FLAG_IDLE;
+        memset(server->spi_cmd->data, 0x00, SPI_AT_DATA_MAX);
+        server->spi_cmd->flag = SPI_FLAG_IDLE;
 #endif
     }
 }
@@ -634,8 +628,8 @@ static rt_err_t at_rx_ind(rt_device_t dev, rt_size_t size)
     return RT_EOK;
 }
 #endif
-#if defined(__ICCARM__) || defined(__ICCRX__)               /* for IAR compiler */
-#pragma section="RtAtCmdTab"
+#if defined(__ICCARM__) || defined(__ICCRX__) /* for IAR compiler */
+#pragma section = "RtAtCmdTab"
 #endif
 
 int at_server_init(void)
@@ -651,23 +645,23 @@ int at_server_init(void)
     }
 
     /* initialize the AT commands table.*/
-#if defined(__CC_ARM)                                 /* ARM C Compiler */
+#if defined(__CC_ARM) /* ARM C Compiler */
     extern const int RtAtCmdTab$$Base;
     extern const int RtAtCmdTab$$Limit;
     cmd_table = (at_cmd_t)&RtAtCmdTab$$Base;
     cmd_num = (at_cmd_t)&RtAtCmdTab$$Limit - cmd_table;
-#elif defined (__ICCARM__) || defined(__ICCRX__)      /* for IAR Compiler */
+#elif defined(__ICCARM__) || defined(__ICCRX__) /* for IAR Compiler */
     cmd_table = (at_cmd_t)__section_begin("RtAtCmdTab");
     cmd_num = (at_cmd_t)__section_end("RtAtCmdTab") - cmd_table;
-#elif defined (__GNUC__)                             /* for GCC Compiler */
+#elif defined(__GNUC__)                         /* for GCC Compiler */
     extern const int __rtatcmdtab_start;
     extern const int __rtatcmdtab_end;
     cmd_table = (at_cmd_t)&__rtatcmdtab_start;
-    cmd_num = (at_cmd_t) &__rtatcmdtab_end - cmd_table;
-#endif /* defined(__CC_ARM) */
+    cmd_num = (at_cmd_t)&__rtatcmdtab_end - cmd_table;
+#endif                                          /* defined(__CC_ARM) */
 
-    at_server_local = (at_server_t) rt_calloc(1, sizeof(struct at_server));
-    g_dtu_send = (dtu_send_t) rt_calloc(1, sizeof(struct dtu_send));
+    at_server_local = (at_server_t)rt_calloc(1, sizeof(struct at_server));
+    g_dtu_send = (dtu_send_t)rt_calloc(1, sizeof(struct dtu_send));
     if ((!at_server_local) || (!g_dtu_send))
     {
         result = -RT_ENOMEM;
@@ -675,9 +669,9 @@ int at_server_init(void)
         goto __exit;
     }
     // uc_wiota_get_dtu_config((u8_t *)g_dtu_send);
-	uc_wiota_get_dtu_config((dtu_info_t*)g_dtu_send);
-    rt_kprintf("dtu flag %d at_show %d timeout %d wait %d", g_dtu_send->flag,
-                g_dtu_send->at_show,g_dtu_send->timeout,g_dtu_send->wait);
+    uc_wiota_get_dtu_config((dtu_info_t *)g_dtu_send);
+    rt_kprintf("dtu flag %d %d %d %d", g_dtu_send->flag,
+               g_dtu_send->at_show, g_dtu_send->timeout, g_dtu_send->wait);
 
     at_server_local->echo_mode = 0;
     at_server_local->status = AT_STATUS_UNINITIALIZED;
@@ -708,15 +702,15 @@ int at_server_init(void)
     {
         struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT; /*init default parment*/
         RT_ASSERT(at_server_local->device->type == RT_Device_Class_Char);
-        //config baud rate 115200
-        config.baud_rate = uc_wiota_get_at_baud_rate(); //BAUD_RATE_115200;
+        // config baud rate 115200
+        config.baud_rate = uc_wiota_get_at_baud_rate(); // BAUD_RATE_115200;
         rt_device_control(at_server_local->device, RT_DEVICE_CTRL_CONFIG, &config);
         /* using DMA mode first */
-        //open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_DMA_RX);
+        // open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_DMA_RX);
         /* using interrupt mode when DMA mode not supported */
-       // if (open_result == -RT_EIO)
+        // if (open_result == -RT_EIO)
         //{
-            open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX);
+        open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX);
         //}
         RT_ASSERT(open_result == RT_EOK);
 
@@ -735,7 +729,7 @@ int at_server_init(void)
 
     at_server_local->parser_entry = server_parser;
     at_server_local->parser = rt_thread_create("at_svr",
-                                               (void (*)(void* parameter))server_parser,
+                                               (void (*)(void *parameter))server_parser,
                                                at_server_local,
                                                2 * 1524,
                                                /*RT_THREAD_PRIORITY_MAX / 3 - 1*/ 3,
@@ -753,7 +747,7 @@ __exit:
 
         rt_thread_startup(at_server_local->parser);
 
-        LOG_I("RT-Thread AT server (V%s) initialize success.", AT_SW_VERSION);
+        // LOG_I("RT-Thread AT server (V%s) initialize success.", AT_SW_VERSION);
     }
     else
     {
@@ -762,7 +756,7 @@ __exit:
             rt_free(at_server_local);
         }
 
-        LOG_E("RT-Thread AT server (V%s) initialize failed(%d).", AT_SW_VERSION, result);
+        LOG_E("AT (V%s) init fail(%d).", AT_SW_VERSION, result);
     }
 
     return result;

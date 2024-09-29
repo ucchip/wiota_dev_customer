@@ -10,11 +10,11 @@
  * 2013-06-25     heyuanjie87  remove SOF mechinism
  * 2013-07-20     Yi Qiu       do more test
  * 2016-02-01     Urey         Fix some error
+ * 2021-10-14     mazhiyuan    Fix some error
  */
 
 #include <rthw.h>
 #include <rtdevice.h>
-#include <drivers/serial.h>
 #include "drivers/usb_device.h"
 #include "cdc.h"
 
@@ -86,8 +86,8 @@ struct vcom
 
 struct vcom_tx_msg
 {
-    struct rt_serial_device* serial;
-    const char* buf;
+    struct rt_serial_device * serial;
+    const char *buf;
     rt_size_t size;
 };
 
@@ -236,9 +236,9 @@ const static struct ucdc_data_descriptor _data_desc =
 };
 ALIGN(4)
 static char serno[_SER_NO_LEN + 1] = {'\0'};
-RT_WEAK rt_err_t vcom_get_stored_serno(char* serno, int size);
+RT_WEAK rt_err_t vcom_get_stored_serno(char *serno, int size);
 
-rt_err_t vcom_get_stored_serno(char* serno, int size)
+rt_err_t vcom_get_stored_serno(char *serno, int size)
 {
     return RT_ERROR;
 }
@@ -252,22 +252,22 @@ const static char* _ustring[] =
     "Configuration",
     "Interface",
 };
-static void rt_usb_vcom_init(struct ufunction* func);
+static void rt_usb_vcom_init(struct ufunction *func);
 
 static void _vcom_reset_state(ufunction_t func)
 {
     struct vcom* data;
-    int lvl;
+    rt_base_t level;
 
     RT_ASSERT(func != RT_NULL)
 
     data = (struct vcom*)func->user_data;
 
-    lvl = rt_hw_interrupt_disable();
+    level = rt_hw_interrupt_disable();
     data->connected = RT_FALSE;
     data->in_sending = RT_FALSE;
     /*rt_kprintf("reset USB serial\n", cnt);*/
-    rt_hw_interrupt_enable(lvl);
+    rt_hw_interrupt_enable(level);
 }
 
 /**
@@ -280,7 +280,7 @@ static void _vcom_reset_state(ufunction_t func)
  */
 static rt_err_t _ep_in_handler(ufunction_t func, rt_size_t size)
 {
-    struct vcom* data;
+    struct vcom *data;
     rt_size_t request_size;
 
     RT_ASSERT(func != RT_NULL);
@@ -320,8 +320,8 @@ static rt_err_t _ep_in_handler(ufunction_t func, rt_size_t size)
  */
 static rt_err_t _ep_out_handler(ufunction_t func, rt_size_t size)
 {
-    rt_uint32_t level;
-    struct vcom* data;
+    rt_base_t level;
+    struct vcom *data;
 
     RT_ASSERT(func != RT_NULL);
 
@@ -329,7 +329,7 @@ static rt_err_t _ep_out_handler(ufunction_t func, rt_size_t size)
 
     data = (struct vcom*)func->user_data;
     /* ensure serial is active */
-    if ((data->serial.parent.flag & RT_DEVICE_FLAG_ACTIVATED)
+    if((data->serial.parent.flag & RT_DEVICE_FLAG_ACTIVATED)
         && (data->serial.parent.open_flag & RT_DEVICE_OFLAG_OPEN))
     {
         /* receive data from USB VCOM */
@@ -339,7 +339,7 @@ static rt_err_t _ep_out_handler(ufunction_t func, rt_size_t size)
         rt_hw_interrupt_enable(level);
 
         /* notify receive data */
-        rt_hw_serial_isr(&data->serial, RT_SERIAL_EVENT_RX_IND);
+        rt_hw_serial_isr(&data->serial,RT_SERIAL_EVENT_RX_IND);
     }
 
     data->ep_out->request.buffer = data->ep_out->buffer;
@@ -421,7 +421,7 @@ static rt_err_t _cdc_set_line_coding(udevice_t device, ureq_t setup)
     RT_DEBUG_LOG(RT_DEBUG_USB, ("_cdc_set_line_coding\n"));
 
     rt_usbd_ep0_read(device, (void*)&line_coding, sizeof(struct ucdc_line_coding),
-                     _cdc_set_line_coding_callback);
+        _cdc_set_line_coding_callback);
 
     return RT_EOK;
 }
@@ -436,7 +436,7 @@ static rt_err_t _cdc_set_line_coding(udevice_t device, ureq_t setup)
  */
 static rt_err_t _interface_handler(ufunction_t func, ureq_t setup)
 {
-    struct vcom* data;
+    struct vcom *data;
 
     RT_ASSERT(func != RT_NULL);
     RT_ASSERT(func->device != RT_NULL);
@@ -444,34 +444,34 @@ static rt_err_t _interface_handler(ufunction_t func, ureq_t setup)
 
     data = (struct vcom*)func->user_data;
 
-    switch (setup->bRequest)
+    switch(setup->bRequest)
     {
-        case CDC_SEND_ENCAPSULATED_COMMAND:
-            break;
-        case CDC_GET_ENCAPSULATED_RESPONSE:
-            break;
-        case CDC_SET_COMM_FEATURE:
-            break;
-        case CDC_GET_COMM_FEATURE:
-            break;
-        case CDC_CLEAR_COMM_FEATURE:
-            break;
-        case CDC_SET_LINE_CODING:
-            _cdc_set_line_coding(func->device, setup);
-            break;
-        case CDC_GET_LINE_CODING:
-            _cdc_get_line_coding(func->device, setup);
-            break;
-        case CDC_SET_CONTROL_LINE_STATE:
-            data->connected = (setup->wValue & 0x01) > 0 ? RT_TRUE : RT_FALSE;
-            RT_DEBUG_LOG(RT_DEBUG_USB, ("vcom state:%d \n", data->connected));
-            dcd_ep0_send_status(func->device->dcd);
-            break;
-        case CDC_SEND_BREAK:
-            break;
-        default:
-            rt_kprintf("unknown cdc request\n", setup->request_type);
-            return -RT_ERROR;
+    case CDC_SEND_ENCAPSULATED_COMMAND:
+        break;
+    case CDC_GET_ENCAPSULATED_RESPONSE:
+        break;
+    case CDC_SET_COMM_FEATURE:
+        break;
+    case CDC_GET_COMM_FEATURE:
+        break;
+    case CDC_CLEAR_COMM_FEATURE:
+        break;
+    case CDC_SET_LINE_CODING:
+        _cdc_set_line_coding(func->device, setup);
+        break;
+    case CDC_GET_LINE_CODING:
+        _cdc_get_line_coding(func->device, setup);
+        break;
+    case CDC_SET_CONTROL_LINE_STATE:
+        data->connected = (setup->wValue & 0x01) > 0?RT_TRUE:RT_FALSE;
+        RT_DEBUG_LOG(RT_DEBUG_USB, ("vcom state:%d \n", data->connected));
+        dcd_ep0_send_status(func->device->dcd);
+        break;
+    case CDC_SEND_BREAK:
+        break;
+    default:
+        rt_kprintf("unknown cdc request\n",setup->request_type);
+        return -RT_ERROR;
     }
 
     return RT_EOK;
@@ -486,7 +486,7 @@ static rt_err_t _interface_handler(ufunction_t func, ureq_t setup)
  */
 static rt_err_t _function_enable(ufunction_t func)
 {
-    struct vcom* data;
+    struct vcom *data;
 
     RT_ASSERT(func != RT_NULL);
 
@@ -516,7 +516,7 @@ static rt_err_t _function_enable(ufunction_t func)
  */
 static rt_err_t _function_disable(ufunction_t func)
 {
-    struct vcom* data;
+    struct vcom *data;
 
     RT_ASSERT(func != RT_NULL);
 
@@ -525,7 +525,7 @@ static rt_err_t _function_disable(ufunction_t func)
     _vcom_reset_state(func);
 
     data = (struct vcom*)func->user_data;
-    if (data->ep_out->buffer != RT_NULL)
+    if(data->ep_out->buffer != RT_NULL)
     {
         rt_free(data->ep_out->buffer);
         data->ep_out->buffer = RT_NULL;
@@ -550,7 +550,7 @@ static struct ufunction_ops ops =
  * @return RT_EOK on successful.
  */
 static rt_err_t _cdc_descriptor_config(ucdc_comm_desc_t comm,
-                                       rt_uint8_t cintf_nr, ucdc_data_desc_t data, rt_uint8_t dintf_nr)
+    rt_uint8_t cintf_nr, ucdc_data_desc_t data, rt_uint8_t dintf_nr)
 {
     comm->call_mgmt_desc.data_interface = dintf_nr;
     comm->union_desc.master_interface = cintf_nr;
@@ -582,7 +582,7 @@ ufunction_t rt_usbd_function_cdc_create(udevice_t device)
     RT_ASSERT(device != RT_NULL);
 
     rt_memset(serno, 0, _SER_NO_LEN + 1);
-    if (vcom_get_stored_serno(serno, _SER_NO_LEN) != RT_EOK)
+    if(vcom_get_stored_serno(serno, _SER_NO_LEN) != RT_EOK)
     {
         rt_memset(serno, 0, _SER_NO_LEN + 1);
         rt_memcpy(serno, _SER_NO, rt_strlen(_SER_NO));
@@ -618,7 +618,7 @@ ufunction_t rt_usbd_function_cdc_create(udevice_t device)
 
     /* config desc in alternate setting */
     rt_usbd_altsetting_config_descriptor(comm_setting, &_comm_desc,
-                                         (rt_off_t) & ((ucdc_comm_desc_t)0)->intf_desc);
+                                         (rt_off_t)&((ucdc_comm_desc_t)0)->intf_desc);
     rt_usbd_altsetting_config_descriptor(data_setting, &_data_desc, 0);
     /* configure the cdc interface descriptor */
     _cdc_descriptor_config(comm_setting->desc, intf_comm->intf_num, data_setting->desc, intf_data->intf_num);
@@ -661,35 +661,44 @@ ufunction_t rt_usbd_function_cdc_create(udevice_t device)
 /**
 * UART device in RT-Thread
 */
-static rt_err_t _vcom_configure(struct rt_serial_device* serial,
-                                struct serial_configure* cfg)
+static rt_err_t _vcom_configure(struct rt_serial_device *serial,
+                                struct serial_configure *cfg)
 {
     return RT_EOK;
 }
 
-static rt_err_t _vcom_control(struct rt_serial_device* serial,
-                              int cmd, void* arg)
+static rt_err_t _vcom_control(struct rt_serial_device *serial,
+                              int cmd, void *arg)
 {
+    struct ufunction *func;
+    struct vcom *data;
+
+    func = (struct ufunction*)serial->parent.user_data;
+    data = (struct vcom*)func->user_data;
+
     switch (cmd)
     {
-        case RT_DEVICE_CTRL_CLR_INT:
-            /* disable rx irq */
-            break;
-        case RT_DEVICE_CTRL_SET_INT:
-            /* enable rx irq */
-            break;
+    case RT_DEVICE_CTRL_CLR_INT:
+        /* disable rx irq */
+        break;
+    case RT_DEVICE_CTRL_SET_INT:
+        /* enable rx irq */
+        break;
+    case RT_USBD_CLASS_CTRL_CONNECTED:
+        (*(rt_bool_t*)arg) = data->connected;
+        break;
     }
 
     return RT_EOK;
 }
 
-static int _vcom_getc(struct rt_serial_device* serial)
+static int _vcom_getc(struct rt_serial_device *serial)
 {
     int result;
     rt_uint8_t ch;
-    rt_uint32_t level;
-    struct ufunction* func;
-    struct vcom* data;
+    rt_base_t level;
+    struct ufunction *func;
+    struct vcom *data;
 
     func = (struct ufunction*)serial->parent.user_data;
     data = (struct vcom*)func->user_data;
@@ -698,7 +707,7 @@ static int _vcom_getc(struct rt_serial_device* serial)
 
     level = rt_hw_interrupt_disable();
 
-    if (rt_ringbuffer_getchar(&data->rx_ringbuffer, &ch) != 0)
+    if(rt_ringbuffer_getchar(&data->rx_ringbuffer, &ch) != 0)
     {
         result = ch;
     }
@@ -708,9 +717,9 @@ static int _vcom_getc(struct rt_serial_device* serial)
     return result;
 }
 
-static rt_size_t _vcom_rb_block_put(struct vcom* data, const rt_uint8_t* buf, rt_size_t size)
+static rt_size_t _vcom_rb_block_put(struct vcom *data, const rt_uint8_t *buf, rt_size_t size)
 {
-    rt_uint32_t level;
+    rt_base_t level;
     rt_size_t   put_len = 0;
     rt_size_t   w_ptr = 0;
     rt_uint32_t res;
@@ -719,15 +728,15 @@ static rt_size_t _vcom_rb_block_put(struct vcom* data, const rt_uint8_t* buf, rt
     while (remain_size)
     {
         level = rt_hw_interrupt_disable();
-        put_len = rt_ringbuffer_put(&data->tx_ringbuffer, (const rt_uint8_t*)&buf[w_ptr], remain_size);
+        put_len = rt_ringbuffer_put(&data->tx_ringbuffer, (const rt_uint8_t *)&buf[w_ptr], remain_size);
         rt_hw_interrupt_enable(level);
         w_ptr += put_len;
         remain_size -= put_len;
         if (put_len == 0)
         {
             rt_event_recv(&data->tx_event, CDC_TX_HAS_SPACE,
-                          RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
-                          VCOM_TX_TIMEOUT, &res);
+                    RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
+                    VCOM_TX_TIMEOUT, &res);
         }
         else
         {
@@ -738,10 +747,10 @@ static rt_size_t _vcom_rb_block_put(struct vcom* data, const rt_uint8_t* buf, rt
     return size;
 }
 
-static rt_size_t _vcom_tx(struct rt_serial_device* serial, rt_uint8_t* buf, rt_size_t size, int direction)
+static rt_size_t _vcom_tx(struct rt_serial_device *serial, rt_uint8_t *buf, rt_size_t size, int direction)
 {
-    struct ufunction* func;
-    struct vcom* data;
+    struct ufunction *func;
+    struct vcom *data;
     rt_uint32_t send_size = 0;
     rt_size_t ptr = 0;
     rt_uint8_t crlf[2] = {'\r', '\n',};
@@ -752,28 +761,28 @@ static rt_size_t _vcom_tx(struct rt_serial_device* serial, rt_uint8_t* buf, rt_s
     RT_ASSERT(serial != RT_NULL);
     RT_ASSERT(buf != RT_NULL);
 
-    RT_DEBUG_LOG(RT_DEBUG_USB, ("%s\n", __func__));
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("%s\n",__func__));
 
     if (data->connected)
     {
-        if ((serial->parent.open_flag & RT_DEVICE_FLAG_STREAM))
+        if((serial->parent.open_flag & RT_DEVICE_FLAG_STREAM))
         {
-            while (send_size < size)
+            while(send_size < size)
             {
-                while (ptr < size && buf[ptr] != '\n')
+                while(ptr < size && buf[ptr] != '\n')
                 {
                     ptr++;
                 }
-                if (ptr < size)
+                if(ptr < size)
                 {
-                    send_size += _vcom_rb_block_put(data, (const rt_uint8_t*)&buf[send_size], ptr - send_size);
+                    send_size += _vcom_rb_block_put(data, (const rt_uint8_t *)&buf[send_size], ptr - send_size);
                     _vcom_rb_block_put(data, crlf, 2);
                     send_size++;
                     ptr++;
                 }
                 else if (ptr == size)
                 {
-                    send_size += _vcom_rb_block_put(data, (const rt_uint8_t*)&buf[send_size], ptr - send_size);
+                    send_size += _vcom_rb_block_put(data, (const rt_uint8_t *)&buf[send_size], ptr - send_size);
                 }
                 else
                 {
@@ -785,23 +794,23 @@ static rt_size_t _vcom_tx(struct rt_serial_device* serial, rt_uint8_t* buf, rt_s
         {
             while (send_size < size)
             {
-                send_size += _vcom_rb_block_put(data, (rt_uint8_t*)&buf[send_size], size - send_size);
+                send_size += _vcom_rb_block_put(data, (rt_uint8_t *)&buf[send_size], size - send_size);
             }
         }
     }
     else
     {
         /* recover dataqueue resources */
-        rt_hw_serial_isr(&data->serial, RT_SERIAL_EVENT_TX_DMADONE);
+        rt_hw_serial_isr(&data->serial,RT_SERIAL_EVENT_TX_DMADONE);
     }
 
     return size;
 }
-static int _vcom_putc(struct rt_serial_device* serial, char c)
+static int _vcom_putc(struct rt_serial_device *serial, char c)
 {
-    rt_uint32_t level;
-    struct ufunction* func;
-    struct vcom* data;
+    rt_base_t level;
+    struct ufunction *func;
+    struct vcom *data;
 
     func = (struct ufunction*)serial->parent.user_data;
     data = (struct vcom*)func->user_data;
@@ -810,7 +819,7 @@ static int _vcom_putc(struct rt_serial_device* serial, char c)
 
     if (data->connected)
     {
-        if (c == '\n' && (serial->parent.open_flag & RT_DEVICE_FLAG_STREAM))
+        if(c == '\n' && (serial->parent.open_flag & RT_DEVICE_FLAG_STREAM))
         {
             level = rt_hw_interrupt_disable();
             rt_ringbuffer_putchar_force(&data->tx_ringbuffer, '\r');
@@ -838,10 +847,10 @@ static const struct rt_uart_ops usb_vcom_ops =
 /* Vcom Tx Thread */
 static void vcom_tx_thread_entry(void* parameter)
 {
-    rt_uint32_t level;
+    rt_base_t level;
     rt_uint32_t res;
-    struct ufunction* func = (struct ufunction*)parameter;
-    struct vcom* data = (struct vcom*)func->user_data;
+    struct ufunction *func = (struct ufunction *)parameter;
+    struct vcom *data = (struct vcom*)func->user_data;
     rt_uint8_t ch[CDC_BULKIN_MAXSIZE];
 
     while (1)
@@ -849,42 +858,42 @@ static void vcom_tx_thread_entry(void* parameter)
         if
         (
             (rt_event_recv(&data->tx_event, CDC_TX_HAS_DATE,
-                           RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
-                           RT_WAITING_FOREVER, &res) != RT_EOK) ||
-            (!(res & CDC_TX_HAS_DATE))
+                    RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
+                    RT_WAITING_FOREVER, &res) != RT_EOK) ||
+                                 (!(res & CDC_TX_HAS_DATE))
         )
         {
             continue;
         }
-        if (!(res & CDC_TX_HAS_DATE))
+        if(!(res & CDC_TX_HAS_DATE))
         {
             continue;
         }
-        while (rt_ringbuffer_data_len(&data->tx_ringbuffer))
+        while(rt_ringbuffer_data_len(&data->tx_ringbuffer))
         {
             level = rt_hw_interrupt_disable();
             res = rt_ringbuffer_get(&data->tx_ringbuffer, ch, CDC_BULKIN_MAXSIZE);
             rt_hw_interrupt_enable(level);
 
-            if (!res)
+            if(!res)
             {
                 continue;
             }
             if (!data->connected)
             {
-                if (data->serial.parent.open_flag &
+                if(data->serial.parent.open_flag &
 #ifndef VCOM_TX_USE_DMA
-                    RT_DEVICE_FLAG_INT_TX
+                         RT_DEVICE_FLAG_INT_TX
 #else
-                    RT_DEVICE_FLAG_DMA_TX
+                         RT_DEVICE_FLAG_DMA_TX
 #endif
-                   )
+                )
                 {
-                    /* drop msg */
+                /* drop msg */
 #ifndef VCOM_TX_USE_DMA
-                    rt_hw_serial_isr(&data->serial, RT_SERIAL_EVENT_TX_DONE);
+                    rt_hw_serial_isr(&data->serial,RT_SERIAL_EVENT_TX_DONE);
 #else
-                    rt_hw_serial_isr(&data->serial, RT_SERIAL_EVENT_TX_DMADONE);
+                    rt_hw_serial_isr(&data->serial,RT_SERIAL_EVENT_TX_DMADONE);
 #endif
                 }
                 continue;
@@ -901,18 +910,18 @@ static void vcom_tx_thread_entry(void* parameter)
             {
                 RT_DEBUG_LOG(RT_DEBUG_USB, ("vcom tx timeout\n"));
             }
-            if (data->serial.parent.open_flag &
+            if(data->serial.parent.open_flag &
 #ifndef VCOM_TX_USE_DMA
-                RT_DEVICE_FLAG_INT_TX
+                         RT_DEVICE_FLAG_INT_TX
 #else
-                RT_DEVICE_FLAG_DMA_TX
+                         RT_DEVICE_FLAG_DMA_TX
 #endif
-               )
+            )
             {
 #ifndef VCOM_TX_USE_DMA
-                rt_hw_serial_isr(&data->serial, RT_SERIAL_EVENT_TX_DONE);
+                rt_hw_serial_isr(&data->serial,RT_SERIAL_EVENT_TX_DONE);
 #else
-                rt_hw_serial_isr(&data->serial, RT_SERIAL_EVENT_TX_DMADONE);
+                rt_hw_serial_isr(&data->serial,RT_SERIAL_EVENT_TX_DMADONE);
 #endif
                 rt_event_send(&data->tx_event, CDC_TX_HAS_SPACE);
             }
@@ -921,11 +930,11 @@ static void vcom_tx_thread_entry(void* parameter)
     }
 }
 
-static void rt_usb_vcom_init(struct ufunction* func)
+static void rt_usb_vcom_init(struct ufunction *func)
 {
     rt_err_t result = RT_EOK;
     struct serial_configure config;
-    struct vcom* data = (struct vcom*)func->user_data;
+    struct vcom *data = (struct vcom*)func->user_data;
 
     /* initialize ring buffer */
     rt_ringbuffer_init(&data->rx_ringbuffer, data->rx_rbp, CDC_RX_BUFSIZE);
@@ -939,8 +948,12 @@ static void rt_usb_vcom_init(struct ufunction* func)
     config.parity       = PARITY_NONE;
     config.bit_order    = BIT_ORDER_LSB;
     config.invert       = NRZ_NORMAL;
+#if defined(RT_USING_SERIAL_V1)
     config.bufsz        = CDC_RX_BUFSIZE;
-
+#elif defined(RT_USING_SERIAL_V2)
+    config.rx_bufsz     = CDC_RX_BUFSIZE;
+    config.tx_bufsz     = CDC_TX_BUFSIZE;
+#endif
     data->serial.ops        = &usb_vcom_ops;
     data->serial.serial_rx  = RT_NULL;
     data->serial.config     = config;

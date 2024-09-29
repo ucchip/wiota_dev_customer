@@ -7,17 +7,12 @@
  * Date           Author       Notes
  * 2009-05-27     Yi.qiu       The first version
  * 2018-02-07     Bernard      Change the 3rd parameter of open/fcntl/ioctl to '...'
+ * 2022-01-19     Meco Man     add creat()
  */
 
-#include <dfs.h>
-#include <dfs_posix.h>
-#include "dfs_private.h"
-
-/**
- * @addtogroup FsPosixApi
- */
-
-/*@{*/
+#include <dfs_file.h>
+#include <dfs_private.h>
+#include <sys/errno.h>
 
 /**
  * this function is a POSIX compliant version, which will open a file and
@@ -28,10 +23,10 @@
  *
  * @return the non-negative integer on successful open, others for failed.
  */
-int open(const char* file, int flags, ...)
+int open(const char *file, int flags, ...)
 {
     int fd, result;
-    struct dfs_fd* d;
+    struct dfs_fd *d;
 
     /* allocate a fd */
     fd = fd_new();
@@ -63,6 +58,21 @@ int open(const char* file, int flags, ...)
 RTM_EXPORT(open);
 
 /**
+ * this function is a POSIX compliant version,
+ * which will create a new file or rewrite an existing one
+ *
+ * @param path the path name of file.
+ * @param mode the file permission bits to be used in creating the file (not used, can be 0)
+ *
+ * @return the non-negative integer on successful open, others for failed.
+ */
+int creat(const char *path, mode_t mode)
+{
+    return open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
+}
+RTM_EXPORT(creat);
+
+/**
  * this function is a POSIX compliant version, which will close the open
  * file descriptor.
  *
@@ -73,7 +83,7 @@ RTM_EXPORT(open);
 int close(int fd)
 {
     int result;
-    struct dfs_fd* d;
+    struct dfs_fd *d;
 
     d = fd_get(fd);
     if (d == NULL)
@@ -110,14 +120,14 @@ RTM_EXPORT(close);
  * @return the actual read data buffer length. If the returned value is 0, it
  * may be reach the end of file, please check errno.
  */
-#if defined(RT_USING_NEWLIB) && defined(_EXFUN)
-_READ_WRITE_RETURN_TYPE _EXFUN(read, (int fd, void* buf, size_t len))
+#ifdef _READ_WRITE_RETURN_TYPE
+_READ_WRITE_RETURN_TYPE read(int fd, void *buf, size_t len) /* some gcc tool chains will use different data structure */
 #else
-int read(int fd, void* buf, size_t len)
+ssize_t read(int fd, void *buf, size_t len)
 #endif
 {
     int result;
-    struct dfs_fd* d;
+    struct dfs_fd *d;
 
     /* get the fd */
     d = fd_get(fd);
@@ -154,14 +164,14 @@ RTM_EXPORT(read);
  *
  * @return the actual written data buffer length.
  */
-#if defined(RT_USING_NEWLIB) && defined(_EXFUN)
-_READ_WRITE_RETURN_TYPE _EXFUN(write, (int fd, const void* buf, size_t len))
+#ifdef _READ_WRITE_RETURN_TYPE
+_READ_WRITE_RETURN_TYPE write(int fd, const void *buf, size_t len) /* some gcc tool chains will use different data structure */
 #else
-int write(int fd, const void* buf, size_t len)
+ssize_t write(int fd, const void *buf, size_t len)
 #endif
 {
     int result;
-    struct dfs_fd* d;
+    struct dfs_fd *d;
 
     /* get the fd */
     d = fd_get(fd);
@@ -201,7 +211,7 @@ RTM_EXPORT(write);
 off_t lseek(int fd, off_t offset, int whence)
 {
     int result;
-    struct dfs_fd* d;
+    struct dfs_fd *d;
 
     d = fd_get(fd);
     if (d == NULL)
@@ -213,22 +223,22 @@ off_t lseek(int fd, off_t offset, int whence)
 
     switch (whence)
     {
-        case SEEK_SET:
-            break;
+    case SEEK_SET:
+        break;
 
-        case SEEK_CUR:
-            offset += d->pos;
-            break;
+    case SEEK_CUR:
+        offset += d->pos;
+        break;
 
-        case SEEK_END:
-            offset += d->size;
-            break;
+    case SEEK_END:
+        offset += d->size;
+        break;
 
-        default:
-            fd_put(d);
-            rt_set_errno(-EINVAL);
+    default:
+        fd_put(d);
+        rt_set_errno(-EINVAL);
 
-            return -1;
+        return -1;
     }
 
     if (offset < 0)
@@ -254,6 +264,7 @@ off_t lseek(int fd, off_t offset, int whence)
 }
 RTM_EXPORT(lseek);
 
+#ifndef _WIN32
 /**
  * this function is a POSIX compliant version, which will rename old file name
  * to new file name.
@@ -265,7 +276,7 @@ RTM_EXPORT(lseek);
  *
  * note: the old and new file name must be belong to a same file system.
  */
-int rename(const char* old_file, const char* new_file)
+int rename(const char *old_file, const char *new_file)
 {
     int result;
 
@@ -280,6 +291,7 @@ int rename(const char* old_file, const char* new_file)
     return 0;
 }
 RTM_EXPORT(rename);
+#endif
 
 /**
  * this function is a POSIX compliant version, which will unlink (remove) a
@@ -289,7 +301,7 @@ RTM_EXPORT(rename);
  *
  * @return 0 on successful, -1 on failed.
  */
-int unlink(const char* pathname)
+int unlink(const char *pathname)
 {
     int result;
 
@@ -305,7 +317,6 @@ int unlink(const char* pathname)
 }
 RTM_EXPORT(unlink);
 
-#ifndef _WIN32 /* we can not implement these functions */
 /**
  * this function is a POSIX compliant version, which will get file information.
  *
@@ -314,7 +325,7 @@ RTM_EXPORT(unlink);
  *
  * @return 0 on successful, -1 on failed.
  */
-int stat(const char* file, struct stat* buf)
+int stat(const char *file, struct stat *buf)
 {
     int result;
 
@@ -338,9 +349,9 @@ RTM_EXPORT(stat);
  *
  * @return 0 on successful, -1 on failed.
  */
-int fstat(int fildes, struct stat* buf)
+int fstat(int fildes, struct stat *buf)
 {
-    struct dfs_fd* d;
+    struct dfs_fd *d;
 
     /* get the fd */
     d = fd_get(fildes);
@@ -370,7 +381,6 @@ int fstat(int fildes, struct stat* buf)
     return RT_EOK;
 }
 RTM_EXPORT(fstat);
-#endif
 
 /**
  * this function is a POSIX compliant version, which shall request that all data
@@ -385,7 +395,7 @@ RTM_EXPORT(fstat);
 int fsync(int fildes)
 {
     int ret;
-    struct dfs_fd* d;
+    struct dfs_fd *d;
 
     /* get the fd */
     d = fd_get(fildes);
@@ -417,26 +427,23 @@ RTM_EXPORT(fsync);
 int fcntl(int fildes, int cmd, ...)
 {
     int ret = -1;
-    struct dfs_fd* d;
+    struct dfs_fd *d;
 
     /* get the fd */
     d = fd_get(fildes);
     if (d)
     {
-        void* arg;
+        void *arg;
         va_list ap;
 
         va_start(ap, cmd);
-        arg = va_arg(ap, void*);
+        arg = va_arg(ap, void *);
         va_end(ap);
 
         ret = dfs_file_ioctl(d, cmd, arg);
         fd_put(d);
     }
-    else
-    {
-        ret = -EBADF;
-    }
+    else ret = -EBADF;
 
     if (ret < 0)
     {
@@ -462,11 +469,11 @@ RTM_EXPORT(fcntl);
  */
 int ioctl(int fildes, int cmd, ...)
 {
-    void* arg;
+    void *arg;
     va_list ap;
 
     va_start(ap, cmd);
-    arg = va_arg(ap, void*);
+    arg = va_arg(ap, void *);
     va_end(ap);
 
     /* we use fcntl for this API. */
@@ -487,7 +494,7 @@ RTM_EXPORT(ioctl);
 int ftruncate(int fd, off_t length)
 {
     int result;
-    struct dfs_fd* d;
+    struct dfs_fd *d;
 
     d = fd_get(fd);
     if (d == NULL)
@@ -529,7 +536,7 @@ RTM_EXPORT(ftruncate);
  *
  * @return 0 on successful, others on failed.
  */
-int statfs(const char* path, struct statfs* buf)
+int statfs(const char *path, struct statfs *buf)
 {
     int result;
 
@@ -553,10 +560,10 @@ RTM_EXPORT(statfs);
  *
  * @return 0 on successful, others on failed.
  */
-int mkdir(const char* path, mode_t mode)
+int mkdir(const char *path, mode_t mode)
 {
     int fd;
-    struct dfs_fd* d;
+    struct dfs_fd *d;
     int result;
 
     fd = fd_new();
@@ -588,11 +595,6 @@ int mkdir(const char* path, mode_t mode)
 }
 RTM_EXPORT(mkdir);
 
-#ifdef RT_USING_FINSH
-#include <finsh.h>
-FINSH_FUNCTION_EXPORT(mkdir, create a directory);
-#endif
-
 /**
  * this function is a POSIX compliant version, which will remove a directory.
  *
@@ -600,7 +602,7 @@ FINSH_FUNCTION_EXPORT(mkdir, create a directory);
  *
  * @return 0 on successful, others on failed.
  */
-int rmdir(const char* pathname)
+int rmdir(const char *pathname)
 {
     int result;
 
@@ -623,11 +625,11 @@ RTM_EXPORT(rmdir);
  *
  * @return the DIR pointer of directory, NULL on open directory failed.
  */
-DIR* opendir(const char* name)
+DIR *opendir(const char *name)
 {
-    struct dfs_fd* d;
+    struct dfs_fd *d;
     int fd, result;
-    DIR* t;
+    DIR *t;
 
     t = NULL;
 
@@ -645,7 +647,7 @@ DIR* opendir(const char* name)
     if (result >= 0)
     {
         /* open successfully */
-        t = (DIR*) rt_malloc(sizeof(DIR));
+        t = (DIR *) rt_malloc(sizeof(DIR));
         if (t == NULL)
         {
             dfs_file_close(d);
@@ -653,7 +655,7 @@ DIR* opendir(const char* name)
         }
         else
         {
-            memset(t, 0, sizeof(DIR));
+            rt_memset(t, 0, sizeof(DIR));
 
             t->fd = fd;
         }
@@ -680,10 +682,10 @@ RTM_EXPORT(opendir);
  *
  * @return the next directory entry, NULL on the end of directory or failed.
  */
-struct dirent* readdir(DIR* d)
+struct dirent *readdir(DIR *d)
 {
     int result;
-    struct dfs_fd* fd;
+    struct dfs_fd *fd;
 
     fd = fd_get(d->fd);
     if (fd == NULL)
@@ -694,8 +696,8 @@ struct dirent* readdir(DIR* d)
 
     if (d->num)
     {
-        struct dirent* dirent_ptr;
-        dirent_ptr = (struct dirent*)&d->buf[d->cur];
+        struct dirent *dirent_ptr;
+        dirent_ptr = (struct dirent *)&d->buf[d->cur];
         d->cur += dirent_ptr->d_reclen;
     }
 
@@ -703,7 +705,7 @@ struct dirent* readdir(DIR* d)
     {
         /* get a new entry */
         result = dfs_file_getdents(fd,
-                                   (struct dirent*)d->buf,
+                                   (struct dirent *)d->buf,
                                    sizeof(d->buf) - 1);
         if (result <= 0)
         {
@@ -719,7 +721,7 @@ struct dirent* readdir(DIR* d)
 
     fd_put(fd);
 
-    return (struct dirent*)(d->buf + d->cur);
+    return (struct dirent *)(d->buf + d->cur);
 }
 RTM_EXPORT(readdir);
 
@@ -731,9 +733,9 @@ RTM_EXPORT(readdir);
  *
  * @return the current location in directory stream.
  */
-long telldir(DIR* d)
+long telldir(DIR *d)
 {
-    struct dfs_fd* fd;
+    struct dfs_fd *fd;
     long result;
 
     fd = fd_get(d->fd);
@@ -758,9 +760,9 @@ RTM_EXPORT(telldir);
  * @param d the directory stream.
  * @param offset the offset in directory stream.
  */
-void seekdir(DIR* d, off_t offset)
+void seekdir(DIR *d, off_t offset)
 {
-    struct dfs_fd* fd;
+    struct dfs_fd *fd;
 
     fd = fd_get(d->fd);
     if (fd == NULL)
@@ -772,7 +774,7 @@ void seekdir(DIR* d, off_t offset)
 
     /* seek to the offset position of directory */
     if (dfs_file_lseek(fd, offset) >= 0)
-    { d->num = d->cur = 0; }
+        d->num = d->cur = 0;
     fd_put(fd);
 }
 RTM_EXPORT(seekdir);
@@ -783,9 +785,9 @@ RTM_EXPORT(seekdir);
  *
  * @param d the directory stream.
  */
-void rewinddir(DIR* d)
+void rewinddir(DIR *d)
 {
-    struct dfs_fd* fd;
+    struct dfs_fd *fd;
 
     fd = fd_get(d->fd);
     if (fd == NULL)
@@ -797,7 +799,7 @@ void rewinddir(DIR* d)
 
     /* seek to the beginning of directory */
     if (dfs_file_lseek(fd, 0) >= 0)
-    { d->num = d->cur = 0; }
+        d->num = d->cur = 0;
     fd_put(fd);
 }
 RTM_EXPORT(rewinddir);
@@ -810,10 +812,10 @@ RTM_EXPORT(rewinddir);
  *
  * @return 0 on successful, -1 on failed.
  */
-int closedir(DIR* d)
+int closedir(DIR *d)
 {
     int result;
-    struct dfs_fd* fd;
+    struct dfs_fd *fd;
 
     fd = fd_get(d->fd);
     if (fd == NULL)
@@ -836,7 +838,7 @@ int closedir(DIR* d)
         return -1;
     }
     else
-    { return 0; }
+        return 0;
 }
 RTM_EXPORT(closedir);
 
@@ -849,10 +851,10 @@ RTM_EXPORT(closedir);
  *
  * @return 0 on successful, -1 on failed.
  */
-int chdir(const char* path)
+int chdir(const char *path)
 {
-    char* fullpath;
-    DIR* d;
+    char *fullpath;
+    DIR *d;
 
     if (path == NULL)
     {
@@ -917,11 +919,11 @@ FINSH_FUNCTION_EXPORT_ALIAS(chdir, cd, change current working directory);
  * @param amode the value is either the bitwise-inclusive OR of the access
  * permissions to be checked (R_OK, W_OK, X_OK) or the existence test (F_OK).
  */
-int access(const char* path, int amode)
+int access(const char *path, int amode)
 {
     struct stat sb;
     if (stat(path, &sb) < 0)
-    { return -1; } /* already sets errno */
+        return -1; /* already sets errno */
 
     /* ignore R_OK,W_OK,X_OK condition */
     return 0;
@@ -936,7 +938,7 @@ int access(const char* path, int amode)
  *
  * @return the returned current directory.
  */
-char* getcwd(char* buf, size_t size)
+char *getcwd(char *buf, size_t size)
 {
 #ifdef DFS_USING_WORKDIR
     dfs_lock();
@@ -949,5 +951,3 @@ char* getcwd(char* buf, size_t size)
     return buf;
 }
 RTM_EXPORT(getcwd);
-
-/* @} */

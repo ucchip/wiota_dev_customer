@@ -31,7 +31,7 @@
 #line 10 "libs/parser/hconf.gperf"
 struct kconf_id;
 
-static const struct kconf_id* kconf_id_lookup(register const char* str, register GPERF_LEN_TYPE len);
+static const struct kconf_id *kconf_id_lookup(register const char *str, register GPERF_LEN_TYPE len);
 /* maximum key range = 71, duplicates = 0 */
 
 #ifdef __GNUC__
@@ -42,54 +42,54 @@ inline
 #endif
 #endif
 static unsigned int
-kconf_id_hash (register const char* str, register unsigned int len)
+kconf_id_hash (register const char *str, register unsigned int len)
 {
-    static const unsigned char asso_values[] =
+  static const unsigned char asso_values[] =
     {
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73,  0, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 10, 25, 25,
-        0,  0,  0,  5,  0,  0, 73, 73,  5,  0,
-        10,  5, 45, 73, 20, 20,  0, 15, 15, 73,
-        20,  0, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-        73, 73, 73, 73, 73, 73
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73,  0, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 10, 25, 25,
+       0,  0,  0,  5,  0,  0, 73, 73,  5,  0,
+      10,  5, 45, 73, 20, 20,  0, 15, 15, 73,
+      20,  0, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+      73, 73, 73, 73, 73, 73
     };
-    register int hval = len;
+  register int hval = len;
 
-    switch (hval)
+  switch (hval)
     {
-        default:
-            hval += asso_values[(unsigned char)str[2]];
-        /*FALLTHROUGH*/
-        case 2:
-        case 1:
-            hval += asso_values[(unsigned char)str[0]];
-            break;
+      default:
+        hval += asso_values[(unsigned char)str[2]];
+      /*FALLTHROUGH*/
+      case 2:
+      case 1:
+        hval += asso_values[(unsigned char)str[0]];
+        break;
     }
-    return hval + asso_values[(unsigned char)str[len - 1]];
+  return hval + asso_values[(unsigned char)str[len - 1]];
 }
 
 struct kconf_id_strings_t
-{
+  {
     char kconf_id_strings_str2[sizeof("if")];
     char kconf_id_strings_str3[sizeof("int")];
     char kconf_id_strings_str5[sizeof("endif")];
@@ -125,9 +125,9 @@ struct kconf_id_strings_t
     char kconf_id_strings_str54[sizeof("help")];
     char kconf_id_strings_str56[sizeof("prompt")];
     char kconf_id_strings_str72[sizeof("depends")];
-};
+  };
 static const struct kconf_id_strings_t kconf_id_strings_contents =
-{
+  {
     "if",
     "int",
     "endif",
@@ -163,7 +163,7 @@ static const struct kconf_id_strings_t kconf_id_strings_contents =
     "help",
     "prompt",
     "depends"
-};
+  };
 #define kconf_id_strings ((const char *) &kconf_id_strings_contents)
 #ifdef __GNUC__
 __inline
@@ -171,127 +171,127 @@ __inline
 __attribute__ ((__gnu_inline__))
 #endif
 #endif
-const struct kconf_id*
-kconf_id_lookup (register const char* str, register unsigned int len)
+const struct kconf_id *
+kconf_id_lookup (register const char *str, register unsigned int len)
 {
-    enum
+  enum
     {
-        TOTAL_KEYWORDS = 35,
-        MIN_WORD_LENGTH = 2,
-        MAX_WORD_LENGTH = 14,
-        MIN_HASH_VALUE = 2,
-        MAX_HASH_VALUE = 72
+      TOTAL_KEYWORDS = 35,
+      MIN_WORD_LENGTH = 2,
+      MAX_WORD_LENGTH = 14,
+      MIN_HASH_VALUE = 2,
+      MAX_HASH_VALUE = 72
     };
 
-    static const struct kconf_id wordlist[] =
+  static const struct kconf_id wordlist[] =
     {
-        {-1}, {-1},
+      {-1}, {-1},
 #line 26 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str2,     T_IF,       TF_COMMAND | TF_PARAM},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str2,		T_IF,		TF_COMMAND|TF_PARAM},
 #line 37 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str3,     T_TYPE,     TF_COMMAND, S_INT},
-        {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str3,		T_TYPE,		TF_COMMAND, S_INT},
+      {-1},
 #line 27 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str5,     T_ENDIF,    TF_COMMAND},
-        {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str5,		T_ENDIF,	TF_COMMAND},
+      {-1},
 #line 30 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str7, T_DEFAULT,  TF_COMMAND, S_UNKNOWN},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str7,	T_DEFAULT,	TF_COMMAND, S_UNKNOWN},
 #line 32 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str8, T_TYPE,     TF_COMMAND, S_TRISTATE},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str8,	T_TYPE,		TF_COMMAND, S_TRISTATE},
 #line 20 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str9, T_ENDCHOICE,    TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str9,	T_ENDCHOICE,	TF_COMMAND},
 #line 25 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str10,    T_HELP,     TF_COMMAND},
-        {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str10,	T_HELP,		TF_COMMAND},
+      {-1},
 #line 33 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str12,    T_DEFAULT,  TF_COMMAND, S_TRISTATE},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str12,	T_DEFAULT,	TF_COMMAND, S_TRISTATE},
 #line 36 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str13,    T_DEFAULT,  TF_COMMAND, S_BOOLEAN},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str13,	T_DEFAULT,	TF_COMMAND, S_BOOLEAN},
 #line 47 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str14,    T_OPT_DEFCONFIG_LIST, TF_OPTION},
-        {-1}, {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str14,	T_OPT_DEFCONFIG_LIST,TF_OPTION},
+      {-1}, {-1},
 #line 45 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str17,        T_ON,       TF_PARAM},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str17,		T_ON,		TF_PARAM},
 #line 29 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str18,    T_OPTIONAL, TF_COMMAND},
-        {-1}, {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str18,	T_OPTIONAL,	TF_COMMAND},
+      {-1}, {-1},
 #line 44 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str21,        T_OPTION,   TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str21,		T_OPTION,	TF_COMMAND},
 #line 17 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str22,    T_ENDMENU,  TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str22,	T_ENDMENU,	TF_COMMAND},
 #line 15 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str23,    T_MAINMENU, TF_COMMAND},
-        {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str23,	T_MAINMENU,	TF_COMMAND},
+      {-1},
 #line 23 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str25,    T_MENUCONFIG,   TF_COMMAND},
-        {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str25,	T_MENUCONFIG,	TF_COMMAND},
+      {-1},
 #line 46 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str27,    T_OPT_MODULES,  TF_OPTION},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str27,	T_OPT_MODULES,	TF_OPTION},
 #line 49 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str28,    T_OPT_ALLNOCONFIG_Y, TF_OPTION},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str28,	T_OPT_ALLNOCONFIG_Y,TF_OPTION},
 #line 16 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str29,        T_MENU,     TF_COMMAND},
-        {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str29,		T_MENU,		TF_COMMAND},
+      {-1},
 #line 40 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str31,        T_SELECT,   TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str31,		T_SELECT,	TF_COMMAND},
 #line 21 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str32,    T_COMMENT,  TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str32,	T_COMMENT,	TF_COMMAND},
 #line 48 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str33,        T_OPT_ENV,  TF_OPTION},
-        {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str33,		T_OPT_ENV,	TF_OPTION},
+      {-1},
 #line 42 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str35,        T_RANGE,    TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str35,		T_RANGE,	TF_COMMAND},
 #line 19 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str36,        T_CHOICE,   TF_COMMAND},
-        {-1}, {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str36,		T_CHOICE,	TF_COMMAND},
+      {-1}, {-1},
 #line 34 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str39,        T_TYPE,     TF_COMMAND, S_BOOLEAN},
-        {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str39,		T_TYPE,		TF_COMMAND, S_BOOLEAN},
+      {-1},
 #line 18 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str41,        T_SOURCE,   TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str41,		T_SOURCE,	TF_COMMAND},
 #line 43 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str42,    T_VISIBLE,  TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str42,	T_VISIBLE,	TF_COMMAND},
 #line 38 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str43,        T_TYPE,     TF_COMMAND, S_HEX},
-        {-1}, {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str43,		T_TYPE,		TF_COMMAND, S_HEX},
+      {-1}, {-1},
 #line 22 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str46,        T_CONFIG,   TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str46,		T_CONFIG,	TF_COMMAND},
 #line 35 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str47,    T_TYPE,     TF_COMMAND, S_BOOLEAN},
-        {-1}, {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str47,	T_TYPE,		TF_COMMAND, S_BOOLEAN},
+      {-1}, {-1},
 #line 41 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str50,        T_IMPLY,    TF_COMMAND},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str50,		T_IMPLY,	TF_COMMAND},
 #line 39 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str51,        T_TYPE,     TF_COMMAND, S_STRING},
-        {-1}, {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str51,		T_TYPE,		TF_COMMAND, S_STRING},
+      {-1}, {-1},
 #line 24 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str54,        T_HELP,     TF_COMMAND},
-        {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str54,		T_HELP,		TF_COMMAND},
+      {-1},
 #line 31 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str56,        T_PROMPT,   TF_COMMAND},
-        {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
-        {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str56,		T_PROMPT,	TF_COMMAND},
+      {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
+      {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
 #line 28 "libs/parser/hconf.gperf"
-        {(int)(long)& ((struct kconf_id_strings_t*)0)->kconf_id_strings_str72,    T_DEPENDS,  TF_COMMAND}
+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str72,	T_DEPENDS,	TF_COMMAND}
     };
 
-    if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
+  if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
     {
-        register int key = kconf_id_hash (str, len);
+      register int key = kconf_id_hash (str, len);
 
-        if (key <= MAX_HASH_VALUE && key >= 0)
+      if (key <= MAX_HASH_VALUE && key >= 0)
         {
-            register int o = wordlist[key].name;
-            if (o >= 0)
+          register int o = wordlist[key].name;
+          if (o >= 0)
             {
-                register const char* s = o + kconf_id_strings;
+              register const char *s = o + kconf_id_strings;
 
-                if (*str == *s && !strncmp (str + 1, s + 1, len - 1) && s[len] == '\0')
-                { return &wordlist[key]; }
+              if (*str == *s && !strncmp (str + 1, s + 1, len - 1) && s[len] == '\0')
+                return &wordlist[key];
             }
         }
     }
-    return 0;
+  return 0;
 }
 #line 50 "libs/parser/hconf.gperf"
 

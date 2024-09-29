@@ -17,49 +17,49 @@
 #define CRC_FLAG_REFOUT   (0x1 << 1)
 
 #define HWCRYPTO_CRC8_CFG       \
-    {                               \
-        .last_val = 0x00,           \
-                    .poly = 0x07,               \
-                            .width = 8,                 \
-                                     .xorout = 0x00,             \
-                                               .flags = 0,                 \
-    }
+{                               \
+    .last_val = 0x00,           \
+    .poly = 0x07,               \
+    .width = 8,                 \
+    .xorout = 0x00,             \
+    .flags = 0,                 \
+}
 
 #define HWCRYPTO_CRC16_CFG      \
-    {                               \
-        .last_val = 0x0000,           \
-                    .poly = 0x8005,               \
-                            .width = 16,                 \
-                                     .xorout = 0x0000,             \
-                                               .flags = 0,                 \
-    }
+{                               \
+    .last_val = 0x0000,           \
+    .poly = 0x8005,               \
+    .width = 16,                 \
+    .xorout = 0x0000,             \
+    .flags = 0,                 \
+}
 
 #define HWCRYPTO_CRC32_CFG   \
-    {                           \
-        .last_val = 0x00000000, \
-                    .poly = 0x04C11DB7,              \
-                            .width = 32,             \
-                                     .xorout = 0x00000000,            \
-                                               .flags = 0,             \
-    }
+{                           \
+    .last_val = 0x00000000, \
+    .poly = 0x04C11DB7,              \
+    .width = 32,             \
+    .xorout = 0x00000000,            \
+    .flags = 0,             \
+}
 
 #define HWCRYPTO_CRC_CCITT_CFG   \
-    {                           \
-        .last_val = 0x0000,          \
-                    .poly = 0x1021,              \
-                            .width = 16,             \
-                                     .xorout = 0x0000,            \
-                                               .flags = CRC_FLAG_REFIN | CRC_FLAG_REFOUT, \
-    }
+{                           \
+    .last_val = 0x0000,          \
+    .poly = 0x1021,              \
+    .width = 16,             \
+    .xorout = 0x0000,            \
+    .flags = CRC_FLAG_REFIN | CRC_FLAG_REFOUT, \
+}
 
 #define HWCRYPTO_CRC_DNP_CFG   \
-    {                           \
-        .last_val = 0x0000,          \
-                    .poly = 0x3D65,              \
-                            .width = 16,             \
-                                     .xorout = 0xffff,            \
-                                               .flags = CRC_FLAG_REFIN | CRC_FLAG_REFOUT, \
-    }
+{                           \
+    .last_val = 0x0000,          \
+    .poly = 0x3D65,              \
+    .width = 16,             \
+    .xorout = 0xffff,            \
+    .flags = CRC_FLAG_REFIN | CRC_FLAG_REFOUT, \
+}
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,8 +88,8 @@ struct hwcrypto_crc_cfg
 
 struct hwcrypto_crc_ops
 {
-    rt_uint32_t (*update)(struct hwcrypto_crc* ctx,
-                          const rt_uint8_t* in, rt_size_t length);  /**< Perform a CRC calculation. return CRC value */
+    rt_uint32_t (*update)(struct hwcrypto_crc *ctx,
+                          const rt_uint8_t *in, rt_size_t length);  /**< Perform a CRC calculation. return CRC value */
 };
 
 /**
@@ -99,7 +99,7 @@ struct hwcrypto_crc
 {
     struct rt_hwcrypto_ctx parent;          /**< Inherited from the standard device */
     struct hwcrypto_crc_cfg crc_cfg;        /**< CRC configure */
-    const struct hwcrypto_crc_ops* ops;     /**< !! Hardware initializes this value when creating context !! */
+    const struct hwcrypto_crc_ops *ops;     /**< !! Hardware initializes this value when creating context !! */
 };
 
 /**
@@ -110,7 +110,7 @@ struct hwcrypto_crc
  *
  * @return          CRC context
  */
-struct rt_hwcrypto_ctx* rt_hwcrypto_crc_create(struct rt_hwcrypto_device* device,
+struct rt_hwcrypto_ctx *rt_hwcrypto_crc_create(struct rt_hwcrypto_device *device,
                                                hwcrypto_crc_mode mode);
 
 /**
@@ -118,7 +118,7 @@ struct rt_hwcrypto_ctx* rt_hwcrypto_crc_create(struct rt_hwcrypto_device* device
  *
  * @param ctx       CRC context
  */
-void rt_hwcrypto_crc_destroy(struct rt_hwcrypto_ctx* ctx);
+void rt_hwcrypto_crc_destroy(struct rt_hwcrypto_ctx *ctx);
 
 /**
  * @brief           Processing a packet of data
@@ -129,8 +129,8 @@ void rt_hwcrypto_crc_destroy(struct rt_hwcrypto_ctx* ctx);
  *
  * @return          CRC value
  */
-rt_uint32_t rt_hwcrypto_crc_update(struct rt_hwcrypto_ctx* ctx,
-                                   const rt_uint8_t* input, rt_size_t length);
+rt_uint32_t rt_hwcrypto_crc_update(struct rt_hwcrypto_ctx *ctx,
+                                   const rt_uint8_t *input, rt_size_t length);
 
 /**
  * @brief           CRC context configuration
@@ -138,8 +138,8 @@ rt_uint32_t rt_hwcrypto_crc_update(struct rt_hwcrypto_ctx* ctx,
  * @param ctx       CRC context
  * @param cfg       CRC config
  */
-void rt_hwcrypto_crc_cfg(struct rt_hwcrypto_ctx* ctx,
-                         struct hwcrypto_crc_cfg* cfg);
+void rt_hwcrypto_crc_cfg(struct rt_hwcrypto_ctx *ctx,
+                         struct hwcrypto_crc_cfg *cfg);
 
 #ifdef __cplusplus
 }

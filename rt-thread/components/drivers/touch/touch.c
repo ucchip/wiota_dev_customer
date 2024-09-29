@@ -33,7 +33,7 @@ void rt_hw_touch_isr(rt_touch_t touch)
 }
 
 #ifdef RT_TOUCH_PIN_IRQ
-static void touch_irq_callback(void* param)
+static void touch_irq_callback(void *param)
 {
     rt_hw_touch_isr((rt_touch_t)param);
 }
@@ -52,15 +52,15 @@ static rt_err_t rt_touch_irq_init(rt_touch_t touch)
 
     if (touch->config.irq_pin.mode == PIN_MODE_INPUT_PULLDOWN)
     {
-        rt_pin_attach_irq(touch->config.irq_pin.pin, PIN_IRQ_MODE_RISING, touch_irq_callback, (void*)touch);
+        rt_pin_attach_irq(touch->config.irq_pin.pin, PIN_IRQ_MODE_RISING, touch_irq_callback, (void *)touch);
     }
     else if (touch->config.irq_pin.mode == PIN_MODE_INPUT_PULLUP)
     {
-        rt_pin_attach_irq(touch->config.irq_pin.pin, PIN_IRQ_MODE_FALLING, touch_irq_callback, (void*)touch);
+        rt_pin_attach_irq(touch->config.irq_pin.pin, PIN_IRQ_MODE_FALLING, touch_irq_callback, (void *)touch);
     }
     else if (touch->config.irq_pin.mode == PIN_MODE_INPUT)
     {
-        rt_pin_attach_irq(touch->config.irq_pin.pin, PIN_IRQ_MODE_RISING_FALLING, touch_irq_callback, (void*)touch);
+        rt_pin_attach_irq(touch->config.irq_pin.pin, PIN_IRQ_MODE_RISING_FALLING, touch_irq_callback, (void *)touch);
     }
 
     rt_pin_irq_enable(touch->config.irq_pin.pin, PIN_IRQ_ENABLE);
@@ -77,6 +77,8 @@ static void rt_touch_irq_enable(rt_touch_t touch)
     {
         rt_pin_irq_enable(touch->config.irq_pin.pin, RT_TRUE);
     }
+#else
+    touch->ops->touch_control(touch, RT_TOUCH_CTRL_ENABLE_INT, RT_NULL);
 #endif
 }
 
@@ -88,6 +90,8 @@ static void rt_touch_irq_disable(rt_touch_t touch)
     {
         rt_pin_irq_enable(touch->config.irq_pin.pin, RT_FALSE);
     }
+#else
+    touch->ops->touch_control(touch, RT_TOUCH_CTRL_DISABLE_INT, RT_NULL);
 #endif
 }
 
@@ -118,7 +122,7 @@ static rt_err_t rt_touch_close(rt_device_t dev)
     return RT_EOK;
 }
 
-static rt_size_t rt_touch_read(rt_device_t dev, rt_off_t pos, void* buf, rt_size_t len)
+static rt_size_t rt_touch_read(rt_device_t dev, rt_off_t pos, void *buf, rt_size_t len)
 {
     rt_touch_t touch;
     rt_size_t result = 0;
@@ -135,7 +139,7 @@ static rt_size_t rt_touch_read(rt_device_t dev, rt_off_t pos, void* buf, rt_size
     return result;
 }
 
-static rt_err_t rt_touch_control(rt_device_t dev, int cmd, void* args)
+static rt_err_t rt_touch_control(rt_device_t dev, int cmd, void *args)
 {
     rt_touch_t touch;
     rt_err_t result = RT_EOK;
@@ -144,70 +148,51 @@ static rt_err_t rt_touch_control(rt_device_t dev, int cmd, void* args)
 
     switch (cmd)
     {
-        case RT_TOUCH_CTRL_GET_ID:
-            if (args)
+    case RT_TOUCH_CTRL_SET_MODE:
+        result = touch->ops->touch_control(touch, RT_TOUCH_CTRL_SET_MODE, args);
+
+        if (result == RT_EOK)
+        {
+            rt_uint16_t mode;
+            mode  = *(rt_uint16_t*)args;
+            if (mode == RT_DEVICE_FLAG_INT_RX)
             {
-                result = touch->ops->touch_control(touch, RT_TOUCH_CTRL_GET_ID, args);
+                rt_touch_irq_enable(touch);  /* enable interrupt */
             }
-            else
-            {
-                result = -RT_ERROR;
-            }
+        }
 
-            break;
-        case RT_TOUCH_CTRL_GET_INFO:
-            if (args)
-            {
-                result = touch->ops->touch_control(touch, RT_TOUCH_CTRL_GET_INFO, args);
-            }
-            else
-            {
-                result = -RT_ERROR;
-            }
+        break;
+    case RT_TOUCH_CTRL_SET_X_RANGE:
+        result = touch->ops->touch_control(touch, RT_TOUCH_CTRL_SET_X_RANGE, args);
 
-            break;
-        case RT_TOUCH_CTRL_SET_MODE:
-            result = touch->ops->touch_control(touch, RT_TOUCH_CTRL_SET_MODE, args);
+        if (result == RT_EOK)
+        {
+            touch->info.range_x = *(rt_int32_t *)args;
+            LOG_D("set x coordinate range :%d\n", touch->info.range_x);
+        }
 
-            if (result == RT_EOK)
-            {
-                rt_uint16_t mode;
-                mode  = *(rt_uint16_t*)args;
-                if (mode == RT_DEVICE_FLAG_INT_RX)
-                {
-                    rt_touch_irq_enable(touch);  /* enable interrupt */
-                }
-            }
+        break;
+    case RT_TOUCH_CTRL_SET_Y_RANGE:
+        result = touch->ops->touch_control(touch, RT_TOUCH_CTRL_SET_Y_RANGE, args);
 
-            break;
-        case RT_TOUCH_CTRL_SET_X_RANGE:
-            result = touch->ops->touch_control(touch, RT_TOUCH_CTRL_SET_X_RANGE, args);
+        if (result == RT_EOK)
+        {
+            touch->info.range_y = *(rt_uint32_t *)args;
+            LOG_D("set y coordinate range :%d \n", touch->info.range_x);
+        }
 
-            if (result == RT_EOK)
-            {
-                touch->info.range_x = *(rt_int32_t*)args;
-                LOG_D("set x coordinate range :%d\n", touch->info.range_x);
-            }
+        break;
+    case RT_TOUCH_CTRL_DISABLE_INT:
+        rt_touch_irq_disable(touch);
+        break;
+    case RT_TOUCH_CTRL_ENABLE_INT:
+        rt_touch_irq_enable(touch);
+        break;
 
-            break;
-        case RT_TOUCH_CTRL_SET_Y_RANGE:
-            result = touch->ops->touch_control(touch, RT_TOUCH_CTRL_SET_Y_RANGE, args);
-
-            if (result == RT_EOK)
-            {
-                touch->info.range_y = *(rt_uint32_t*)args;
-                LOG_D("set y coordinate range :%d \n", touch->info.range_x);
-            }
-
-            break;
-        case RT_TOUCH_CTRL_DISABLE_INT:
-            rt_touch_irq_disable(touch);
-            break;
-        case RT_TOUCH_CTRL_ENABLE_INT:
-            rt_touch_irq_enable(touch);
-            break;
-        default:
-            return -RT_ERROR;
+    case RT_TOUCH_CTRL_GET_ID:
+    case RT_TOUCH_CTRL_GET_INFO:
+    default:
+        return touch->ops->touch_control(touch, cmd, args);
     }
 
     return result;
@@ -229,9 +214,9 @@ const static struct rt_device_ops rt_touch_ops =
  * touch register
  */
 int rt_hw_touch_register(rt_touch_t touch,
-                         const char*              name,
+                         const char              *name,
                          rt_uint32_t              flag,
-                         void*                    data)
+                         void                    *data)
 {
     rt_int8_t result;
     rt_device_t device;

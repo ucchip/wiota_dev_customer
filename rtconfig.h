@@ -13,8 +13,9 @@
 #define RT_TICK_PER_SECOND 1000
 #define RT_USING_OVERFLOW_CHECK
 #define RT_USING_HOOK
+#define RT_HOOK_USING_FUNC_PTR
 #define RT_USING_IDLE_HOOK
-#define RT_IDLE_HOOK_LIST_SIZE 3
+#define RT_IDLE_HOOK_LIST_SIZE 4
 #define IDLE_THREAD_STACK_SIZE 512
 #define RT_USING_TIMER_SOFT
 #define RT_TIMER_THREAD_PRIO 4
@@ -28,11 +29,13 @@
 
 #define RT_USING_SEMAPHORE
 #define RT_USING_MUTEX
+#define RT_USING_EVENT
 #define RT_USING_MESSAGEQUEUE
 
 /* Memory Management */
 
 #define RT_USING_SMALL_MEM
+#define RT_USING_SMALL_MEM_AS_HEAP
 #define RT_USING_HEAP
 
 /* Kernel Device Object */
@@ -41,7 +44,7 @@
 #define RT_USING_CONSOLE
 #define RT_CONSOLEBUF_SIZE 256
 #define RT_CONSOLE_DEVICE_NAME "uart1"
-#define RT_VER_NUM 0x40003
+#define RT_VER_NUM 0x40101
 
 /* RT-Thread Components */
 
@@ -50,20 +53,11 @@
 #define RT_MAIN_THREAD_STACK_SIZE 1224
 #define RT_MAIN_THREAD_PRIORITY 6
 
-/* C++ features */
-
-
-/* Command shell */
-
-
-/* Device virtual file system */
-
-
 /* Device Drivers */
 
 #define RT_USING_DEVICE_IPC
-#define RT_PIPE_BUFSZ 512
 #define RT_USING_SERIAL
+#define RT_USING_SERIAL_V1
 #define RT_SERIAL_RB_BUFSZ 256
 #define RT_USING_PIN
 #define RT_USING_ADC
@@ -75,22 +69,20 @@
 /* Using USB */
 
 
-/* POSIX layer and C standard library */
+/* C/C++ and POSIX layer */
 
-#define RT_USING_LIBC
+#define RT_LIBC_DEFAULT_TIMEZONE 8
+
+/* POSIX (Portable Operating System Interface) layer */
+
+
+/* Interprocess Communication (IPC) */
+
+
+/* Socket is in the 'Network' category */
+
 
 /* Network */
-
-/* Socket abstraction layer */
-
-
-/* Network interface device */
-
-
-/* light weight TCP/IP stack */
-
-
-/* AT commands */
 
 #define RT_USING_AT
 #define AT_USING_SERVER
@@ -100,23 +92,13 @@
 #define AT_CMD_MAX_LEN 128
 #define AT_SW_VERSION_NUM 0x10301
 
-/* VBUS(Virtual Software BUS) */
-
-
 /* Utilities */
 
 
-/* electricity_device */
-
-
-/* wiota APP */
+/* wiota PS */
 
 #define UC8288_MODULE
 #define _QUICK_CONNECT_
-#define _WATCHDOG_APP_
-
-/* wiota PS */
-
 #define _FPGA_
 #define _RT_THREAD_
 #define _ALLOW_TRACE_PRITF_TEST_
@@ -126,5 +108,27 @@
 #define _LPM_PAGING_
 #define AT_WIOTA_GATEWAY_API
 #define AT_WIOTA_GATEWAY
+
+/* Hardware Drivers Config */
+
+#define SOC_UC8288
+
+/* Onboard Peripheral Drivers */
+
+#define BSP_USING_SERIAL
+
+/* On-chip Peripheral Drivers */
+
+#define BSP_USING_GPIO
+#define BSP_USING_UART
+#define BSP_USING_UART0
+#define BSP_USING_UART1
+#define BSP_USING_ADC
+#define BSP_USING_DAC
+#define BSP_USING_RTC
+#define BSP_USING_WDT
+
+/* Application Example Config */
+
 
 #endif

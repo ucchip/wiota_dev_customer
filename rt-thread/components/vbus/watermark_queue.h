@@ -19,11 +19,11 @@ struct rt_watermark_queue
 
 /** Init the struct rt_watermark_queue.
  */
-void rt_wm_que_init(struct rt_watermark_queue* wg,
+void rt_wm_que_init(struct rt_watermark_queue *wg,
                     unsigned int low, unsigned int high);
-void rt_wm_que_set_mark(struct rt_watermark_queue* wg,
+void rt_wm_que_set_mark(struct rt_watermark_queue *wg,
                         unsigned int low, unsigned int high);
-void rt_wm_que_dump(struct rt_watermark_queue* wg);
+void rt_wm_que_dump(struct rt_watermark_queue *wg);
 
 /* Water marks are often used in performance critical places. Benchmark shows
  * inlining functions will have 10% performance gain in some situation(for
@@ -38,10 +38,10 @@ void rt_wm_que_dump(struct rt_watermark_queue* wg);
  * @return RT_EOK if water level increased successfully. -RT_EFULL on @timeout
  * is zero and the level is above water mark. -RT_ETIMEOUT if timeout occurred.
  */
-rt_inline rt_err_t rt_wm_que_inc(struct rt_watermark_queue* wg,
+rt_inline rt_err_t rt_wm_que_inc(struct rt_watermark_queue *wg,
                                  int timeout)
 {
-    rt_base_t ilvl;
+    rt_base_t level;
 
     /* Assert as early as possible. */
     if (timeout != 0)
@@ -49,7 +49,7 @@ rt_inline rt_err_t rt_wm_que_inc(struct rt_watermark_queue* wg,
         RT_DEBUG_IN_THREAD_CONTEXT;
     }
 
-    ilvl = rt_hw_interrupt_disable();
+    level = rt_hw_interrupt_disable();
 
     while (wg->level > wg->high_mark)
     {
@@ -57,7 +57,7 @@ rt_inline rt_err_t rt_wm_que_inc(struct rt_watermark_queue* wg,
 
         if (timeout == 0)
         {
-            rt_hw_interrupt_enable(ilvl);
+            rt_hw_interrupt_enable(level);
             return -RT_EFULL;
         }
 
@@ -72,12 +72,12 @@ rt_inline rt_err_t rt_wm_que_inc(struct rt_watermark_queue* wg,
                              &timeout);
             rt_timer_start(&(thread->thread_timer));
         }
-        rt_hw_interrupt_enable(ilvl);
+        rt_hw_interrupt_enable(level);
         rt_schedule();
         if (thread->error != RT_EOK)
-        { return thread->error; }
+            return thread->error;
 
-        ilvl = rt_hw_interrupt_disable();
+        level = rt_hw_interrupt_disable();
     }
 
     wg->level++;
@@ -87,7 +87,7 @@ rt_inline rt_err_t rt_wm_que_inc(struct rt_watermark_queue* wg,
         wg->level = ~0;
     }
 
-    rt_hw_interrupt_enable(ilvl);
+    rt_hw_interrupt_enable(level);
 
     return RT_EOK;
 }
@@ -98,15 +98,15 @@ rt_inline rt_err_t rt_wm_que_inc(struct rt_watermark_queue* wg,
  * level reached low mark, all the thread suspended in this queue will be waken
  * up. It's safe to call this function in interrupt context.
  */
-rt_inline void rt_wm_que_dec(struct rt_watermark_queue* wg)
+rt_inline void rt_wm_que_dec(struct rt_watermark_queue *wg)
 {
     int need_sched = 0;
-    rt_base_t ilvl;
+    rt_base_t level;
 
     if (wg->level == 0)
-    { return; }
+        return;
 
-    ilvl = rt_hw_interrupt_disable();
+    level = rt_hw_interrupt_disable();
     wg->level--;
     if (wg->level == wg->low_mark)
     {
@@ -123,8 +123,8 @@ rt_inline void rt_wm_que_dec(struct rt_watermark_queue* wg)
             need_sched = 1;
         }
     }
-    rt_hw_interrupt_enable(ilvl);
+    rt_hw_interrupt_enable(level);
 
     if (need_sched)
-    { rt_schedule(); }
+        rt_schedule();
 }

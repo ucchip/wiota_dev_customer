@@ -17,147 +17,147 @@
  */
 
 bool_t
-xdr_uint64(register XDR* xdrs, uint64* objp)
+xdr_uint64(register XDR *xdrs, uint64 *objp)
 {
     if (!xdr_u_longlong_t(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_int64(register XDR* xdrs, int64* objp)
+xdr_int64(register XDR *xdrs, int64 *objp)
 {
     if (!xdr_longlong_t(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_uint32(register XDR* xdrs, uint32* objp)
+xdr_uint32(register XDR *xdrs, uint32 *objp)
 {
     if (!xdr_u_long(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_int32(register XDR* xdrs, int32* objp)
+xdr_int32(register XDR *xdrs, int32 *objp)
 {
     if (!xdr_long(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_filename3(register XDR* xdrs, filename3* objp)
+xdr_filename3(register XDR *xdrs, filename3 *objp)
 {
     if (!xdr_string(xdrs, objp, ~0))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_nfspath3(register XDR* xdrs, nfspath3* objp)
+xdr_nfspath3(register XDR *xdrs, nfspath3 *objp)
 {
     if (!xdr_string(xdrs, objp, ~0))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_fileid3(register XDR* xdrs, fileid3* objp)
+xdr_fileid3(register XDR *xdrs, fileid3 *objp)
 {
     if (!xdr_uint64(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_cookie3(register XDR* xdrs, cookie3* objp)
+xdr_cookie3(register XDR *xdrs, cookie3 *objp)
 {
     if (!xdr_uint64(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_cookieverf3(register XDR* xdrs, cookieverf3 objp)
+xdr_cookieverf3(register XDR *xdrs, cookieverf3 objp)
 {
     if (!xdr_opaque(xdrs, objp, NFS3_COOKIEVERFSIZE))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_createverf3(register XDR* xdrs, createverf3 objp)
+xdr_createverf3(register XDR *xdrs, createverf3 objp)
 {
     if (!xdr_opaque(xdrs, objp, NFS3_CREATEVERFSIZE))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_writeverf3(register XDR* xdrs, writeverf3 objp)
+xdr_writeverf3(register XDR *xdrs, writeverf3 objp)
 {
     if (!xdr_opaque(xdrs, objp, NFS3_WRITEVERFSIZE))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_uid3(register XDR* xdrs, uid3* objp)
+xdr_uid3(register XDR *xdrs, uid3 *objp)
 {
     if (!xdr_uint32(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_gid3(register XDR* xdrs, gid3* objp)
+xdr_gid3(register XDR *xdrs, gid3 *objp)
 {
     if (!xdr_uint32(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_size3(register XDR* xdrs, size3* objp)
+xdr_size3(register XDR *xdrs, size3 *objp)
 {
     if (!xdr_uint64(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_offset3(register XDR* xdrs, offset3* objp)
+xdr_offset3(register XDR *xdrs, offset3 *objp)
 {
     if (!xdr_uint64(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_mode3(register XDR* xdrs, mode3* objp)
+xdr_mode3(register XDR *xdrs, mode3 *objp)
 {
     if (!xdr_uint32(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_count3(register XDR* xdrs, count3* objp)
+xdr_count3(register XDR *xdrs, count3 *objp)
 {
     if (!xdr_uint32(xdrs, objp))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_nfsstat3(register XDR* xdrs, nfsstat3* objp)
+xdr_nfsstat3(register XDR *xdrs, nfsstat3 *objp)
 {
     int enum_objp;
     enum_objp = *objp;
-    if (!xdr_enum(xdrs, (enum_t*)objp))
+    if (!xdr_enum(xdrs, (enum_t *)objp))
     {
         *objp = (nfsstat3)enum_objp;
         return (FALSE);
@@ -167,11 +167,11 @@ xdr_nfsstat3(register XDR* xdrs, nfsstat3* objp)
 }
 
 bool_t
-xdr_ftype3(register XDR* xdrs, ftype3* objp)
+xdr_ftype3(register XDR *xdrs, ftype3 *objp)
 {
     int enum_objp;
     enum_objp = *objp;
-    if (!xdr_enum(xdrs, (enum_t*)objp))
+    if (!xdr_enum(xdrs, (enum_t *)objp))
     {
         *objp = (ftype3)enum_objp;
         return (FALSE);
@@ -181,11 +181,11 @@ xdr_ftype3(register XDR* xdrs, ftype3* objp)
 }
 
 bool_t
-xdr_stable_how(register XDR* xdrs, stable_how* objp)
+xdr_stable_how(register XDR *xdrs, stable_how *objp)
 {
     int enum_objp;
     enum_objp = *objp;
-    if (!xdr_enum(xdrs, (enum_t*)objp))
+    if (!xdr_enum(xdrs, (enum_t *)objp))
     {
         *objp = (stable_how)enum_objp;
         return (FALSE);
@@ -195,11 +195,11 @@ xdr_stable_how(register XDR* xdrs, stable_how* objp)
 }
 
 bool_t
-xdr_createmode3(register XDR* xdrs, createmode3* objp)
+xdr_createmode3(register XDR *xdrs, createmode3 *objp)
 {
     int enum_objp;
     enum_objp = *objp;
-    if (!xdr_enum(xdrs, (enum_t*)objp))
+    if (!xdr_enum(xdrs, (enum_t *)objp))
     {
         *objp = (createmode3)enum_objp;
         return (FALSE);
@@ -209,150 +209,147 @@ xdr_createmode3(register XDR* xdrs, createmode3* objp)
 }
 
 bool_t
-xdr_specdata3(register XDR* xdrs, specdata3* objp)
+xdr_specdata3(register XDR *xdrs, specdata3 *objp)
 {
     if (!xdr_uint32(xdrs, &objp->specdata1))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->specdata2))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_nfs_fh3(register XDR* xdrs, nfs_fh3* objp)
+xdr_nfs_fh3(register XDR *xdrs, nfs_fh3 *objp)
 {
-    if (!xdr_bytes(xdrs, (char**)&objp->data.data_val, (unsigned int*) &objp->data.data_len, NFS3_FHSIZE))
-    { return (FALSE); }
+    if (!xdr_bytes(xdrs, (char **)&objp->data.data_val, (unsigned int *) &objp->data.data_len, NFS3_FHSIZE))
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_nfstime3(register XDR* xdrs, nfstime3* objp)
+xdr_nfstime3(register XDR *xdrs, nfstime3 *objp)
 {
     if (!xdr_uint32(xdrs, &objp->seconds))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->nseconds))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_fattr3(register XDR* xdrs, fattr3* objp)
+xdr_fattr3(register XDR *xdrs, fattr3 *objp)
 {
     if (!xdr_ftype3(xdrs, &objp->type))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_mode3(xdrs, &objp->mode))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->nlink))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uid3(xdrs, &objp->uid))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_gid3(xdrs, &objp->gid))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_size3(xdrs, &objp->size))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_size3(xdrs, &objp->used))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_specdata3(xdrs, &objp->rdev))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint64(xdrs, &objp->fsid))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_fileid3(xdrs, &objp->fileid))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_nfstime3(xdrs, &objp->atime))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_nfstime3(xdrs, &objp->mtime))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_nfstime3(xdrs, &objp->ctime))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_post_op_attr(register XDR* xdrs, post_op_attr* objp)
+xdr_post_op_attr(register XDR *xdrs, post_op_attr *objp)
 {
     if (!xdr_bool(xdrs, &objp->attributes_follow))
-    { return (FALSE); }
-    switch (objp->attributes_follow)
-    {
-        case TRUE:
-            if (!xdr_fattr3(xdrs, &objp->post_op_attr_u.attributes))
-            { return (FALSE); }
-            break;
-        case FALSE:
-            break;
-        default:
+        return (FALSE);
+    switch (objp->attributes_follow) {
+    case TRUE:
+        if (!xdr_fattr3(xdrs, &objp->post_op_attr_u.attributes))
             return (FALSE);
+        break;
+    case FALSE:
+        break;
+    default:
+        return (FALSE);
     }
     return (TRUE);
 }
 
 bool_t
-xdr_wcc_attr(register XDR* xdrs, wcc_attr* objp)
+xdr_wcc_attr(register XDR *xdrs, wcc_attr *objp)
 {
     if (!xdr_size3(xdrs, &objp->size))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_nfstime3(xdrs, &objp->mtime))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_nfstime3(xdrs, &objp->ctime))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_pre_op_attr(register XDR* xdrs, pre_op_attr* objp)
+xdr_pre_op_attr(register XDR *xdrs, pre_op_attr *objp)
 {
     if (!xdr_bool(xdrs, &objp->attributes_follow))
-    { return (FALSE); }
-    switch (objp->attributes_follow)
-    {
-        case TRUE:
-            if (!xdr_wcc_attr(xdrs, &objp->pre_op_attr_u.attributes))
-            { return (FALSE); }
-            break;
-        case FALSE:
-            break;
-        default:
+        return (FALSE);
+    switch (objp->attributes_follow) {
+    case TRUE:
+        if (!xdr_wcc_attr(xdrs, &objp->pre_op_attr_u.attributes))
             return (FALSE);
+        break;
+    case FALSE:
+        break;
+    default:
+        return (FALSE);
     }
     return (TRUE);
 }
 
 bool_t
-xdr_wcc_data(register XDR* xdrs, wcc_data* objp)
+xdr_wcc_data(register XDR *xdrs, wcc_data *objp)
 {
     if (!xdr_pre_op_attr(xdrs, &objp->before))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_post_op_attr(xdrs, &objp->after))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_post_op_fh3(register XDR* xdrs, post_op_fh3* objp)
+xdr_post_op_fh3(register XDR *xdrs, post_op_fh3 *objp)
 {
     if (!xdr_bool(xdrs, &objp->handle_follows))
-    { return (FALSE); }
-    switch (objp->handle_follows)
-    {
-        case TRUE:
-            if (!xdr_nfs_fh3(xdrs, &objp->post_op_fh3_u.handle))
-            { return (FALSE); }
-            break;
-        case FALSE:
-            break;
-        default:
+        return (FALSE);
+    switch (objp->handle_follows) {
+    case TRUE:
+        if (!xdr_nfs_fh3(xdrs, &objp->post_op_fh3_u.handle))
             return (FALSE);
+        break;
+    case FALSE:
+        break;
+    default:
+        return (FALSE);
     }
     return (TRUE);
 }
 
 bool_t
-xdr_time_how(register XDR* xdrs, time_how* objp)
+xdr_time_how(register XDR *xdrs, time_how *objp)
 {
     int enum_objp;
     enum_objp = *objp;
-    if (!xdr_enum(xdrs, (enum_t*)objp))
+    if (!xdr_enum(xdrs, (enum_t *)objp))
     {
         *objp = (time_how)enum_objp;
         return (FALSE);
@@ -362,1294 +359,1264 @@ xdr_time_how(register XDR* xdrs, time_how* objp)
 }
 
 bool_t
-xdr_set_mode3(register XDR* xdrs, set_mode3* objp)
+xdr_set_mode3(register XDR *xdrs, set_mode3 *objp)
 {
     if (!xdr_bool(xdrs, &objp->set_it))
-    { return (FALSE); }
-    switch (objp->set_it)
-    {
-        case TRUE:
-            if (!xdr_mode3(xdrs, &objp->set_mode3_u.mode))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->set_it) {
+    case TRUE:
+        if (!xdr_mode3(xdrs, &objp->set_mode3_u.mode))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_set_uid3(register XDR* xdrs, set_uid3* objp)
+xdr_set_uid3(register XDR *xdrs, set_uid3 *objp)
 {
     if (!xdr_bool(xdrs, &objp->set_it))
-    { return (FALSE); }
-    switch (objp->set_it)
-    {
-        case TRUE:
-            if (!xdr_uid3(xdrs, &objp->set_uid3_u.uid))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->set_it) {
+    case TRUE:
+        if (!xdr_uid3(xdrs, &objp->set_uid3_u.uid))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_set_gid3(register XDR* xdrs, set_gid3* objp)
+xdr_set_gid3(register XDR *xdrs, set_gid3 *objp)
 {
     if (!xdr_bool(xdrs, &objp->set_it))
-    { return (FALSE); }
-    switch (objp->set_it)
-    {
-        case TRUE:
-            if (!xdr_gid3(xdrs, &objp->set_gid3_u.gid))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->set_it) {
+    case TRUE:
+        if (!xdr_gid3(xdrs, &objp->set_gid3_u.gid))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_set_size3(register XDR* xdrs, set_size3* objp)
+xdr_set_size3(register XDR *xdrs, set_size3 *objp)
 {
     if (!xdr_bool(xdrs, &objp->set_it))
-    { return (FALSE); }
-    switch (objp->set_it)
-    {
-        case TRUE:
-            if (!xdr_size3(xdrs, &objp->set_size3_u.size))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->set_it) {
+    case TRUE:
+        if (!xdr_size3(xdrs, &objp->set_size3_u.size))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_set_atime(register XDR* xdrs, set_atime* objp)
+xdr_set_atime(register XDR *xdrs, set_atime *objp)
 {
     if (!xdr_time_how(xdrs, &objp->set_it))
-    { return (FALSE); }
-    switch (objp->set_it)
-    {
-        case SET_TO_CLIENT_TIME:
-            if (!xdr_nfstime3(xdrs, &objp->set_atime_u.atime))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->set_it) {
+    case SET_TO_CLIENT_TIME:
+        if (!xdr_nfstime3(xdrs, &objp->set_atime_u.atime))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_set_mtime(register XDR* xdrs, set_mtime* objp)
+xdr_set_mtime(register XDR *xdrs, set_mtime *objp)
 {
     if (!xdr_time_how(xdrs, &objp->set_it))
-    { return (FALSE); }
-    switch (objp->set_it)
-    {
-        case SET_TO_CLIENT_TIME:
-            if (!xdr_nfstime3(xdrs, &objp->set_mtime_u.mtime))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->set_it) {
+    case SET_TO_CLIENT_TIME:
+        if (!xdr_nfstime3(xdrs, &objp->set_mtime_u.mtime))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_sattr3(register XDR* xdrs, sattr3* objp)
+xdr_sattr3(register XDR *xdrs, sattr3 *objp)
 {
     if (!xdr_set_mode3(xdrs, &objp->mode))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_set_uid3(xdrs, &objp->uid))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_set_gid3(xdrs, &objp->gid))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_set_size3(xdrs, &objp->size))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_set_atime(xdrs, &objp->atime))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_set_mtime(xdrs, &objp->mtime))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_diropargs3(register XDR* xdrs, diropargs3* objp)
+xdr_diropargs3(register XDR *xdrs, diropargs3 *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->dir))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_filename3(xdrs, &objp->name))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_GETATTR3args(register XDR* xdrs, GETATTR3args* objp)
+xdr_GETATTR3args(register XDR *xdrs, GETATTR3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->object))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_GETATTR3resok(register XDR* xdrs, GETATTR3resok* objp)
+xdr_GETATTR3resok(register XDR *xdrs, GETATTR3resok *objp)
 {
     if (!xdr_fattr3(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_GETATTR3res(register XDR* xdrs, GETATTR3res* objp)
+xdr_GETATTR3res(register XDR *xdrs, GETATTR3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_GETATTR3resok(xdrs, &objp->GETATTR3res_u.resok))
-            { return (FALSE); }
-            break;
-        default :
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_GETATTR3resok(xdrs, &objp->GETATTR3res_u.resok))
             return (FALSE);
+        break;
+    default :
+        return (FALSE);
     }
     return (TRUE);
 }
 
 bool_t
-xdr_sattrguard3(register XDR* xdrs, sattrguard3* objp)
+xdr_sattrguard3(register XDR *xdrs, sattrguard3 *objp)
 {
     if (!xdr_bool(xdrs, &objp->check))
-    { return (FALSE); }
-    switch (objp->check)
-    {
-        case TRUE:
-            if (!xdr_nfstime3(xdrs, &objp->sattrguard3_u.obj_ctime))
-            { return (FALSE); }
-            break;
-        case FALSE:
-            break;
-        default:
+        return (FALSE);
+    switch (objp->check) {
+    case TRUE:
+        if (!xdr_nfstime3(xdrs, &objp->sattrguard3_u.obj_ctime))
             return (FALSE);
+        break;
+    case FALSE:
+        break;
+    default:
+        return (FALSE);
     }
     return (TRUE);
 }
 
 bool_t
-xdr_SETATTR3args(register XDR* xdrs, SETATTR3args* objp)
+xdr_SETATTR3args(register XDR *xdrs, SETATTR3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->object))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_sattr3(xdrs, &objp->new_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_sattrguard3(xdrs, &objp->guard))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_SETATTR3resok(register XDR* xdrs, SETATTR3resok* objp)
+xdr_SETATTR3resok(register XDR *xdrs, SETATTR3resok *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->obj_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_SETATTR3resfail(register XDR* xdrs, SETATTR3resfail* objp)
+xdr_SETATTR3resfail(register XDR *xdrs, SETATTR3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->obj_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_SETATTR3res(register XDR* xdrs, SETATTR3res* objp)
+xdr_SETATTR3res(register XDR *xdrs, SETATTR3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_SETATTR3resok(xdrs, &objp->SETATTR3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_SETATTR3resfail(xdrs, &objp->SETATTR3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_SETATTR3resok(xdrs, &objp->SETATTR3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_SETATTR3resfail(xdrs, &objp->SETATTR3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_LOOKUP3args(register XDR* xdrs, LOOKUP3args* objp)
+xdr_LOOKUP3args(register XDR *xdrs, LOOKUP3args *objp)
 {
     if (!xdr_diropargs3(xdrs, &objp->what))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_LOOKUP3resok(register XDR* xdrs, LOOKUP3resok* objp)
+xdr_LOOKUP3resok(register XDR *xdrs, LOOKUP3resok *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->object))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_post_op_attr(xdrs, &objp->dir_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_LOOKUP3resfail(register XDR* xdrs, LOOKUP3resfail* objp)
+xdr_LOOKUP3resfail(register XDR *xdrs, LOOKUP3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->dir_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_LOOKUP3res(register XDR* xdrs, LOOKUP3res* objp)
+xdr_LOOKUP3res(register XDR *xdrs, LOOKUP3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_LOOKUP3resok(xdrs, &objp->LOOKUP3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_LOOKUP3resfail(xdrs, &objp->LOOKUP3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_LOOKUP3resok(xdrs, &objp->LOOKUP3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_LOOKUP3resfail(xdrs, &objp->LOOKUP3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_ACCESS3args(register XDR* xdrs, ACCESS3args* objp)
+xdr_ACCESS3args(register XDR *xdrs, ACCESS3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->object))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->access))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_ACCESS3resok(register XDR* xdrs, ACCESS3resok* objp)
+xdr_ACCESS3resok(register XDR *xdrs, ACCESS3resok *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->access))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_ACCESS3resfail(register XDR* xdrs, ACCESS3resfail* objp)
+xdr_ACCESS3resfail(register XDR *xdrs, ACCESS3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_ACCESS3res(register XDR* xdrs, ACCESS3res* objp)
+xdr_ACCESS3res(register XDR *xdrs, ACCESS3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_ACCESS3resok(xdrs, &objp->ACCESS3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_ACCESS3resfail(xdrs, &objp->ACCESS3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_ACCESS3resok(xdrs, &objp->ACCESS3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_ACCESS3resfail(xdrs, &objp->ACCESS3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_READLINK3args(register XDR* xdrs, READLINK3args* objp)
+xdr_READLINK3args(register XDR *xdrs, READLINK3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->symlink))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READLINK3resok(register XDR* xdrs, READLINK3resok* objp)
+xdr_READLINK3resok(register XDR *xdrs, READLINK3resok *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->symlink_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_nfspath3(xdrs, &objp->data))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READLINK3resfail(register XDR* xdrs, READLINK3resfail* objp)
+xdr_READLINK3resfail(register XDR *xdrs, READLINK3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->symlink_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READLINK3res(register XDR* xdrs, READLINK3res* objp)
+xdr_READLINK3res(register XDR *xdrs, READLINK3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_READLINK3resok(xdrs, &objp->READLINK3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_READLINK3resfail(xdrs, &objp->READLINK3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_READLINK3resok(xdrs, &objp->READLINK3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_READLINK3resfail(xdrs, &objp->READLINK3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_READ3args(register XDR* xdrs, READ3args* objp)
+xdr_READ3args(register XDR *xdrs, READ3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->file))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_offset3(xdrs, &objp->offset))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_count3(xdrs, &objp->count))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READ3resok(register XDR* xdrs, READ3resok* objp)
+xdr_READ3resok(register XDR *xdrs, READ3resok *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->file_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_count3(xdrs, &objp->count))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_bool(xdrs, &objp->eof))
-    { return (FALSE); }
-    if (!xdr_bytes(xdrs, (char**)&objp->data.data_val, (unsigned int*) &objp->data.data_len, ~0))
-    { return (FALSE); }
+        return (FALSE);
+    if (!xdr_bytes(xdrs, (char **)&objp->data.data_val, (unsigned int *) &objp->data.data_len, ~0))
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READ3resfail(register XDR* xdrs, READ3resfail* objp)
+xdr_READ3resfail(register XDR *xdrs, READ3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->file_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READ3res(register XDR* xdrs, READ3res* objp)
+xdr_READ3res(register XDR *xdrs, READ3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_READ3resok(xdrs, &objp->READ3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_READ3resfail(xdrs, &objp->READ3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_READ3resok(xdrs, &objp->READ3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_READ3resfail(xdrs, &objp->READ3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_WRITE3args(register XDR* xdrs, WRITE3args* objp)
+xdr_WRITE3args(register XDR *xdrs, WRITE3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->file))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_offset3(xdrs, &objp->offset))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_count3(xdrs, &objp->count))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_stable_how(xdrs, &objp->stable))
-    { return (FALSE); }
-    if (!xdr_bytes(xdrs, (char**)&objp->data.data_val, (unsigned int*) &objp->data.data_len, ~0))
-    { return (FALSE); }
+        return (FALSE);
+    if (!xdr_bytes(xdrs, (char **)&objp->data.data_val, (unsigned int *) &objp->data.data_len, ~0))
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_WRITE3resok(register XDR* xdrs, WRITE3resok* objp)
+xdr_WRITE3resok(register XDR *xdrs, WRITE3resok *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->file_wcc))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_count3(xdrs, &objp->count))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_stable_how(xdrs, &objp->committed))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_writeverf3(xdrs, objp->verf))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_WRITE3resfail(register XDR* xdrs, WRITE3resfail* objp)
+xdr_WRITE3resfail(register XDR *xdrs, WRITE3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->file_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_WRITE3res(register XDR* xdrs, WRITE3res* objp)
+xdr_WRITE3res(register XDR *xdrs, WRITE3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_WRITE3resok(xdrs, &objp->WRITE3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_WRITE3resfail(xdrs, &objp->WRITE3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_WRITE3resok(xdrs, &objp->WRITE3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_WRITE3resfail(xdrs, &objp->WRITE3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_createhow3(register XDR* xdrs, createhow3* objp)
+xdr_createhow3(register XDR *xdrs, createhow3 *objp)
 {
     if (!xdr_createmode3(xdrs, &objp->mode))
-    { return (FALSE); }
-    switch (objp->mode)
-    {
-        case UNCHECKED:
-        case GUARDED:
-            if (!xdr_sattr3(xdrs, &objp->createhow3_u.obj_attributes))
-            { return (FALSE); }
-            break;
-        case EXCLUSIVE:
-            if (!xdr_createverf3(xdrs, objp->createhow3_u.verf))
-            { return (FALSE); }
-            break;
-        default:
+        return (FALSE);
+    switch (objp->mode) {
+    case UNCHECKED:
+    case GUARDED:
+        if (!xdr_sattr3(xdrs, &objp->createhow3_u.obj_attributes))
             return (FALSE);
+        break;
+    case EXCLUSIVE:
+        if (!xdr_createverf3(xdrs, objp->createhow3_u.verf))
+            return (FALSE);
+        break;
+    default:
+        return (FALSE);
     }
     return (TRUE);
 }
 
 bool_t
-xdr_CREATE3args(register XDR* xdrs, CREATE3args* objp)
+xdr_CREATE3args(register XDR *xdrs, CREATE3args *objp)
 {
     if (!xdr_diropargs3(xdrs, &objp->where))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_createhow3(xdrs, &objp->how))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_CREATE3resok(register XDR* xdrs, CREATE3resok* objp)
+xdr_CREATE3resok(register XDR *xdrs, CREATE3resok *objp)
 {
     if (!xdr_post_op_fh3(xdrs, &objp->obj))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_CREATE3resfail(register XDR* xdrs, CREATE3resfail* objp)
+xdr_CREATE3resfail(register XDR *xdrs, CREATE3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_CREATE3res(register XDR* xdrs, CREATE3res* objp)
+xdr_CREATE3res(register XDR *xdrs, CREATE3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_CREATE3resok(xdrs, &objp->CREATE3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_CREATE3resfail(xdrs, &objp->CREATE3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_CREATE3resok(xdrs, &objp->CREATE3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_CREATE3resfail(xdrs, &objp->CREATE3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_MKDIR3args(register XDR* xdrs, MKDIR3args* objp)
+xdr_MKDIR3args(register XDR *xdrs, MKDIR3args *objp)
 {
     if (!xdr_diropargs3(xdrs, &objp->where))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_sattr3(xdrs, &objp->attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_MKDIR3resok(register XDR* xdrs, MKDIR3resok* objp)
+xdr_MKDIR3resok(register XDR *xdrs, MKDIR3resok *objp)
 {
     if (!xdr_post_op_fh3(xdrs, &objp->obj))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_MKDIR3resfail(register XDR* xdrs, MKDIR3resfail* objp)
+xdr_MKDIR3resfail(register XDR *xdrs, MKDIR3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_MKDIR3res(register XDR* xdrs, MKDIR3res* objp)
+xdr_MKDIR3res(register XDR *xdrs, MKDIR3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_MKDIR3resok(xdrs, &objp->MKDIR3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_MKDIR3resfail(xdrs, &objp->MKDIR3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_MKDIR3resok(xdrs, &objp->MKDIR3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_MKDIR3resfail(xdrs, &objp->MKDIR3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_symlinkdata3(register XDR* xdrs, symlinkdata3* objp)
+xdr_symlinkdata3(register XDR *xdrs, symlinkdata3 *objp)
 {
     if (!xdr_sattr3(xdrs, &objp->symlink_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_nfspath3(xdrs, &objp->symlink_data))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_SYMLINK3args(register XDR* xdrs, SYMLINK3args* objp)
+xdr_SYMLINK3args(register XDR *xdrs, SYMLINK3args *objp)
 {
     if (!xdr_diropargs3(xdrs, &objp->where))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_symlinkdata3(xdrs, &objp->symlink))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_SYMLINK3resok(register XDR* xdrs, SYMLINK3resok* objp)
+xdr_SYMLINK3resok(register XDR *xdrs, SYMLINK3resok *objp)
 {
     if (!xdr_post_op_fh3(xdrs, &objp->obj))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_SYMLINK3resfail(register XDR* xdrs, SYMLINK3resfail* objp)
+xdr_SYMLINK3resfail(register XDR *xdrs, SYMLINK3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_SYMLINK3res(register XDR* xdrs, SYMLINK3res* objp)
+xdr_SYMLINK3res(register XDR *xdrs, SYMLINK3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_SYMLINK3resok(xdrs, &objp->SYMLINK3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_SYMLINK3resfail(xdrs, &objp->SYMLINK3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_SYMLINK3resok(xdrs, &objp->SYMLINK3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_SYMLINK3resfail(xdrs, &objp->SYMLINK3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_devicedata3(register XDR* xdrs, devicedata3* objp)
+xdr_devicedata3(register XDR *xdrs, devicedata3 *objp)
 {
     if (!xdr_sattr3(xdrs, &objp->dev_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_specdata3(xdrs, &objp->spec))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_mknoddata3(register XDR* xdrs, mknoddata3* objp)
+xdr_mknoddata3(register XDR *xdrs, mknoddata3 *objp)
 {
     if (!xdr_ftype3(xdrs, &objp->type))
-    { return (FALSE); }
-    switch (objp->type)
-    {
-        case NFS3CHR:
-        case NFS3BLK:
-            if (!xdr_devicedata3(xdrs, &objp->mknoddata3_u.device))
-            { return (FALSE); }
-            break;
-        case NFS3SOCK:
-        case NFS3FIFO:
-            if (!xdr_sattr3(xdrs, &objp->mknoddata3_u.pipe_attributes))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->type) {
+    case NFS3CHR:
+    case NFS3BLK:
+        if (!xdr_devicedata3(xdrs, &objp->mknoddata3_u.device))
+            return (FALSE);
+        break;
+    case NFS3SOCK:
+    case NFS3FIFO:
+        if (!xdr_sattr3(xdrs, &objp->mknoddata3_u.pipe_attributes))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_MKNOD3args(register XDR* xdrs, MKNOD3args* objp)
+xdr_MKNOD3args(register XDR *xdrs, MKNOD3args *objp)
 {
     if (!xdr_diropargs3(xdrs, &objp->where))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_mknoddata3(xdrs, &objp->what))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_MKNOD3resok(register XDR* xdrs, MKNOD3resok* objp)
+xdr_MKNOD3resok(register XDR *xdrs, MKNOD3resok *objp)
 {
     if (!xdr_post_op_fh3(xdrs, &objp->obj))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_MKNOD3resfail(register XDR* xdrs, MKNOD3resfail* objp)
+xdr_MKNOD3resfail(register XDR *xdrs, MKNOD3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_MKNOD3res(register XDR* xdrs, MKNOD3res* objp)
+xdr_MKNOD3res(register XDR *xdrs, MKNOD3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_MKNOD3resok(xdrs, &objp->MKNOD3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_MKNOD3resfail(xdrs, &objp->MKNOD3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_MKNOD3resok(xdrs, &objp->MKNOD3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_MKNOD3resfail(xdrs, &objp->MKNOD3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_REMOVE3args(register XDR* xdrs, REMOVE3args* objp)
+xdr_REMOVE3args(register XDR *xdrs, REMOVE3args *objp)
 {
     if (!xdr_diropargs3(xdrs, &objp->object))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_REMOVE3resok(register XDR* xdrs, REMOVE3resok* objp)
+xdr_REMOVE3resok(register XDR *xdrs, REMOVE3resok *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_REMOVE3resfail(register XDR* xdrs, REMOVE3resfail* objp)
+xdr_REMOVE3resfail(register XDR *xdrs, REMOVE3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_REMOVE3res(register XDR* xdrs, REMOVE3res* objp)
+xdr_REMOVE3res(register XDR *xdrs, REMOVE3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_REMOVE3resok(xdrs, &objp->REMOVE3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_REMOVE3resfail(xdrs, &objp->REMOVE3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_REMOVE3resok(xdrs, &objp->REMOVE3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_REMOVE3resfail(xdrs, &objp->REMOVE3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_RMDIR3args(register XDR* xdrs, RMDIR3args* objp)
+xdr_RMDIR3args(register XDR *xdrs, RMDIR3args *objp)
 {
     if (!xdr_diropargs3(xdrs, &objp->object))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_RMDIR3resok(register XDR* xdrs, RMDIR3resok* objp)
+xdr_RMDIR3resok(register XDR *xdrs, RMDIR3resok *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_RMDIR3resfail(register XDR* xdrs, RMDIR3resfail* objp)
+xdr_RMDIR3resfail(register XDR *xdrs, RMDIR3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->dir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_RMDIR3res(register XDR* xdrs, RMDIR3res* objp)
+xdr_RMDIR3res(register XDR *xdrs, RMDIR3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_RMDIR3resok(xdrs, &objp->RMDIR3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_RMDIR3resfail(xdrs, &objp->RMDIR3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_RMDIR3resok(xdrs, &objp->RMDIR3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_RMDIR3resfail(xdrs, &objp->RMDIR3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_RENAME3args(register XDR* xdrs, RENAME3args* objp)
+xdr_RENAME3args(register XDR *xdrs, RENAME3args *objp)
 {
     if (!xdr_diropargs3(xdrs, &objp->from))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_diropargs3(xdrs, &objp->to))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_RENAME3resok(register XDR* xdrs, RENAME3resok* objp)
+xdr_RENAME3resok(register XDR *xdrs, RENAME3resok *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->fromdir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_wcc_data(xdrs, &objp->todir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_RENAME3resfail(register XDR* xdrs, RENAME3resfail* objp)
+xdr_RENAME3resfail(register XDR *xdrs, RENAME3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->fromdir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_wcc_data(xdrs, &objp->todir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_RENAME3res(register XDR* xdrs, RENAME3res* objp)
+xdr_RENAME3res(register XDR *xdrs, RENAME3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_RENAME3resok(xdrs, &objp->RENAME3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_RENAME3resfail(xdrs, &objp->RENAME3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_RENAME3resok(xdrs, &objp->RENAME3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_RENAME3resfail(xdrs, &objp->RENAME3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_LINK3args(register XDR* xdrs, LINK3args* objp)
+xdr_LINK3args(register XDR *xdrs, LINK3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->file))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_diropargs3(xdrs, &objp->link))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_LINK3resok(register XDR* xdrs, LINK3resok* objp)
+xdr_LINK3resok(register XDR *xdrs, LINK3resok *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->file_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_wcc_data(xdrs, &objp->linkdir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_LINK3resfail(register XDR* xdrs, LINK3resfail* objp)
+xdr_LINK3resfail(register XDR *xdrs, LINK3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->file_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_wcc_data(xdrs, &objp->linkdir_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_LINK3res(register XDR* xdrs, LINK3res* objp)
+xdr_LINK3res(register XDR *xdrs, LINK3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_LINK3resok(xdrs, &objp->LINK3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_LINK3resfail(xdrs, &objp->LINK3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_LINK3resok(xdrs, &objp->LINK3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_LINK3resfail(xdrs, &objp->LINK3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_READDIR3args(register XDR* xdrs, READDIR3args* objp)
+xdr_READDIR3args(register XDR *xdrs, READDIR3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->dir))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_cookie3(xdrs, &objp->cookie))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_cookieverf3(xdrs, objp->cookieverf))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_count3(xdrs, &objp->count))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_entry3(register XDR* xdrs, entry3* objp)
+xdr_entry3(register XDR *xdrs, entry3 *objp)
 {
     if (!xdr_fileid3(xdrs, &objp->fileid))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_filename3(xdrs, &objp->name))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_cookie3(xdrs, &objp->cookie))
-    { return (FALSE); }
-    if (!xdr_pointer(xdrs, (char**)&objp->nextentry, sizeof (entry3), (xdrproc_t) xdr_entry3))
-    { return (FALSE); }
+        return (FALSE);
+    if (!xdr_pointer(xdrs, (char **)&objp->nextentry, sizeof (entry3), (xdrproc_t) xdr_entry3))
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_dirlist3(register XDR* xdrs, dirlist3* objp)
+xdr_dirlist3(register XDR *xdrs, dirlist3 *objp)
 {
-    if (!xdr_pointer(xdrs, (char**)&objp->entries, sizeof (entry3), (xdrproc_t) xdr_entry3))
-    { return (FALSE); }
+    if (!xdr_pointer(xdrs, (char **)&objp->entries, sizeof (entry3), (xdrproc_t) xdr_entry3))
+        return (FALSE);
     if (!xdr_bool(xdrs, &objp->eof))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READDIR3resok(register XDR* xdrs, READDIR3resok* objp)
+xdr_READDIR3resok(register XDR *xdrs, READDIR3resok *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->dir_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_cookieverf3(xdrs, objp->cookieverf))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_dirlist3(xdrs, &objp->reply))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READDIR3resfail(register XDR* xdrs, READDIR3resfail* objp)
+xdr_READDIR3resfail(register XDR *xdrs, READDIR3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->dir_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READDIR3res(register XDR* xdrs, READDIR3res* objp)
+xdr_READDIR3res(register XDR *xdrs, READDIR3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_READDIR3resok(xdrs, &objp->READDIR3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_READDIR3resfail(xdrs, &objp->READDIR3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_READDIR3resok(xdrs, &objp->READDIR3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_READDIR3resfail(xdrs, &objp->READDIR3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_READDIRPLUS3args(register XDR* xdrs, READDIRPLUS3args* objp)
+xdr_READDIRPLUS3args(register XDR *xdrs, READDIRPLUS3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->dir))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_cookie3(xdrs, &objp->cookie))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_cookieverf3(xdrs, objp->cookieverf))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_count3(xdrs, &objp->dircount))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_count3(xdrs, &objp->maxcount))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_entryplus3(register XDR* xdrs, entryplus3* objp)
+xdr_entryplus3(register XDR *xdrs, entryplus3 *objp)
 {
     if (!xdr_fileid3(xdrs, &objp->fileid))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_filename3(xdrs, &objp->name))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_cookie3(xdrs, &objp->cookie))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_post_op_attr(xdrs, &objp->name_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_post_op_fh3(xdrs, &objp->name_handle))
-    { return (FALSE); }
-    if (!xdr_pointer(xdrs, (char**)&objp->nextentry, sizeof (entryplus3), (xdrproc_t) xdr_entryplus3))
-    { return (FALSE); }
+        return (FALSE);
+    if (!xdr_pointer(xdrs, (char **)&objp->nextentry, sizeof (entryplus3), (xdrproc_t) xdr_entryplus3))
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_dirlistplus3(register XDR* xdrs, dirlistplus3* objp)
+xdr_dirlistplus3(register XDR *xdrs, dirlistplus3 *objp)
 {
-    if (!xdr_pointer(xdrs, (char**)&objp->entries, sizeof (entryplus3), (xdrproc_t) xdr_entryplus3))
-    { return (FALSE); }
+    if (!xdr_pointer(xdrs, (char **)&objp->entries, sizeof (entryplus3), (xdrproc_t) xdr_entryplus3))
+        return (FALSE);
     if (!xdr_bool(xdrs, &objp->eof))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READDIRPLUS3resok(register XDR* xdrs, READDIRPLUS3resok* objp)
+xdr_READDIRPLUS3resok(register XDR *xdrs, READDIRPLUS3resok *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->dir_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_cookieverf3(xdrs, objp->cookieverf))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_dirlistplus3(xdrs, &objp->reply))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READDIRPLUS3resfail(register XDR* xdrs, READDIRPLUS3resfail* objp)
+xdr_READDIRPLUS3resfail(register XDR *xdrs, READDIRPLUS3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->dir_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_READDIRPLUS3res(register XDR* xdrs, READDIRPLUS3res* objp)
+xdr_READDIRPLUS3res(register XDR *xdrs, READDIRPLUS3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_READDIRPLUS3resok(xdrs, &objp->READDIRPLUS3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_READDIRPLUS3resfail(xdrs, &objp->READDIRPLUS3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_READDIRPLUS3resok(xdrs, &objp->READDIRPLUS3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_READDIRPLUS3resfail(xdrs, &objp->READDIRPLUS3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_FSSTAT3args(register XDR* xdrs, FSSTAT3args* objp)
+xdr_FSSTAT3args(register XDR *xdrs, FSSTAT3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->fsroot))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_FSSTAT3resok(register XDR* xdrs, FSSTAT3resok* objp)
+xdr_FSSTAT3resok(register XDR *xdrs, FSSTAT3resok *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_size3(xdrs, &objp->tbytes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_size3(xdrs, &objp->fbytes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_size3(xdrs, &objp->abytes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_size3(xdrs, &objp->tfiles))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_size3(xdrs, &objp->ffiles))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_size3(xdrs, &objp->afiles))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->invarsec))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_FSSTAT3resfail(register XDR* xdrs, FSSTAT3resfail* objp)
+xdr_FSSTAT3resfail(register XDR *xdrs, FSSTAT3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_FSSTAT3res(register XDR* xdrs, FSSTAT3res* objp)
+xdr_FSSTAT3res(register XDR *xdrs, FSSTAT3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_FSSTAT3resok(xdrs, &objp->FSSTAT3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_FSSTAT3resfail(xdrs, &objp->FSSTAT3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_FSSTAT3resok(xdrs, &objp->FSSTAT3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_FSSTAT3resfail(xdrs, &objp->FSSTAT3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_FSINFO3args(register XDR* xdrs, FSINFO3args* objp)
+xdr_FSINFO3args(register XDR *xdrs, FSINFO3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->fsroot))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_FSINFO3resok(register XDR* xdrs, FSINFO3resok* objp)
+xdr_FSINFO3resok(register XDR *xdrs, FSINFO3resok *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->rtmax))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->rtpref))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->rtmult))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->wtmax))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->wtpref))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->wtmult))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->dtpref))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_size3(xdrs, &objp->maxfilesize))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_nfstime3(xdrs, &objp->time_delta))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->properties))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_FSINFO3resfail(register XDR* xdrs, FSINFO3resfail* objp)
+xdr_FSINFO3resfail(register XDR *xdrs, FSINFO3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_FSINFO3res(register XDR* xdrs, FSINFO3res* objp)
+xdr_FSINFO3res(register XDR *xdrs, FSINFO3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_FSINFO3resok(xdrs, &objp->FSINFO3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_FSINFO3resfail(xdrs, &objp->FSINFO3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_FSINFO3resok(xdrs, &objp->FSINFO3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_FSINFO3resfail(xdrs, &objp->FSINFO3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_PATHCONF3args(register XDR* xdrs, PATHCONF3args* objp)
+xdr_PATHCONF3args(register XDR *xdrs, PATHCONF3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->object))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_PATHCONF3resok(register XDR* xdrs, PATHCONF3resok* objp)
+xdr_PATHCONF3resok(register XDR *xdrs, PATHCONF3resok *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->linkmax))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_uint32(xdrs, &objp->name_max))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_bool(xdrs, &objp->no_trunc))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_bool(xdrs, &objp->chown_restricted))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_bool(xdrs, &objp->case_insensitive))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_bool(xdrs, &objp->case_preserving))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_PATHCONF3resfail(register XDR* xdrs, PATHCONF3resfail* objp)
+xdr_PATHCONF3resfail(register XDR *xdrs, PATHCONF3resfail *objp)
 {
     if (!xdr_post_op_attr(xdrs, &objp->obj_attributes))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_PATHCONF3res(register XDR* xdrs, PATHCONF3res* objp)
+xdr_PATHCONF3res(register XDR *xdrs, PATHCONF3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_PATHCONF3resok(xdrs, &objp->PATHCONF3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_PATHCONF3resfail(xdrs, &objp->PATHCONF3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_PATHCONF3resok(xdrs, &objp->PATHCONF3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_PATHCONF3resfail(xdrs, &objp->PATHCONF3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }
 
 bool_t
-xdr_COMMIT3args(register XDR* xdrs, COMMIT3args* objp)
+xdr_COMMIT3args(register XDR *xdrs, COMMIT3args *objp)
 {
     if (!xdr_nfs_fh3(xdrs, &objp->file))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_offset3(xdrs, &objp->offset))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_count3(xdrs, &objp->count))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_COMMIT3resok(register XDR* xdrs, COMMIT3resok* objp)
+xdr_COMMIT3resok(register XDR *xdrs, COMMIT3resok *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->file_wcc))
-    { return (FALSE); }
+        return (FALSE);
     if (!xdr_writeverf3(xdrs, objp->verf))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_COMMIT3resfail(register XDR* xdrs, COMMIT3resfail* objp)
+xdr_COMMIT3resfail(register XDR *xdrs, COMMIT3resfail *objp)
 {
     if (!xdr_wcc_data(xdrs, &objp->file_wcc))
-    { return (FALSE); }
+        return (FALSE);
     return (TRUE);
 }
 
 bool_t
-xdr_COMMIT3res(register XDR* xdrs, COMMIT3res* objp)
+xdr_COMMIT3res(register XDR *xdrs, COMMIT3res *objp)
 {
     if (!xdr_nfsstat3(xdrs, &objp->status))
-    { return (FALSE); }
-    switch (objp->status)
-    {
-        case NFS3_OK:
-            if (!xdr_COMMIT3resok(xdrs, &objp->COMMIT3res_u.resok))
-            { return (FALSE); }
-            break;
-        default:
-            if (!xdr_COMMIT3resfail(xdrs, &objp->COMMIT3res_u.resfail))
-            { return (FALSE); }
-            break;
+        return (FALSE);
+    switch (objp->status) {
+    case NFS3_OK:
+        if (!xdr_COMMIT3resok(xdrs, &objp->COMMIT3res_u.resok))
+            return (FALSE);
+        break;
+    default:
+        if (!xdr_COMMIT3resfail(xdrs, &objp->COMMIT3res_u.resfail))
+            return (FALSE);
+        break;
     }
     return (TRUE);
 }

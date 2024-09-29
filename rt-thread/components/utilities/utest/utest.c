@@ -46,11 +46,16 @@ static rt_uint8_t utest_log_lv = UTEST_LOG_ALL;
 static utest_tc_export_t tc_table = RT_NULL;
 static rt_size_t tc_num;
 static rt_uint32_t tc_loop;
+static rt_uint8_t *tc_fail_list;
 static struct utest local_utest = {UTEST_PASSED, 0, 0};
 
 #if defined(__ICCARM__) || defined(__ICCRX__)         /* for IAR compiler */
 #pragma section="UtestTcTab"
 #endif
+
+#define TC_FAIL_LIST_SIZE                (RT_ALIGN(tc_num, 8) / 8)
+#define TC_FAIL_LIST_MARK_FAILED(index)  (tc_fail_list[index / 8] |= (1UL << (index % 8)))
+#define TC_FAIL_LIST_IS_FAILED(index)    (tc_fail_list[index / 8] &  (1UL << (index % 8)))
 
 void utest_log_lv_set(rt_uint8_t lv)
 {
@@ -63,7 +68,7 @@ void utest_log_lv_set(rt_uint8_t lv)
 int utest_init(void)
 {
     /* initialize the utest commands table.*/
-#if defined(__CC_ARM) || defined(__CLANG_ARM)       /* ARM C Compiler */
+#if defined(__ARMCC_VERSION)       /* ARM C Compiler */
     extern const int UtestTcTab$$Base;
     extern const int UtestTcTab$$Limit;
     tc_table = (utest_tc_export_t)&UtestTcTab$$Base;
@@ -80,6 +85,14 @@ int utest_init(void)
 
     LOG_I("utest is initialize success.");
     LOG_I("total utest testcase num: (%d)", tc_num);
+    if (tc_num > 0)
+    {
+        tc_fail_list = rt_malloc(TC_FAIL_LIST_SIZE);
+        if(!tc_fail_list)
+        {
+            LOG_E("no memory, tc_fail_list init failed!");
+        }
+    }
     return tc_num;
 }
 INIT_COMPONENT_EXPORT(utest_init);
@@ -97,22 +110,22 @@ static void utest_tc_list(void)
 }
 MSH_CMD_EXPORT_ALIAS(utest_tc_list, utest_list, output all utest testcase);
 
-static const char* file_basename(const char* file)
+static const char *file_basename(const char *file)
 {
-    char* end_ptr = RT_NULL;
-    char* rst = RT_NULL;
+    char *end_ptr = RT_NULL;
+    char *rst = RT_NULL;
 
     if (!((end_ptr = strrchr(file, '\\')) != RT_NULL || \
-          (end_ptr = strrchr(file, '/')) != RT_NULL) || \
+        (end_ptr = strrchr(file, '/')) != RT_NULL) || \
         (rt_strlen(file) < 2))
     {
-        rst = (char*)file;
+        rst = (char *)file;
     }
     else
     {
-        rst = (char*)(end_ptr + 1);
+        rst = (char *)(end_ptr + 1);
     }
-    return (const char*)rst;
+    return (const char *)rst;
 }
 
 static int utest_help(void)
@@ -142,11 +155,13 @@ static int utest_help(void)
     return 0;
 }
 
-static void utest_run(const char* utest_name)
+static void utest_run(const char *utest_name)
 {
     rt_size_t i;
     rt_uint32_t index;
     rt_bool_t is_find;
+    rt_uint32_t tc_fail_num = 0;
+    rt_uint32_t tc_run_num = 0;
 
     rt_thread_mdelay(1000);
 
@@ -154,9 +169,17 @@ static void utest_run(const char* utest_name)
     {
         i = 0;
         is_find = RT_FALSE;
+
+        tc_fail_num = 0;
+        tc_run_num = 0;
+        if (tc_fail_list)
+        {
+            rt_memset(tc_fail_list, 0, TC_FAIL_LIST_SIZE);
+        }
+
         LOG_I("[==========] [ utest    ] loop %d/%d", index + 1, tc_loop);
         LOG_I("[==========] [ utest    ] started");
-        while (i < tc_num)
+        while(i < tc_num)
         {
             if (utest_name)
             {
@@ -192,6 +215,8 @@ static void utest_run(const char* utest_name)
                 }
                 else
                 {
+                    TC_FAIL_LIST_MARK_FAILED(i);
+                    tc_fail_num ++;
                     LOG_E("[  FAILED  ] [ result   ] testcase (%s)", tc_table[i].name);
                 }
             }
@@ -209,9 +234,10 @@ static void utest_run(const char* utest_name)
                 }
             }
 
-__tc_continue:
+    __tc_continue:
             LOG_I("[----------] [ testcase ] (%s) finished", tc_table[i].name);
 
+            tc_run_num ++;
             i++;
         }
 
@@ -223,12 +249,26 @@ __tc_continue:
         }
 
         LOG_I("[==========] [ utest    ] finished");
+        LOG_I("[==========] [ utest    ] %d tests from %d testcase ran.", tc_run_num, tc_num);
+        LOG_I("[  PASSED  ] [ result   ] %d tests.", tc_run_num - tc_fail_num);
+
+        if(tc_fail_list && (tc_fail_num > 0))
+        {
+            LOG_E("[  FAILED  ] [ result   ] %d tests, listed below:", tc_fail_num);
+            for(i = 0; i < tc_num; i ++)
+            {
+                if (TC_FAIL_LIST_IS_FAILED(i))
+                {
+                    LOG_E("[  FAILED  ] [ result   ] %s", tc_table[i].name);
+                }
+            }
+        }
     }
 }
 
 static void utest_testcase_run(int argc, char** argv)
 {
-    void* thr_param = RT_NULL;
+    void *thr_param = RT_NULL;
 
     static char utest_name[UTEST_NAME_MAX_LEN];
     rt_memset(utest_name, 0x0, sizeof(utest_name));
@@ -247,17 +287,14 @@ static void utest_testcase_run(int argc, char** argv)
             rt_thread_t tid = RT_NULL;
             if (argc == 3 || argc == 4)
             {
-                rt_strncpy(utest_name, argv[2], sizeof(utest_name) - 1);
+                rt_strncpy(utest_name, argv[2], sizeof(utest_name) -1);
                 thr_param = (void*)utest_name;
 
-                if (argc == 4)
-                {
-                    tc_loop = atoi(argv[3]);
-                }
+                if (argc == 4) tc_loop = atoi(argv[3]);
             }
             tid = rt_thread_create("utest",
-                                   (void (*)(void*))utest_run, thr_param,
-                                   UTEST_THREAD_STACK_SIZE, UTEST_THREAD_PRIORITY, 10);
+                                    (void (*)(void *))utest_run, thr_param,
+                                    UTEST_THREAD_STACK_SIZE, UTEST_THREAD_PRIORITY, 10);
             if (tid != NULL)
             {
                 rt_thread_startup(tid);
@@ -269,11 +306,8 @@ static void utest_testcase_run(int argc, char** argv)
         }
         else
         {
-            rt_strncpy(utest_name, argv[1], sizeof(utest_name) - 1);
-            if (argc == 3)
-            {
-                tc_loop = atoi(argv[2]);
-            }
+            rt_strncpy(utest_name, argv[1], sizeof(utest_name) -1);
+            if (argc == 3) tc_loop = atoi(argv[2]);
             utest_run(utest_name);
         }
     }
@@ -283,14 +317,14 @@ static void utest_testcase_run(int argc, char** argv)
         utest_help();
     }
 }
-MSH_CMD_EXPORT_ALIAS(utest_testcase_run, utest_run, utest_run [-thread or - help] [testcase name] [loop num]);
+MSH_CMD_EXPORT_ALIAS(utest_testcase_run, utest_run, utest_run [-thread or -help] [testcase name] [loop num]);
 
 utest_t utest_handle_get(void)
 {
     return (utest_t)&local_utest;
 }
 
-void utest_unit_run(test_unit_func func, const char* unit_func_name)
+void utest_unit_run(test_unit_func func, const char *unit_func_name)
 {
     // LOG_I("[==========] utest unit name: (%s)", unit_func_name);
     local_utest.error = UTEST_PASSED;
@@ -303,7 +337,7 @@ void utest_unit_run(test_unit_func func, const char* unit_func_name)
     }
 }
 
-void utest_assert(int value, const char* file, int line, const char* func, const char* msg)
+void utest_assert(int value, const char *file, int line, const char *func, const char *msg)
 {
     if (!(value))
     {
@@ -322,7 +356,7 @@ void utest_assert(int value, const char* file, int line, const char* func, const
     }
 }
 
-void utest_assert_string(const char* a, const char* b, rt_bool_t equal, const char* file, int line, const char* func, const char* msg)
+void utest_assert_string(const char *a, const char *b, rt_bool_t equal, const char *file, int line, const char *func, const char *msg)
 {
     if (a == RT_NULL || b == RT_NULL)
     {
@@ -353,7 +387,7 @@ void utest_assert_string(const char* a, const char* b, rt_bool_t equal, const ch
     }
 }
 
-void utest_assert_buf(const char* a, const char* b, rt_size_t sz, rt_bool_t equal, const char* file, int line, const char* func, const char* msg)
+void utest_assert_buf(const char *a, const char *b, rt_size_t sz, rt_bool_t equal, const char *file, int line, const char *func, const char *msg)
 {
     if (a == RT_NULL || b == RT_NULL)
     {

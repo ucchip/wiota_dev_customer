@@ -31,9 +31,9 @@ extern "C" {
 
 int rt_wlan_workqueue_init(void);
 
-rt_err_t rt_wlan_workqueue_dowork(void (*func)(void* parameter), void* parameter);
+rt_err_t rt_wlan_workqueue_dowork(void (*func)(void *parameter), void *parameter);
 
-struct rt_workqueue* rt_wlan_get_workqueue(void);
+struct rt_workqueue *rt_wlan_get_workqueue(void);
 
 #ifdef __cplusplus
 }

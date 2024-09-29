@@ -22,28 +22,28 @@
 struct rt_wlan_work
 {
     struct rt_work work;
-    void (*fun)(void* parameter);
-    void* parameter;
+    void (*fun)(void *parameter);
+    void *parameter;
 };
 
-static struct rt_workqueue* wlan_workqueue;
+static struct rt_workqueue *wlan_workqueue;
 
-static void rt_wlan_workqueue_fun(struct rt_work* work, void* work_data)
+static void rt_wlan_workqueue_fun(struct rt_work *work, void *work_data)
 {
-    struct rt_wlan_work* wlan_work = work_data;
+    struct rt_wlan_work *wlan_work = work_data;
 
     wlan_work->fun(wlan_work->parameter);
     rt_free(wlan_work);
 }
 
-struct rt_workqueue* rt_wlan_get_workqueue(void)
+struct rt_workqueue *rt_wlan_get_workqueue(void)
 {
     return wlan_workqueue;
 }
 
-rt_err_t rt_wlan_workqueue_dowork(void (*func)(void* parameter), void* parameter)
+rt_err_t rt_wlan_workqueue_dowork(void (*func)(void *parameter), void *parameter)
 {
-    struct rt_wlan_work* wlan_work;
+    struct rt_wlan_work *wlan_work;
     rt_err_t err = RT_EOK;
 
     LOG_D("F:%s is run", __FUNCTION__);
