@@ -120,6 +120,7 @@ static int ota_flash_write(unsigned int offset, const unsigned char *buf, unsign
 void uc_wiota_ota_flash_write(unsigned char *data_buf, unsigned int flash_addr, unsigned int length)
 {
     uc_wiota_suspend_connect();
+    rt_thread_mdelay(uc_wiota_get_frame_len() / 1000 + 2);
     ota_flash_write(flash_addr, data_buf, length);
     uc_wiota_recover_connect();
 }
@@ -150,13 +151,14 @@ void uc_wiota_ota_flash_erase(unsigned int start_addr, unsigned int erase_size)
 
     if (erase_size == 0)
     {
-        rt_kprintf("flash_erase size err\n");
+        rt_kprintf("erase size f\n");
         return;
     }
 
     erase_addr = (erase_addr / 4096) * 4096;
 
     uc_wiota_suspend_connect();
+    rt_thread_mdelay(uc_wiota_get_frame_len() / 1000 + 2);
     if (erase_addr < start_addr)
     {
         ota_flash_erase(erase_addr, 4096);

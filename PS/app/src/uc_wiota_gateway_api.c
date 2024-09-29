@@ -6,7 +6,7 @@
 #include "uc_wiota_static.h"
 #include "uc_string_lib.h"
 
-#include "uc_cbor.h"
+// #include "uc_cbor.h"
 #include "uc_coding.h"
 #include "uc_ota_flash.h"
 #include "uc_wiota_gateway_api.h"

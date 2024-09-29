@@ -1,10 +1,12 @@
 .codelite/
 .vscode/
-rt-thread/tools/
+.vs/
+rt-thread/tools/*.pyc
 build/
 Debug/
-*.mk
-*.txt
+rtthread.bin
+rtthread.elf
+*.text
 *.uzf
 *.pyc
 *.map

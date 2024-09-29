@@ -124,10 +124,10 @@ static at_result_t at_set_uboot_log(const char *args)
 	return AT_RESULT_OK;
 }
 
-AT_CMD_EXPORT("AT+UBOOTVERSION",RT_NULL,RT_NULL,at_uboot_version_query,RT_NULL,RT_NULL);
-AT_CMD_EXPORT("AT+UBOOTBAUDRATE","=<baudrate>",RT_NULL,at_uboot_baudrate_query,at_set_uboot_baudrate,RT_NULL);
-AT_CMD_EXPORT("AT+UBOOTMODE","=<mode>",RT_NULL,at_uboot_mode_query,at_set_uboot_mode,RT_NULL);
-AT_CMD_EXPORT("AT+PARTITIONSIZE","=<binsize>,<resize>,<otasize>",RT_NULL,at_partition_size_query,at_set_partition_size,RT_NULL);
-AT_CMD_EXPORT("AT+UBOOTLOG","=<uartflag>,<logflag>,<selflag>",RT_NULL,at_uboot_log_query,at_set_uboot_log,RT_NULL);
+AT_CMD_EXPORT("AT+UBOOTVERSION", RT_NULL, RT_NULL, at_uboot_version_query, RT_NULL, RT_NULL);
+AT_CMD_EXPORT("AT+UBOOTBAUDRATE", "=<baudrate>", RT_NULL, at_uboot_baudrate_query, at_set_uboot_baudrate, RT_NULL);
+AT_CMD_EXPORT("AT+UBOOTMODE", "=<mode>", RT_NULL, at_uboot_mode_query, at_set_uboot_mode, RT_NULL);
+AT_CMD_EXPORT("AT+PARTITIONSIZE", "=<bin>,<re>,<ota>", RT_NULL, at_partition_size_query, at_set_partition_size, RT_NULL);
+AT_CMD_EXPORT("AT+UBOOTLOG", "=<uart>,<log>,<sel>", RT_NULL, at_uboot_log_query, at_set_uboot_log, RT_NULL);
 
 #endif

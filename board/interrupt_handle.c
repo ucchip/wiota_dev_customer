@@ -154,21 +154,29 @@ static void (*g_interrupt_vector[32])(void) =
 void default_int_handler(void)
 {
     uint32_t mcause;
+    uint32_t ipr;
     void (*int_func)(void) = RT_NULL;
 
-    csrr(mcause, mcause);
-    mcause &= 0xff;
+    // csrr(mcause, mcause);
+    // mcause &= 0xff;
 
-    if (mcause > 31)
+    // if (mcause > 31)
+    // {
+    //     return;
+    // }
+
+    for (mcause = 0; mcause < 32; mcause++)
     {
-        return;
-    }
+        ipr = IPR;
+        if ((ipr >> mcause) & (0x1))
+        {
+            int_func = g_interrupt_vector[mcause];
+            if (int_func != RT_NULL)
+            {
+                int_func();
+            }
 
-    int_func = g_interrupt_vector[mcause];
-    if (int_func != RT_NULL)
-    {
-        int_func();
+            ICP = (1 << mcause);
+        }
     }
-
-    ICP = (1 << mcause);
 }

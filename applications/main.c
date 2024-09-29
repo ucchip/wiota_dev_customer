@@ -21,11 +21,11 @@
 #ifdef UC8288_MODULE
 #ifdef RT_USING_AT
 #include "at.h"
+#include "at_wiota.h"
 #endif
 #else
 #include "test_wiota_api.h"
 #endif
-
 
 #ifdef _WATCHDOG_APP_
 #include "uc_watchdog_app.h"
@@ -85,6 +85,10 @@
 
 #ifdef UC_SPIM_SUPPORT
 #include "uc_spim_api.h"
+#endif
+
+#ifdef _QUICK_CONNECT_
+#include "quick_connect.h"
 #endif
 
 extern void uc_wiota_static_data_init(void);
@@ -205,9 +209,15 @@ int main(void)
 
     at_wiota_gpio_report_init();
     wake_out_pulse_init();
+    at_wiota_awaken_notice();
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
 //    at_handle_log_uart(0);
+#endif
+
+
+#ifdef _QUICK_CONNECT_
+    quick_connect_task_init();
 #endif
 
     //    uc_wiota_light_func_enable(0);
@@ -227,8 +237,7 @@ int main(void)
         unsigned int used;
         unsigned int max_used;
 
-
-        rt_thread_delay(1000);
+        rt_thread_delay(7000);
 
         // read write 8K
         // for (i=0; i<2048; i++) {

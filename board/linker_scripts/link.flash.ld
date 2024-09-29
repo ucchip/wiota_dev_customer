@@ -27,6 +27,8 @@ _stack_len     = LENGTH(stack);
 _stack_start   = ORIGIN(stack) + LENGTH(stack);
 _rom_end       = ORIGIN(uc_rom) + LENGTH(uc_rom);
 _rom_start     = ORIGIN(uc_rom);
+_stbl_end      = _rom_end;
+_align_addr    = ORIGIN(instrram) + LENGTH(instrram);
 
 /* We have to align each sector to word boundaries as our current s19->slm
  * conversion scripts are not able to handle non-word aligned sections. */
@@ -57,8 +59,8 @@ SECTIONS
         *(.crt0);
         *(.download);
         . += 80;
-        . = ALIGN(4096);
-        _stbl_end = .;
+        /* . = ALIGN(4096); */
+        /* _stbl_end = .; */
     } > uc_rom
 
 /*functions called only once during startup */
@@ -70,6 +72,7 @@ SECTIONS
 
 	.protocal_stack :
 	{
+        *uc_wiota_static*(.text*);
 		*l1_*(.text*);
 		*c_cce_firmware*(.text*);
 		*cce*(.text*);
@@ -83,8 +86,8 @@ SECTIONS
 		*dll*(.text*);
 		*uart_tool*(.text*);
 		*global_task*(.text*);
-		. = LENGTH(protocal_stack ) -4;
-		LONG(0);
+		/* . = LENGTH(protocal_stack ) -4; */
+		/* LONG(0); */
 	} > protocal_stack
 
     .text :
@@ -107,8 +110,8 @@ SECTIONS
         *(.lit)
         *(.shdata)
        _endtext = .;
-	   . = LENGTH(instrram) -4;
-	   LONG(0);
+	   /* . = LENGTH(instrram) -4; */
+	   /* LONG(0); */
 
     }  > instrram
 

@@ -112,6 +112,7 @@
 /* wiota APP */
 
 #define UC8288_MODULE
+#define _QUICK_CONNECT_
 #define _WATCHDOG_APP_
 
 /* wiota PS */
@@ -122,6 +123,7 @@
 #define UC8288_FACTORY
 #define _L1_FACTORY_FUNC_
 #define _CLK_GATING_
+#define _LPM_PAGING_
 #define AT_WIOTA_GATEWAY_API
 #define AT_WIOTA_GATEWAY
 

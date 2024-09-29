@@ -42,6 +42,7 @@
 
 typedef enum
 {
+    FLASH_CMD_DEV_ID = 0x90, // Electronic Manufacture ID & Device ID
     FLASH_CMD_ID = 0x9F,
     FLASH_CMD_ERASE_SECTOR = 0x20,
     FLASH_CMD_ERASE_BLOCK = 0xD8,
@@ -57,7 +58,7 @@ typedef enum
 } ENUM_FLASH_CMD;
 
 // function
-//EXT_FLASH uint32_t ReadFlashID();
+EXT_FLASH uint16_t ReadFlashID(uint8_t flag);
 EXT_FLASH void FlashEraseSector(uint32_t nBaseAddr);
 #if 1
 EXT_FLASH void FlashWrite(uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
@@ -67,14 +68,14 @@ EXT_FLASH void FlashRead(uint32_t nAddr, uint8_t* pData, uint16_t usLen);
 #else
 EXT_FLASH void FlashQRead(uint32_t nAddr, uint8_t* pData, uint16_t usLen);
 #endif
-EXT_FLASH uint8_t FlashCrc(const uint8_t* pData, uint16_t usLen);
+// EXT_FLASH uint8_t FlashCrc(const uint8_t* pData, uint16_t usLen);
 
 //#ifdef __SPI_FLASH_C_
 void FlashEnableWr(void);
-void FlashWaitForWr(void);
-uint8_t FlashStatus(void);
+// void FlashWaitForWr(void);
+// uint8_t FlashStatus(void);
 void FlashPageProgram(uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
-void FlashPageRead(uint32_t nAddr, uint8_t* pData, uint16_t usLen);
+// void FlashPageRead(uint32_t nAddr, uint8_t* pData, uint16_t usLen);
 
 uint32_t Flash_Read_SR();
 void Flash_Write_SR(uint8_t status);
@@ -83,6 +84,8 @@ void FlashEraseSecurity(uint8_t mode);
 void FlashWriteSecurity(uint32_t rigister_num, uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
 void FlashProgramSecurity(uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
 void FlashReadSecurity(uint32_t rigister_num, uint32_t nAddr, uint8_t* pData, uint16_t usLen);
+
+void flash_wait_ok(void);
 
 //#endif
 

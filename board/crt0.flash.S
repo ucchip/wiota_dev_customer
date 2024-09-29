@@ -1,20 +1,10 @@
-// Copyright 2016 ETH Zurich and University of Bologna.
-// Copyright and related rights are licensed under the Solderpad Hardware
-// License, Version 0.51 (the “License”); you may not use this file except in
-// compliance with the License. You may obtain a copy of the License at
-// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
-// or agreed to in writing, software, hardware and materials distributed under
-// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the
-// specific language governing permissions and limitations under the License.
-
- 
 #define EXCEPTION_STACK_SIZE 96
 
 
 /* ========================================================= [ entry ] === */
 .section .reset  
 reset_handler:
+  call pmc_init
   csrw mtvec, x0
   csrci  mstatus, 0x08
   /* set all registers to zero */
@@ -71,8 +61,6 @@ zero_loop:
 zero_loop_end:
 
   /* Run global initialization functions */
-  li a0, 1                      /* set app mode */
-  call  set_program_type
   call  boot_noop
   call  boot_strap
   //li a0, 1

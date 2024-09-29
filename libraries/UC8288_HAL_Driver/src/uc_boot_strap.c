@@ -17,7 +17,7 @@
 #define __critical_128 __attribute__((section(".critical"), aligned(128)))
 #define __critical_512 __attribute__((section(".critical"), aligned(512)))
 
-int flash_read_sr();
+// int flash_read_sr();
 
 #define REG_XIP_CMD     0x1A10C030
 #define SEG_TBL_SIZE    20
@@ -47,6 +47,7 @@ uint16_t auto_dummy = 3;
 #define reg_spi_dummy  ((volatile uint32_t *) 0x1a10c014)
 #define reg_dcxo_ctrl1 ((volatile uint32_t *) 0x1a10a01c)
 #define reg_dcxo_ctrl2 ((volatile uint32_t *) 0x1a10a020)
+#define reg_vol        ((volatile uint32_t *) 0x1a10a024)
 #define reg_freq_div   ((volatile uint32_t *) 0x1a10a00c)
 #define cce_mode_ctrl  ((volatile uint32_t *) 0x1a10a038)
 #define paging_exit    ((volatile uint32_t *) 0x3b0c10)
@@ -126,7 +127,7 @@ __critical_128 void flash_qspi_en()
 {
     //uint32_t data;
     //flash we
-    flash_read_sr();//must warm up cache for sr read
+    // flash_read_sr();//must warm up cache for sr read
     WAIT_XIP_FREE;
     *reg_spi_cmd = FLASH_WE;  //set cmd
     *reg_spi_len = 0x0008;      //set cmd and data len
@@ -141,7 +142,7 @@ __critical_128 void flash_qspi_en()
     while (*reg_spi_status != 1);
     //cache refill will hang when write in progress
     //poll write in progress
-    while (flash_read_sr() & 0x03);
+    // while (flash_read_sr() & 0x03);
 }
 
 
@@ -298,6 +299,35 @@ __critical_128 void xip_switch_mode()
     //cache miss his dangerous here...
 }
 
+__critical_128 void pmc_init(void)
+{
+    register int tmp = 0;
+    register int pmu_value = *(pmu_ctrl);
+    register int vol_value;
+
+    // register unsigned int *wdg_ctr = (unsigned int*)(WATCHDOG_BASE_ADDR);
+    // register unsigned int *wdg_wiv = (unsigned int*)(WATCHDOG_BASE_ADDR + 4);
+    // register unsigned int *wdg_wfd = (unsigned int*)(WATCHDOG_BASE_ADDR + 8);
+
+    // *wdg_wiv  = 0xFFFFFFFFU - 50 * 32768U / 1000;
+    // *wdg_wfd |= 0x01;
+    // *wdg_ctr |= 0x01;
+    // *wdg_wfd |= 0x01;
+
+    if ((pmu_value >> 27) & 1)
+    {
+        tmp = (*(volatile int *)(0x3b0028)) | (1 << 5 | 1 << 7 | 1 << 8);
+        *(volatile int *)(0x3b0028) = tmp;
+
+        tmp = ((*(volatile int *)(0x3b0000)) & 0xFFFF) | (0x2FD2 << 16);
+        *(volatile int *)(0x3b0000) = tmp;
+
+        vol_value = *(reg_vol) & (~(0xF << 15));
+        *(reg_vol) = vol_value | (8 << 15);    // set dcdc vol to 2.1v, addr: 0x1a10a024
+        *(pmu_ctrl) &= (~(1 << 16 | 1 << 18)); // stop cce pow, stop wut pow
+        *(pmu_ctrl) |= (1 << 18);              // enable wut power
+    }
+}
 
 #ifdef XTX_FLASH
 __critical_128 void boot_strap()
@@ -306,14 +336,24 @@ __critical_128 void boot_strap()
     init_parameters();
     //flash_read_id();
     fill_mtr();
+    flash_qspi_en();
     WAIT_XIP_FREE;
     //8288 dcxo doubler enable; set 96M
-    *(reg_dcxo_ctrl2) |= (1 << 16);
-    *(reg_freq_div) &= (0xFFFFFFF1);
+    *(reg_dcxo_ctrl2) |= (1 << 16);  // 0x1a10a01c
+    *(reg_freq_div) &= (0xFFFFFFF1); // 0x1a10a00c
+    // if (0 != *(cce_mode_ctrl))
+    // {
+    //     *(cce_mode_ctrl) = 0; // reset cce wm, 0x1a10a038
+    //     *(paging_exit) = (1); // clear paging, 0x3b0c10
+    //     *(paging_exit) = (0);
+    //     // *(cce_mode_ctrl) = 8;  // reset cce timer
+    //     *(paging_exit) = (1);  // clear paging
+    //     *(paging_exit) = (0);
+    // }
     *(cce_mode_ctrl) = 0;
     *(paging_exit) |= (1);  // clear paging
     *(cce_mode_ctrl) = 8;
-    *(pmu_ctrl) &= ~(1 << 1); // clear sleep
+    *(pmu_ctrl) &= ~(1 << 1); // clear sleep, 0x1a10a000
 
     //should add some delay here
     xip_switch_mode();
@@ -396,15 +436,15 @@ __critical_128 void boot_strap()
 #endif
 
 
-__critical_64 int flash_read_sr()
-{
-    uint32_t data;
-    *reg_spi_cmd = FLASH_RSR; //read sr
-    *reg_spi_len = 0x200008;
-    WAIT_XIP_FREE;
-    SPI_START(SPI_CMD_RD);
-    while (((*(reg_spi_status) >> 16) & 0xFF) == 0);
-    data = *(reg_spi_rxfifo);
-    return data;
-}
+// __critical_64 int flash_read_sr()
+// {
+//     uint32_t data;
+//     *reg_spi_cmd = FLASH_RSR; //read sr
+//     *reg_spi_len = 0x200008;
+//     WAIT_XIP_FREE;
+//     SPI_START(SPI_CMD_RD);
+//     while (((*(reg_spi_status) >> 16) & 0xFF) == 0);
+//     data = *(reg_spi_rxfifo);
+//     return data;
+// }
 

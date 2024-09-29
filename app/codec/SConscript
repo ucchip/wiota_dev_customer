@@ -9,17 +9,15 @@ src_coding = Glob("coding/*.c")
 src_fastlz = Glob("fastlz/*.c")
 src_json =Glob("cJSON/*.c")
 
-src += src_cbor
+
 src += src_coding
 src += src_fastlz
-src += src_json
+
 
 path = []
 
 path += [cwd + '/coding']
 path += [cwd + '/fastlz']
-path += [cwd + '/cJSON']
-path += [cwd + '/cbor']
 
 
 group = DefineGroup('codec', src, depend = [''], CPPPATH = path)

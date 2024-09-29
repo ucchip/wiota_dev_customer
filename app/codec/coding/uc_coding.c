@@ -2,7 +2,6 @@
 #ifdef AT_WIOTA_GATEWAY_API
 #include <uc_coding.h>
 #include "fastlz.h"
-#include "uc_cbor.h"
 
 #if 0
 unsigned char app_packet_num(void)
@@ -417,7 +416,7 @@ static int app_cmd_auth_res_coding(unsigned char *input_cmd,
     unsigned int temp = 0;
 
     cb_map = cn_cbor_map_create(&err);
-    
+
     //xyang
     // cb_data = cn_cbor_int_create(ps_cmd_p->connect_index.state, &err);
     temp = (ps_cmd_p->connect_index.state << 24);

@@ -65,7 +65,7 @@ static int at_test_da(unsigned int channel, unsigned int value)
     dac_dev = (rt_dac_device_t)rt_device_find(DAC_DEV_NAME);
     if (RT_NULL == dac_dev)
     {
-        rt_kprintf("da find fail\n");
+        rt_kprintf("da find f\n");
         return -1;
     }
 
@@ -146,19 +146,19 @@ static int at_test_i2c(void)
     dev = rt_device_find(AHT10_I2C_BUS_NAME);
     if (RT_NULL == dev)
     {
-        rt_kprintf("rt_device_find i2c fail\n");
+        rt_kprintf("i2c find i2c f\n");
         return 1;
     }
 
     if (RT_EOK != write_reg((struct rt_i2c_bus_device *)dev, 0, set_data))
     {
-        rt_kprintf("write_reg i2c fail\n");
+        rt_kprintf("write i2c f\n");
         return 2;
     }
 
     if (RT_EOK != read_regs((struct rt_i2c_bus_device *)dev, 4, get_data))
     {
-        rt_kprintf("read_regs i2c fail\n");
+        rt_kprintf("read i2c f\n");
         return 3;
     }
 
@@ -166,7 +166,7 @@ static int at_test_i2c(void)
     {
         if (set_data[num] != get_data[num])
         {
-            rt_kprintf("i2c data match fail. num=%d, %d!= %d\n", num, set_data[num], get_data[num]);
+            rt_kprintf("i2c match f n %d %d!= %d\n", num, set_data[num], get_data[num]);
             return 4;
         }
     }
@@ -230,13 +230,13 @@ static int at_factory_test_can(int type, void *data)
     can_dev = rt_device_find(CAN_DEV_NAME);
     if (RT_NULL == can_dev)
     {
-        rt_kprintf("find %s failed!\n", CAN_DEV_NAME);
+        rt_kprintf("find can faile\n");
         return 1;
     }
     res = rt_device_open(can_dev, RT_DEVICE_FLAG_INT_TX | RT_DEVICE_FLAG_INT_RX);
     if (res != RT_EOK)
     {
-        rt_kprintf("open %s failed!\n", CAN_DEV_NAME);
+        rt_kprintf("open can faile\n");
         return 2;
     }
 
@@ -289,7 +289,7 @@ static at_result_t at_factory_setup(const char *args)
         return AT_RESULT_PARSE_FAILE;
     }
 
-    rt_kprintf("type = %d,data=%d,data1 = %d\n", type, data, data1);
+    rt_kprintf("type %d,data %d,data1 %d\n", type, data, data1);
     switch (type)
     {
     case FACTORY_WIOTA:
