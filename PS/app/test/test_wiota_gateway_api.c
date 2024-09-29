@@ -295,7 +295,7 @@ static int test_wiota_get_subsystem_id_list(unsigned int *list)
     sub_system_config_t config;
     uc_wiota_get_system_config(&config);
 
-    memcpy(list, config.subsystemid_list, sizeof(config.subsystemid_list));
+    rt_memcpy(list, config.subsystemid_list, sizeof(config.subsystemid_list));
 
     for (num = 0; num < sizeof(config.subsystemid_list)/sizeof(config.subsystemid_list[0]); num++)
     {
@@ -384,7 +384,7 @@ static char gateway_test_scantf(unsigned int *sub_system_id, unsigned char *avai
                 if (freq_info->is_synced)
                 {
                    // rt_kprintf("%s line %d freq_idx %d\n", __FUNCTION__, __LINE__, freq_info->freq_idx);
-                                            
+
                     if (freq == 0xFF)
                     {
                         freq = freq_info->freq_idx;
@@ -397,7 +397,7 @@ static char gateway_test_scantf(unsigned int *sub_system_id, unsigned char *avai
                         rssi = freq_info->rssi;
                         *sub_system_id = subsystem_id_list[num % subsystem_id_len];
                     }
-                    
+
                      for (int n = 0; n < 8; n++)
                     {
                         //rt_kprintf("gateway available_freq_list[%d] = %d\n", n, available_freq_list[n]);
@@ -446,11 +446,11 @@ static void gateway_send_data_test(void)
     uc_wiota_get_dev_serial(serial);
     dev_addr = get_mac_addr();
     delay_time = ((serial[12] << 8) | serial[13]);
-    
+
     uc_wiota_get_userid(userid, &userid_len);
-   
+
     rt_kprintf("gateway_send_data_test start");
-    
+
     while (1)
     {
         uc_wiota_status_e connect_state = uc_wiota_get_state();
@@ -550,7 +550,7 @@ static void wiota_gateway_api_test_task(void *para)
     while (1)
     {
         //uc_gateway_state_t state;
-        memset(available_freq_list, 0, 8);
+        rt_memset(available_freq_list, 0, 8);
 
         network_state = LEN_TW;
         gatway_led_state = LED_OFF;

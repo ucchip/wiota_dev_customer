@@ -58,6 +58,7 @@ typedef enum
 {
     AUTHENTICATION_REQ = 1,
     AUTHENTICATION_RES = 2,
+    AUTHENTICATION_BC_TIME_SLOT = 3,
     VERSION_VERIFY = 10,
     OTA_UPGRADE_REQ = 11,
     OTA_UPGRADE_STOP = 12,
@@ -66,6 +67,7 @@ typedef enum
     IOTE_STATE_UPDATE = 20,
     IOTE_GET_RTC = 21,
     IOTE_USER_DATA = 100,
+    IOTE_LOOP_DATA = 101,
     IOTE_VERSION_REQ = 150,
     IOTE_VERSION_RES = 151,
     IOTE_RESPON_STATE = 0xFFFFFFFF,
@@ -99,8 +101,7 @@ typedef struct
     //e_auth_state
     unsigned char state;
     unsigned char freq;
-    unsigned char time_slot_fn;
-    unsigned char na2;
+    unsigned short time_slot_fn;
 } app_connect_res_t, *app_connect_res_p;
 
 typedef struct
@@ -180,6 +181,15 @@ typedef struct
     unsigned int dev_id;
     unsigned char version[16];
 } app_ps_iote_version_t;
+
+typedef struct
+{
+    unsigned int pof;
+    unsigned char auth_period;
+    unsigned char resend_times;
+    unsigned char mcs;
+    unsigned char na;
+} app_ps_ts_info_t;
 
 //unsigned char app_packet_num(void);
 

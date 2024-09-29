@@ -39,6 +39,14 @@ typedef struct DtuInfoT
     unsigned char  na[24];             /**< undefined */
 } dtu_info_t;
 
+typedef struct
+{
+    unsigned int gw_id;
+    unsigned int pof;
+    unsigned short ts_fn;
+    unsigned char resend_times;
+    unsigned char ul_mcs;
+} uc_gw_info_t;
 
 /**
  * @brief  initialize static data
@@ -208,17 +216,17 @@ void uc_wiota_set_auto_connect(unsigned char auto_connect);
 void uc_wiota_get_dtu_config(dtu_info_t *cfg);
 
 /**
- * @brief  get gateway id, gateway mode used
+ * @brief  get gateway mode info, gateway mode used
  *
- * @return gw_id
  */
-unsigned int uc_wiota_get_gateway_id(void);
+void uc_wiota_get_gateway_info(uc_gw_info_t *gw_info);
+
 /**
- * @brief set gateway id, gateway mode used
+ * @brief set gateway mode info, gateway mode used
  *
- * @param  gw_id gateway device id, auth response carry
+ * @param  gw_info gateway mode info
  */
-void uc_wiota_set_gateway_id(unsigned int gw_id);
+void uc_wiota_set_gateway_info(uc_gw_info_t *gw_info);
 
 /**
  * @brief  set frequency point list

@@ -13,6 +13,7 @@ typedef enum
 void at_wiota_set_state(at_wiota_state_e state);
 at_wiota_state_e at_wiota_get_state(void);
 void at_wiota_awaken_notice(void);
+void at_wiota_manager(void);
 
 #ifdef _QUICK_CONNECT_
 void wiota_recv_callback(uc_recv_back_p data);

@@ -4,7 +4,7 @@
 #include "uc_coding.h"
 #include "uc_wiota_api.h"
 
-#define GATEWAY_SEND_MAX_LEN        (300)
+#define GATEWAY_SEND_MAX_LEN (300)
 // #define GATEWAY_SEND_BUF_MAX_LEN    (293)
 typedef enum
 {
@@ -15,15 +15,15 @@ typedef enum
     UC_GW_DISCONNECT,
 } uc_gw_connect_e;
 
-
 typedef enum
 {
     UC_GATEWAY_MODE = 0,
     UC_TRANSMISSION_MODE = 2,
+    UC_GATEWAY_TIME_SLOT_MODE = 3,
 } uc_gatway_mode_e;
 
-
-typedef enum {
+typedef enum
+{
     UC_GATEWAY_OK = 0,
     UC_GATEWAY_NO_CONNECT,
     UC_GATEWAY_TIMEOUT,
@@ -35,8 +35,7 @@ typedef enum {
     UC_GATEWAY_AUTO_FAIL,
     UC_GATEWAY_OTHER_FAIL,
     UC_GATEWAY_SEDN_FAIL, // 10
-}uc_gateway_start_result;
-
+} uc_gateway_start_result;
 
 typedef enum
 {
@@ -44,13 +43,14 @@ typedef enum
     GATEWAY_NORMAL = 1,
     GATEWAY_FAILED = 2,
     GATEWAY_END = 3,
-    GATEWAY_RECONNECT = 4
+    GATEWAY_RECONNECT = 4,
+    GATEWAY_OTA_UPGRADE = 5,
 } uc_gateway_state_t;
 
-typedef void(*uc_wiota_gateway_user_recv_cb)(void *data, unsigned int len, unsigned char data_type);
-typedef void(*uc_wiota_gateway_state_report_cb)(unsigned char exception_type);
-typedef void(*uc_wiota_gateway_get_rtc_cb)(unsigned int fmt, time_t time);
-typedef void(*uc_wiota_gateway_ex_mcu_cb)(unsigned int start_addr, unsigned int len, char *md5);
+typedef void (*uc_wiota_gateway_user_recv_cb)(void *data, unsigned int len, unsigned char data_type);
+typedef void (*uc_wiota_gateway_state_report_cb)(unsigned char exception_type);
+typedef void (*uc_wiota_gateway_get_rtc_cb)(unsigned int fmt, time_t time);
+typedef void (*uc_wiota_gateway_ex_mcu_cb)(unsigned int start_addr, unsigned int len, char *md5);
 
 // user api
 int uc_wiota_gateway_start(uc_gatway_mode_e mode, char *auth_key, unsigned char freq_list[APP_CONNECT_FREQ_NUM]);
@@ -65,10 +65,12 @@ int uc_wiota_gateway_end(void);
 uc_gateway_state_t uc_wiota_gateway_get_state(void);
 int uc_gateway_get_random(void);
 unsigned int uc_wiota_gateway_get_dev_address(void);
-unsigned char uc_wiota_gateway_get_time_slot_fn(void);
 void uc_wiota_gateway_set_verity(unsigned char is_open);
 unsigned char uc_wiota_gateway_get_verity(void);
 unsigned char uc_wiota_gateway_is_ex_mcu_read(void);
+void uc_gateway_enter_sync_paging_by_time_slot(void);
+void uc_gateway_set_send_sleep_flag(unsigned char is_send_sleep);
+void uc_gateway_set_force_actice(unsigned char is_force_active);
 
 #endif
 #endif
