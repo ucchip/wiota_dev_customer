@@ -315,6 +315,7 @@ static at_result_t at_factory_setup(const char *args)
     case FACTORY_GPIO_IN:
     {
         rt_base_t pin = data;
+        gpio_set_pin_mux((GPIO_CFG_TypeDef *)UC_GPIO_CFG, pin, GPIO_FUNC_0);
         rt_pin_mode(pin, PIN_MODE_INPUT);
         at_server_printfln("+FACTORY=%d,%d", type, rt_pin_read(pin));
         break;

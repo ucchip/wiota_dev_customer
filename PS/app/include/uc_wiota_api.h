@@ -547,6 +547,8 @@ void uc_wiota_get_adc_adj_info(uc_adc_adj_p adc_adj);
 
 void uc_wiota_set_adc_adj_close(unsigned char is_close); // 1 means close
 
+void uc_wiota_set_gps_gpio(unsigned char is_func_open, unsigned char gpio);
+
 
 // below is for inter test !
 

@@ -46,7 +46,7 @@ typedef struct
     unsigned char cmd_type; /* 0 ~ 255 */
 } app_ps_header_t;
 
-#define APP_MAX_CODING_DATA_LEN (310 - sizeof(app_ps_header_t))
+#define APP_MAX_CODING_DATA_LEN 512 //(310 - sizeof(app_ps_header_t))
 #define APP_MAX_DECODING_DATA_LEN (1024)
 #define APP_MAX_FREQ_LIST_NUM 16
 #define APP_MAX_IOTE_UPGRADE_NUM 8

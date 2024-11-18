@@ -1,4 +1,21 @@
 
+
+sync V3.3
+S-v3.3
+
+外部更新：
+	1. gpio pullup功能更新，gpio_set_pin_pupd
+	2. gateway相关更新
+	3. FACTORY_GPIO_IN测试更新
+
+协议更新：
+	1. gps info接口更新，设置查询gps信息时的gpio中断口
+	2. bnack冲突检测、随机回退机制，功能新增
+	3. idle paging流程优化
+	4. voice flag虚警处理
+	5. 基带更新
+
+
 sync V3.2
 S-v3.2
 

@@ -140,7 +140,7 @@ int app_data_coding(app_ps_header_t *ps_header,
             }
             else
             {
-                rt_kprintf("compress data is bigger\n");
+                // rt_kprintf("compress data is bigger\n");
                 ps_header->property.compress_flag = 0;
                 rt_memcpy(buf, &ps_header->property, sizeof(app_ps_property_t));
                 rt_memcpy(buf + offset, input_data, input_data_len);

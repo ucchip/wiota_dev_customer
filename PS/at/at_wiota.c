@@ -260,7 +260,9 @@ static at_result_t at_auto_connect_setup(const char *args)
 #endif
     }
     else
+    {
         uc_wiota_save_static_info();
+    }
 
     at_server_printfln("OK");
 
@@ -2635,8 +2637,26 @@ static at_result_t at_wiota_gps_query(void)
 {
     uc_gps_time_t gps_info = {0};
     uc_wiota_get_gps_info(&gps_info);
+    // <isValid>,<gps_s>,<gps_us>,<rf_us>,<rf_curr>
     at_server_printfln("+GPSINFO=%d,%u,%u,%u,%u", gps_info.is_valid, gps_info.gps_time_s,
                        gps_info.gps_time_us, gps_info.rf_cnt_us, gps_info.rf_cnt_curr);
+    return AT_RESULT_OK;
+}
+
+static at_result_t at_wiota_gps_gpio_setup(const char *args)
+{
+    int mode = 0; // 0 close, 1, open
+    int gpio = 0;
+
+    args = parse((char *)(++args), "d,d", &mode, &gpio);
+
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    uc_wiota_set_gps_gpio((unsigned char)mode, (unsigned char)gpio);
+
     return AT_RESULT_OK;
 }
 
@@ -2824,7 +2844,7 @@ AT_CMD_EXPORT("AT+WIOTARESEND", "=<times>", RT_NULL, RT_NULL, at_wiota_resend_se
 AT_CMD_EXPORT("AT+WIOTAIUTEMP", "=<isuse>", RT_NULL, at_wiota_usetemp_query, at_wiota_usetemp_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAMODULEID", "=<moduid>", RT_NULL, at_module_id_query, RT_NULL, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTASUBFTEST", "=<mode>", RT_NULL, RT_NULL, at_wiota_test_subframe_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTAGPSINFO", "=<isValid>,<gps_s>,<gps_us>,<rf_us>,<rf_curr>", RT_NULL, at_wiota_gps_query, RT_NULL, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTAGPSINFO", "=<mode>,<gpio>", RT_NULL, at_wiota_gps_query, at_wiota_gps_gpio_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAFN", "=<mode>", RT_NULL, at_wiota_fn_query, at_wiota_fn_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAEXPA", "=<mode>,<gpio>,<trig>", RT_NULL, RT_NULL, at_wiota_pa_gpio_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTADCDJ", "=<mode>", RT_NULL, at_wiota_adc_adj_query, at_wiota_adc_adj_setup, RT_NULL);

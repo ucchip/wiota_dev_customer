@@ -14,6 +14,7 @@
 #include "uc_wiota_gateway_api.h"
 #include "uc_ota_flash.h"
 #include "uc_wiota_static.h"
+#include "at_wiota_gpio_report.h"
 
 #define AUTH_KEY_LEN 18
 #define WIOTA_GATEWAY_WAIT_DATA_TIMEOUT 10000
@@ -22,9 +23,32 @@ extern void at_wiota_get_avail_freq_list(unsigned char *output_list, unsigned ch
 
 static void user_recv_data(void *data, unsigned int len, unsigned char data_type)
 {
-    at_server_printf("+GATEWAYRECV:%d, %d,", data_type, len);
-    at_send_data(data, len);
-    at_server_printfln("");
+    if (WIOTA_MODE_OUT_UART == wiota_gpio_mode_get())
+    {
+        at_server_printf("+GATEWAYRECV:%d, %d,", data_type, len);
+        at_send_data(data, len);
+        at_server_printfln("");
+    }
+    else
+    {
+        uc_recv_back_t packe;
+        void *data_buf = RT_NULL;
+
+        data_buf = rt_malloc(len);
+        if (data_buf == RT_NULL)
+        {
+            return;
+        }
+
+        // 拷贝数据
+        rt_memcpy(data_buf, data, len);
+
+        packe.data = data_buf;
+        packe.data_len = len;
+        packe.type = data_type;
+
+        wiota_data_insert(&packe);
+    }
 }
 
 static void user_get_exception_state(unsigned char exception_type)
@@ -165,9 +189,32 @@ static at_result_t at_wiota_gateway_api_ota_req(void)
     return AT_RESULT_FAILE;
 }
 
-static at_result_t at_wiota_gateway_ota_state_query(void)
+static at_result_t at_wiota_gateway_ota_state_setup(const char *args)
 {
-    at_server_printfln("+GATEWAYOTASTATE:%d,%d", uc_wiota_gateway_get_ota_state(), uc_wiota_gateway_get_ota_recved_len());
+    unsigned int type = 0;
+
+    args = parse((char *)(++args), "d", &type);
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    if (type == 0)
+    {
+        at_server_printfln("+GATEWAYOTASTATE:%d,%d,%d,0x%x",
+                           uc_wiota_gateway_get_ota_dev_type(),
+                           uc_wiota_gateway_get_ota_state(),
+                           uc_wiota_gateway_get_ota_recved_len(),
+                           uc_wiota_gateway_get_ota_bin_addr());
+    }
+    else if (type == 1)
+    {
+        uc_wiota_gateway_clear_ota_state();
+    }
+    else
+    {
+        return AT_RESULT_FAILE;
+    }
 
     return AT_RESULT_OK;
 }
@@ -426,7 +473,7 @@ AT_CMD_EXPORT("AT+GATEWAYINIT", "=<mode>,<key>", RT_NULL, RT_NULL, at_wiota_gate
 AT_CMD_EXPORT("AT+GATEWAYDEINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_deinit);
 AT_CMD_EXPORT("AT+GATEWAYSEND", "=<timeout>,<len>", RT_NULL, RT_NULL, at_wiota_gateway_api_send_data, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYOTAREQ", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_ota_req);
-AT_CMD_EXPORT("AT+GATEWAYOTASTATE", RT_NULL, RT_NULL, at_wiota_gateway_ota_state_query, RT_NULL, RT_NULL);
+AT_CMD_EXPORT("AT+GATEWAYOTASTATE", "=<type>", RT_NULL, RT_NULL, at_wiota_gateway_ota_state_setup, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYSTATE", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_gateway_api_report_state);
 AT_CMD_EXPORT("AT+GATEWAYRTC", "=<fmt>", RT_NULL, RT_NULL, at_wiota_gateway_api_get_rtc, RT_NULL);
 AT_CMD_EXPORT("AT+GATEWAYVERITY", "=<is_open>", RT_NULL, RT_NULL, at_wiota_gateway_verity_setup, RT_NULL);
