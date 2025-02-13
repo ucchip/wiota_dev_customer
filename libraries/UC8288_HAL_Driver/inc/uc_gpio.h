@@ -102,7 +102,8 @@ typedef struct
 #define PARAM_GPIO_CFG(gpio_cfg)           ((gpio_cfg==UC_GPIO_CFG))
 #define PARAM_GPIO_PIN(pin)                ((pin<=GPIO_PIN_29)&&(pin>=GPIO_PIN_0))
 #define PARAM_GPIO_FUNC(func)              ((func==GPIO_FUNC_0)||(func==GPIO_FUNC_2))
-#define PARAM_GPIO_PUPD(pupd)          ((pupd==GPIO_PUPD_NONE)||(pupd==GPIO_PUPD_UP))
+#define PARAM_GPIO_PUPD(pupd)              ((pupd==GPIO_PUPD_NONE)||(pupd==GPIO_PUPD_UP))
+#define PARAM_GPIO_PULLUP_PIN(pin)         ((pin<=GPIO_PIN_15)&&(pin>=GPIO_PIN_0))
 #define PARAM_GPIO_DIRECTION(direction)    ((direction==GPIO_DIR_IN)||(direction==GPIO_DIR_OUT))
 #define PARAM_GPIO_IRQ(irq_type)           ((irq_type==GPIO_IT_HIGH_LEVEL)||(irq_type==GPIO_IT_LOW_LEVEL) \
                                             ||(irq_type==GPIO_IT_RISE_EDGE)||(irq_type==GPIO_IT_FALL_EDGE))

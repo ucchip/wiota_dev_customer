@@ -53,7 +53,7 @@ void timer0_compare_handler(void)
     // timer_int_clear_pending(UC_TIMER0, TIMER_IT_CMP);
 
     rt_tick_increase();
-    timer_set_count(UC_TIMER0, 0);
+    // timer_set_count(UC_TIMER0, 0);
 }
 
 #define configCPU_CLOCK_HZ ((unsigned long)BSP_CLOCK_SYSTEM_FREQ_HZ)

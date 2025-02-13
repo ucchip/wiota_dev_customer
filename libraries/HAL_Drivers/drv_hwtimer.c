@@ -1,4 +1,4 @@
-#include <drv_i2c.h>
+#include <drv_hwtimer.h>
 
 #ifdef RT_USING_HWTIMER
 

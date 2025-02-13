@@ -77,8 +77,6 @@ int wiota_app_init(void)
     dll_open();
 #endif
 
-    uc_wiota_static_data_init();
-
     /*
     compatible with versions earliner than v3.1(SYNC WIOTA V3.1).
     Now rt_thread.bin size 308676.
@@ -113,13 +111,13 @@ int wiota_app_init(void)
 //    at_handle_log_uart(0);
 #endif
 
-#ifdef WIOTA_API_TEST
-    // app_task_init();
-#endif
 
 #ifdef _QUICK_CONNECT_
     quick_connect_task_init();
 #endif
+
+    // extern void gateway_app_demo_init(void);
+    // gateway_app_demo_init();
 
     return 0;
 }

@@ -857,10 +857,21 @@ static unsigned char uc_wiota_gateway_check_if_upgrade_required(app_ps_ota_upgra
         {
             if (GATEWAY_OTA_DEFAULT == gateway_mode.ota_state)
             {
-                if (is_ex_mcu || (0 == gateway_mode.upgrade_num && 0 == ota_upgrade_req->packet_type))
+                if (is_ex_mcu)
                 {
-                    is_required = TRUE;
-                    gateway_mode.upgrade_num = ota_upgrade_req->upgrade_num;
+                    if (0 == gateway_mode.ota_dl_state)
+                    {
+                        is_required = TRUE;
+                        gateway_mode.upgrade_num = ota_upgrade_req->upgrade_num;
+                    }
+                }
+                else
+                {
+                    if (0 == gateway_mode.upgrade_num && 0 == ota_upgrade_req->packet_type)
+                    {
+                        is_required = TRUE;
+                        gateway_mode.upgrade_num = ota_upgrade_req->upgrade_num;
+                    }
                 }
             }
             else if (GATEWAY_OTA_DOWNLOAD == gateway_mode.ota_state)
@@ -1014,10 +1025,10 @@ static void uc_wiota_gateway_ota_upgrade_res_msg(unsigned char *data, unsigned i
                     }
                     else
                     {
+                        gateway_mode.ota_state = GATEWAY_OTA_DEFAULT;
+                        rt_memset(gateway_mode.mask_map, 0, sizeof(gateway_mode.mask_map));
                         if (uc_wiota_gateway_ex_mcu)
                         {
-                            gateway_mode.ota_state = GATEWAY_OTA_DEFAULT;
-                            rt_memset(gateway_mode.mask_map, 0, sizeof(gateway_mode.mask_map));
                             uc_wiota_gateway_ex_mcu(write_addr, file_size, ota_upgrade_req->md5);
                         }
                     }
@@ -1580,6 +1591,7 @@ static int uc_wiota_gateway_auth(uc_gatway_mode_e mode)
                 break;
 
             default:
+                rt_kprintf("gw err cmd %d\n", ps_header.cmd_type);
                 break;
             }
 
@@ -1693,7 +1705,7 @@ int uc_wiota_gateway_start(uc_gatway_mode_e mode, char *auth_key, unsigned char 
             {
                 if ((uc_wiota_get_state() != UC_STATUS_SYNC))
                 {
-                    return UC_GATEWAY_AUTO_FAIL;
+                    return UC_GATEWAY_AUTH_FAIL;
                 }
                 re_auth_count--;
                 if (0 == uc_wiota_gateway_auth(mode))
@@ -1704,7 +1716,7 @@ int uc_wiota_gateway_start(uc_gatway_mode_e mode, char *auth_key, unsigned char 
 
             if (0 == re_auth_count)
             {
-                return UC_GATEWAY_AUTO_FAIL;
+                return UC_GATEWAY_AUTH_FAIL;
             }
         }
 

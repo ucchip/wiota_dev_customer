@@ -106,6 +106,7 @@
 #define _L1_FACTORY_FUNC_
 #define _CLK_GATING_
 #define _LPM_PAGING_
+#define WIOTA_NEED_LICENSE
 #define AT_WIOTA_GATEWAY_API
 #define AT_WIOTA_GATEWAY
 

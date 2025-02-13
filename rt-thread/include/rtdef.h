@@ -1024,6 +1024,8 @@ enum rt_device_class_type
 #define RT_DEVICE_CTRL_CLR_INT          0x11            /**< clear interrupt */
 #define RT_DEVICE_CTRL_GET_INT          0x12            /**< get interrupt status */
 
+#define RT_DEVICE_CTRL_WAIT_TX_DONE     0x13            /**< wait uart tx done */
+
 /**
  * device control
  */

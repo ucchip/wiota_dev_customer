@@ -2,6 +2,7 @@
 #include <rtdevice.h>
 #include "wiota_app.h"
 #include "uc_example_app.h"
+#include "uc_wiota_static.h"
 
 static int memory_show(void)
 {
@@ -17,12 +18,14 @@ static int memory_show(void)
 
 int main(void)
 {
+    uc_wiota_static_data_init(); // must call and place first!!!
+
     uc_peripheral_example();
     wiota_app_init();
 
     while (1)
     {
-        rt_thread_mdelay(1000);
+        rt_thread_mdelay(7000);
         memory_show();
     }
     return 0;

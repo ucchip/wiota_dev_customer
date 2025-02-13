@@ -104,6 +104,15 @@ static rt_err_t uc8x88_usart_control(struct rt_serial_device *serial, int cmd, v
         /* enable interrupt */
         IER |= usart->irq_type;
         break;
+
+    case RT_DEVICE_CTRL_WAIT_TX_DONE:
+        /* wait tx done */
+        uc_uartx_wait_tx_done(usart->usart_base);
+        break;
+
+    default:
+        return -RT_ENOSYS;
+        break;
     }
 
     return RT_EOK;

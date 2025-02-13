@@ -105,7 +105,7 @@ int app_data_coding(app_ps_header_t *ps_header,
         // offset += (char_len * 2);
         ((app_ps_segment_info_t *)(buf + offset))->total_num = ps_header->segment_info.total_num;
         ((app_ps_segment_info_t *)(buf + offset))->current_num = ps_header->segment_info.current_num;
-        offset += 2;
+        offset += sizeof(app_ps_segment_info_t);
     }
 
     // copy cmd_type
@@ -232,7 +232,7 @@ int app_data_decoding(unsigned char *input_data,
         //  ps_header->segment_info = *((app_ps_segment_info_t *)(input_data + offset));
         ps_header->segment_info.total_num = ((app_ps_segment_info_t *)(input_data + offset))->total_num;
         ps_header->segment_info.current_num = ((app_ps_segment_info_t *)(input_data + offset))->current_num;
-        offset += 2;
+        offset += sizeof(app_ps_segment_info_t);
     }
 
     // parse cmd_type

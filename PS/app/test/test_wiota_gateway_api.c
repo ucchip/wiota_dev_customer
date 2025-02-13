@@ -24,7 +24,6 @@
 #include "uc_string_lib.h"
 #endif
 
-
 #define LED_ON 0
 #define LEN_TW 1
 #define LED_OFF 2
@@ -45,10 +44,10 @@ char test_gateway_send_allow = 0;
 #define TEST_GATEWAY_SEND_PIN_NUM 7
 #define TEST_GATEWAY_RECV_PIN_NUM 16
 
-static boolean led_recv_state = RT_FALSE;
-static boolean led_send_state = RT_FALSE;
-static boolean led7_state = RT_FALSE;
-static boolean led3_state = RT_FALSE;
+static unsigned char led_recv_state = RT_FALSE;
+static unsigned char led_send_state = RT_FALSE;
+static unsigned char led7_state = RT_FALSE;
+static unsigned char led3_state = RT_FALSE;
 
 #define GATEWAY_SCAN_TIMEOUT 40000
 
@@ -228,7 +227,6 @@ static void wiota_gateway_api_auto_test_task(void *para)
             rem = gateway_send_state;
         }
 
-
         if (gateway_recv_count != recv_rem)
         {
             recv_rem = gateway_recv_count;
@@ -254,7 +252,7 @@ static void wiota_gateway_api_auto_test_task(void *para)
 static void gateway_test_user_recv_data(void *data, unsigned int len, unsigned char data_type)
 {
     rt_kprintf("+gateway recv:0x%x, %d, %s\n", data_type, len, data);
-    gateway_recv_count ++;
+    gateway_recv_count++;
     fail_count = 0;
 }
 
@@ -265,8 +263,7 @@ static void test_user_get_exception_state(unsigned char exception_type)
         "GATEWAY_NORMAL",
         "GATEWAY_FAILED",
         "GATEWAY_END",
-        "GATEWAY_RECONNECT"
-        };
+        "GATEWAY_RECONNECT"};
 
     rt_kprintf("+GATEWAYSTATE:%s\n", exception_string[exception_type]);
 
@@ -283,7 +280,7 @@ static int gateway_get_static_freq(char *list)
 
     for (num = 0; num < 16; num++)
     {
-        rt_kprintf("static freq *(list+%d) %d\n", num, *(list+num));
+        rt_kprintf("static freq *(list+%d) %d\n", num, *(list + num));
         if (*(list + num) == 0xFF || *(list + num) == 0)
             break;
     }
@@ -297,9 +294,9 @@ static int test_wiota_get_subsystem_id_list(unsigned int *list)
 
     rt_memcpy(list, config.subsystemid_list, sizeof(config.subsystemid_list));
 
-    for (num = 0; num < sizeof(config.subsystemid_list)/sizeof(config.subsystemid_list[0]); num++)
+    for (num = 0; num < sizeof(config.subsystemid_list) / sizeof(config.subsystemid_list[0]); num++)
     {
-        rt_kprintf("static subsystem_id *(list+%d) 0x%x\n", num, *(list+num));
+        rt_kprintf("static subsystem_id *(list+%d) 0x%x\n", num, *(list + num));
         if (*(list + num) == (~0) || *(list + num) == 0)
             break;
     }
@@ -308,7 +305,7 @@ static int test_wiota_get_subsystem_id_list(unsigned int *list)
     {
         *list = config.subsystemid;
 
-         if (*(list + num) != (~0) && *(list + num) != 0)
+        if (*(list + num) != (~0) && *(list + num) != 0)
             num = 1;
     }
 
@@ -352,7 +349,7 @@ static char gateway_test_scantf(unsigned int *sub_system_id, unsigned char *avai
         }
         if (0 == list_len)
         {
-             if (0 != subsystem_id_len)
+            if (0 != subsystem_id_len)
                 *sub_system_id = config.subsystemid;
 
             return freq;
@@ -368,7 +365,7 @@ static char gateway_test_scantf(unsigned int *sub_system_id, unsigned char *avai
 
     uc_wiota_get_userid(&id, &num);
 
-    for (num = (id%subsystem_id_len); num < subsystem_id_len + (id % subsystem_id_len); num ++)
+    for (num = (id % subsystem_id_len); num < subsystem_id_len + (id % subsystem_id_len); num++)
     {
         config.subsystemid = subsystem_id_list[num % subsystem_id_len];
         uc_wiota_set_system_config(&config);
@@ -381,30 +378,30 @@ static char gateway_test_scantf(unsigned int *sub_system_id, unsigned char *avai
 
             for (int i = 0; i < freq_num; i++)
             {
-                if (freq_info->is_synced)
+                if (freq_info[i].is_synced)
                 {
-                   // rt_kprintf("%s line %d freq_idx %d\n", __FUNCTION__, __LINE__, freq_info->freq_idx);
+                    // rt_kprintf("%s line %d freq_idx %d\n", __FUNCTION__, __LINE__, freq_info[i].freq_idx);
 
                     if (freq == 0xFF)
                     {
-                        freq = freq_info->freq_idx;
-                        rssi = freq_info->rssi;
+                        freq = freq_info[i].freq_idx;
+                        rssi = freq_info[i].rssi;
                         *sub_system_id = subsystem_id_list[num % subsystem_id_len];
                     }
-                    else if (rssi < freq_info->rssi)
+                    else if (rssi < freq_info[i].rssi)
                     {
-                        freq = freq_info->freq_idx;
-                        rssi = freq_info->rssi;
+                        freq = freq_info[i].freq_idx;
+                        rssi = freq_info[i].rssi;
                         *sub_system_id = subsystem_id_list[num % subsystem_id_len];
                     }
 
-                     for (int n = 0; n < 8; n++)
+                    for (int n = 0; n < 8; n++)
                     {
                         //rt_kprintf("gateway available_freq_list[%d] = %d\n", n, available_freq_list[n]);
-                        if (available_freq_list[n] != 255 && available_freq_list[n] != 0 )
+                        if (available_freq_list[n] != 255 && available_freq_list[n] != 0)
                         {
                             //rt_kprintf("%s line %d\n", __FUNCTION__, __LINE__);
-                            if ( *(available_freq_list + n) == freq_info->freq_idx)
+                            if (*(available_freq_list + n) == freq_info[i].freq_idx)
                             {
                                 break;
                             }
@@ -412,7 +409,7 @@ static char gateway_test_scantf(unsigned int *sub_system_id, unsigned char *avai
                         else
                         {
                             //rt_kprintf("%s line %d\n", __FUNCTION__, __LINE__);
-                            available_freq_list[n] = freq_info->freq_idx;
+                            available_freq_list[n] = freq_info[i].freq_idx;
                             break;
                         }
                     }
@@ -466,23 +463,23 @@ static void gateway_send_data_test(void)
 
         uc_wiota_gateway_state_update_info_msg();
 
-        rt_sprintf(test_gateway_send_buf , "dev:0x%x,userid:0x%x(%u),freq:%d,delay time:%d,send all:%d,send succ:%d,send fail rate:%d,recvcount:%d,rach_fail:%d,active_fail:%d,ul_succ:%d,dl_fail:%d,dl_succ:%d,bc_fail:%d,bc_succ:%d,ul_sm_succ:%d,ul_sm_total:%d",
-            dev_addr, userid[0], userid[0], uc_wiota_get_freq_info(), delay_time, count, send_succe_count, ((count - send_succe_count) * 100)/count, gateway_recv_count,
-            stats_info_ptr.rach_fail, stats_info_ptr.active_fail, stats_info_ptr.ul_succ, stats_info_ptr.dl_fail, stats_info_ptr.dl_succ, stats_info_ptr.bc_fail, stats_info_ptr.bc_succ,
-            stats_info_ptr.ul_sm_succ, stats_info_ptr.ul_sm_total);
+        rt_sprintf(test_gateway_send_buf, "dev:0x%x,userid:0x%x(%u),freq:%d,delay time:%d,send all:%d,send succ:%d,send fail rate:%d,recvcount:%d,rach_fail:%d,active_fail:%d,ul_succ:%d,dl_fail:%d,dl_succ:%d,bc_fail:%d,bc_succ:%d,ul_sm_succ:%d,ul_sm_total:%d",
+                   dev_addr, userid[0], userid[0], uc_wiota_get_freq_info(), delay_time, count, send_succe_count, ((count - send_succe_count) * 100) / count, gateway_recv_count,
+                   stats_info_ptr.rach_fail, stats_info_ptr.active_fail, stats_info_ptr.ul_succ, stats_info_ptr.dl_fail, stats_info_ptr.dl_succ, stats_info_ptr.bc_fail, stats_info_ptr.bc_succ,
+                   stats_info_ptr.ul_sm_succ, stats_info_ptr.ul_sm_total);
 
         count++;
         if (count > 0x1FFFFFFF)
         {
             count = 1;
             send_succe_count = 1;
-         }
+        }
 
         if (uc_wiota_gateway_send_data(test_gateway_send_buf, rt_strlen(test_gateway_send_buf), 10000) == 0)
         { // fail
             rt_kprintf("uc_wiota_gateway_api_handle send data fail.\n");
             gateway_send_state = ((count << 1) + 1);
-            fail_count ++;
+            fail_count++;
         }
         else
         { //success
@@ -490,16 +487,16 @@ static void gateway_send_data_test(void)
             rt_kprintf("string:%s\n", test_gateway_send_buf);
             gateway_send_state = (count << 1);
             fail_count = 0;
-            send_succe_count ++;
+            send_succe_count++;
         }
 
         rt_kprintf("now delay time %d(0x%x)ms. 0 is default 10s\n", delay_time, delay_time);
         rt_thread_mdelay(delay_time == 0 ? 10000 : delay_time);
         if (fail_count > 10)
-         {
+        {
             rt_kprintf("10 consecutive fail\n");
-            return ;
-         }
+            return;
+        }
     }
 }
 
@@ -587,7 +584,7 @@ static void wiota_gateway_api_test_task(void *para)
         gatway_led_state = LEN_TW;
 
         result = uc_wiota_gateway_start(
-            0 == serial[14] ? UC_GATEWAY_MODE: UC_TRANSMISSION_MODE,
+            0 == serial[14] ? UC_GATEWAY_MODE : UC_TRANSMISSION_MODE,
             "123456",
             available_freq_list);
         rt_kprintf("%s line %d result %d\n", __FUNCTION__, __LINE__, result);

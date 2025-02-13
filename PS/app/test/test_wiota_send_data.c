@@ -11,7 +11,6 @@
 #ifdef WIOTA_IOTE_SEND_DATA_DEMO
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
-#include "test_wiota_api.h"
 #include "uc_string_lib.h"
 #include "uc_gpio.h"
 
@@ -20,7 +19,7 @@
 #define MAX_CONN_COUNT 4
 #define MAX_SEND_COUNT 4
 
-#define MAX_SEND_BYTE 20
+#define MAX_SEND_BYTE 200
 
 unsigned int recv_count = 0;
 unsigned int remenber_recv_count = 0;
@@ -53,7 +52,7 @@ static void wiota_recv_cb(uc_recv_back_p data)
         rt_kprintf("-------- wiota_iote_recv_data ----------- \n");
         rt_kprintf("wiota_recv_callback result = %d \r\n", data->result);
 
-        for (u16_t index = 0; index < data->data_len; index++)
+        for (unsigned int index = 0; index < data->data_len; index++)
         {
             rt_kprintf("%c", *(data->data + index));
         }
@@ -223,7 +222,7 @@ static void wiota_test_send_data_task(void *parameter)
 
 void wiota_iote_data_recv_and_send_demo(void)
 {
-    rt_thread_t testTaskHandle2 = rt_thread_create("send_task", wiota_test_send_data_task, NULL, 1024, 3, 3);
+    rt_thread_t testTaskHandle2 = rt_thread_create("send_task", wiota_test_send_data_task, NULL, 1024*3, 3, 3);
     if (testTaskHandle2 != NULL)
     {
         rt_thread_startup(testTaskHandle2);

@@ -33,8 +33,9 @@ typedef struct
 
 typedef struct
 {
-    unsigned char total_num;   /* 0 ~ 255 */
-    unsigned char current_num; /* 0 ~ 255 */
+    unsigned short total_num : 15; /* 0 ~ 32767 */
+    unsigned short is_end : 1;     /* 0 or 1 */
+    unsigned short current_num;    /* 0 ~ 32768 */
 } app_ps_segment_info_t;
 
 typedef struct

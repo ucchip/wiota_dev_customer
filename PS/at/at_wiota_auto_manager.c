@@ -77,7 +77,7 @@ typedef struct at_wiota_manager_parament
 #define SET_MANAGER_PROCESS(state) g_wiota_manager.manager_state = state
 #define GET_MANAGER_PROCESS g_wiota_manager.manager_state
 
-extern dtu_send_t g_dtu_send;
+//extern dtu_send_t g_dtu_send;
 
 extern void wiota_recv_callback(uc_recv_back_p data);
 

@@ -46,6 +46,10 @@ uint32_t adc_get_adj_result(uint32_t adc_ori)
     uc_wiota_get_adc_adj_info(&adc_adj);
     if (!adc_adj.is_close && adc_adj.is_valid)
     {
+        if (adc_ori > 1694 && uc_wiota_flash_id_is_puya())
+        {
+            return adc_ori * adc_adj.adc_kb / 16384 + adc_adj.adc_midb;
+        }
         return adc_ori * adc_adj.adc_ka / 16384 + adc_adj.adc_mida;
     }
     return adc_ori;

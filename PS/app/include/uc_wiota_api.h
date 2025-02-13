@@ -32,6 +32,8 @@ typedef enum
     UC_CALLBACK_NORAMAL_MSG = 0,   // normal msg from ap
     UC_CALLBACK_STATE_INFO,        // state info
     UC_CALLBACK_INTERRUPT_HANDLER, // when rf interrupt come, will check app handler
+    UC_CALLBACK_TEMPERATURE,       // use app's func to read temperature
+    UC_CALLBACK_PA_CONTROL,        // pa control, return uc_recv_back_p, result: 1 open pa, 2, close pa
 } uc_callback_data_type_e;
 
 typedef enum
@@ -48,6 +50,7 @@ typedef enum
     UC_RECV_VOICE = 9,       // UC_CALLBACK_NORAMAL_MSG, voice msg from ap
     UC_RECV_PG_TX_DONE = 10, // UC_CALLBACK_STATE_INFO, when pg tx end, tell app
     UC_RECV_FN_CHANGE = 11,  // UC_CALLBACK_NORAMAL_MSG, when frame num change, tell app
+    UC_RECV_PHY_ERROR = 12,  // UC_CALLBACK_STATE_INFO, if phy not response timeout, tell app
     UC_RECV_MAX_TYPE,
 } uc_recv_data_type_e;
 
@@ -342,12 +345,14 @@ typedef struct
 
 typedef struct
 {
-    unsigned char is_close;  // default 0, can set 1, then not use adj
-    unsigned char is_valid;  // if got valid data from factory test
-    unsigned char adc_trm;   // adc config
-    unsigned char reserved;  // re
-    unsigned short adc_ka;   // adc calc
-    unsigned short adc_mida; // adc calc
+    unsigned char is_close; // default 0, can set 1, then not use adj
+    unsigned char is_valid; // if got valid data from factory test
+    unsigned char adc_trm;  // adc config
+    unsigned char reserved; // re
+    unsigned short adc_ka;  // adc calc
+    short adc_mida;         // adc calc
+    unsigned short adc_kb;  // adc calc
+    short adc_midb;         // adc calc
 } uc_adc_adj_t, *uc_adc_adj_p;
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
@@ -379,7 +384,7 @@ uc_wiota_status_e uc_wiota_get_state(void);
 
 int uc_wiota_wait_sync(int timeout, unsigned char fn_num);
 
-void uc_wiota_set_dcxo(unsigned int dcxo);
+unsigned char uc_wiota_set_dcxo(unsigned int dcxo);
 
 unsigned int uc_wiota_get_dcxo(void);
 
@@ -411,7 +416,7 @@ void uc_wiota_set_is_gating(unsigned char is_gating, unsigned char is_phy_gating
 
 void uc_wiota_set_gating_event(unsigned char action, unsigned char event_id);
 #endif // _CLK_GATING_
-void uc_wiota_set_data_rate(unsigned char rate_mode, unsigned short rate_value);
+unsigned char uc_wiota_set_data_rate(unsigned char rate_mode, unsigned short rate_value);
 
 void uc_wiota_set_ramp_type(unsigned char ramp_type);
 
@@ -445,7 +450,7 @@ unsigned int uc_wiota_get_frame_len(void);
 
 unsigned int uc_wiota_get_subframe_len(void);
 
-void uc_wiota_set_bitscb(unsigned char bitscb);
+unsigned char uc_wiota_set_bitscb(unsigned char bitscb);
 
 void uc_wiota_set_multcast_id_list(unsigned int *multcast_id_list);
 
@@ -489,7 +494,7 @@ void uc_wiota_get_frame_head_rf_cnt(uc_frame_head_p frame_head_info);
 
 void uc_wiota_get_gps_info(uc_gps_time_p gps_info);
 
-void uc_wiota_set_tx_mode(unsigned char mode);
+unsigned char uc_wiota_set_tx_mode(unsigned char mode);
 
 unsigned char uc_wiota_get_tx_mode(void);
 
@@ -497,13 +502,13 @@ void uc_wiota_hard_switch_to_active(void);
 
 void uc_wiota_get_userid_scb(unsigned int *scb0, unsigned int *scb1);
 
-void uc_wiota_get_adjust_result(unsigned char mode, signed char *temp, unsigned char *dir, unsigned int *offset);
+unsigned char uc_wiota_get_adjust_result(unsigned char mode, signed char *temp, unsigned char *dir, unsigned int *offset);
 
 unsigned char uc_wiota_get_sm_resend_times();
 
 void uc_wiota_set_sm_resend_times(unsigned char resend_times);
 
-void uc_wiota_get_module_id(unsigned char *module_id);
+unsigned char uc_wiota_get_module_id(unsigned char *module_id);
 
 unsigned char uc_wiota_add_subframe_data(uc_subf_data_p subf_data);
 
@@ -515,7 +520,7 @@ void uc_wiota_algo_srand(unsigned int seedSet);
 
 unsigned int uc_wiota_algo_rand(void);
 
-void uc_wiota_set_is_use_temp(unsigned char is_use_temp);
+unsigned char uc_wiota_set_is_use_temp(unsigned char is_use_temp);
 
 unsigned char uc_wiota_get_is_use_temp(void);
 
@@ -552,9 +557,13 @@ void uc_wiota_set_gps_gpio(unsigned char is_func_open, unsigned char gpio);
 
 // below is for inter test !
 
+#ifdef WIOTA_TEST_LOOP
 void uc_wiota_test_loop(unsigned char mode);
+#endif
 
+#ifdef UC8288_AT_TEST
 void uc_wiota_test_lpm(unsigned char mode, unsigned char value);
+#endif
 
 void uc_wiota_set_bc_mode(unsigned char mode);
 
@@ -563,6 +572,12 @@ unsigned char uc_wiota_get_bc_mode(void);
 void uc_wiota_set_subframe_test(unsigned char mode);
 
 unsigned int uc_wiota_get_subframe_test(unsigned char mode);
+
+unsigned char uc_wiota_set_is_check_license(unsigned char is_check);
+
+unsigned char uc_wiota_flash_id_is_puya(void);
+
+void uc_wiota_set_new_ldo(unsigned char new_ldo);
 
 // below is about uboot !
 

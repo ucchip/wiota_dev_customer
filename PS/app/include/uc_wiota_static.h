@@ -28,16 +28,16 @@ extern "C"
  * @brief data transfer unit.
  *
  */
-typedef struct DtuInfoT
-{
-    unsigned char  reserved[2];        /**< reserved */
-    unsigned char  dtu_status;         /**< status: 0 or 1 */
-    unsigned char  dtu_at_show;        /**< show AT format: 0 or 1 */
-    unsigned short dtu_timeout;        /**< send timeout */
-    unsigned short dtu_wait;           /**< wait time */
-    unsigned char  dtu_exit[8];        /**< exit string */
-    unsigned char  na[24];             /**< undefined */
-} dtu_info_t;
+    // typedef struct DtuInfoT
+    // {
+    //     unsigned char  reserved[2];        /**< reserved */
+    //     unsigned char  dtu_status;         /**< status: 0 or 1 */
+    //     unsigned char  dtu_at_show;        /**< show AT format: 0 or 1 */
+    //     unsigned short dtu_timeout;        /**< send timeout */
+    //     unsigned short dtu_wait;           /**< wait time */
+    //     unsigned char  dtu_exit[8];        /**< exit string */
+    //     unsigned char  na[24];             /**< undefined */
+    // } dtu_info_t;
 
 typedef struct
 {
@@ -213,7 +213,7 @@ void uc_wiota_set_auto_connect(unsigned char auto_connect);
  *
  * @param  cfg the DTU config information
  */
-void uc_wiota_get_dtu_config(dtu_info_t *cfg);
+    // void uc_wiota_get_dtu_config(dtu_info_t *cfg);
 
 /**
  * @brief  get gateway mode info, gateway mode used

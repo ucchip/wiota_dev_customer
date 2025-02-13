@@ -17,7 +17,6 @@
 #ifdef WIOTA_IOTE_KEY_SEND_DATA_DEMO
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
-#include "test_wiota_api.h"
 
 #include "uc_string_lib.h"
 #include "uc_gpio.h"

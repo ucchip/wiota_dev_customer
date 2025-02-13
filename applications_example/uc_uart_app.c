@@ -26,6 +26,8 @@
 
 // #define USE_RS485
 #ifdef USE_RS485
+ // 485接收超时时间，接收到最后1字节后，等待10ms，若无数据，则认为接收完成
+#define RS485_RX_TIMEOUT 10
 #define RS485_CTRL_PIN 17
 #define RS485_TX() rt_pin_write(RS485_CTRL_PIN, PIN_HIGH)
 #define RS485_RX() rt_pin_write(RS485_CTRL_PIN, PIN_LOW)
@@ -52,6 +54,7 @@ static rt_size_t uart_output(rt_device_t dev, const void *buffer, rt_size_t size
     ret = rt_device_write(dev, 0, buffer, size);
 
 #ifdef USE_RS485
+    rt_device_control(dev, RT_DEVICE_CTRL_WAIT_TX_DONE, RT_NULL);
     RS485_RX();
 #endif
 
@@ -81,23 +84,50 @@ static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
 
 static void uart_thread_entry(void *parameter)
 {
-    char rx_buf[64];
+    rt_uint8_t rx_buf[64];
+    rt_size_t rx_size = 0;
+    rt_int32_t rx_timeout = RT_WAITING_FOREVER;
+    rt_err_t ret = RT_EOK;
 
+    rt_memset(rx_buf, 0x00, 64);
     while (1)
     {
-        uint8_t data_len = 0;
-
         /* 阻塞等待接收信号量，等到信号量后再次读取数据 */
-        rt_sem_take(&rx_sem, RT_WAITING_FOREVER);
-        rt_memset(rx_buf, 0x00, 64);
+        ret = rt_sem_take(&rx_sem, rx_timeout);
 #ifdef USE_UART_RINGBUFF
-        data_len = rt_ringbuffer_get(uart_ringbuffer, (uint8_t *)rx_buf, 64);
+        rx_size += rt_ringbuffer_get(uart_ringbuffer, &rx_buf[rx_size], 64);
 #else
-        data_len = rt_device_read(serial, 0, rx_buf, 64);
+        rx_size += rt_device_read(serial, 0, &rx_buf[rx_size], 64);
 #endif
-        if (data_len > 0)
+        if (rx_size > 64)
         {
-            uart_output(serial, rx_buf, data_len);
+            rt_kprintf("uart rx size over 64 bytes!\n");
+            rt_memset(rx_buf, 0x00, 64);
+            rx_size = 0;
+            continue;
+        }
+        else if (rx_size > 0)
+        {
+#ifdef USE_RS485
+            if (ret == -RT_ETIMEOUT)
+            {
+                uart_output(serial, rx_buf, rx_size);
+                rt_memset(rx_buf, 0x00, 64);
+                rx_size = 0;
+                rx_timeout = RT_WAITING_FOREVER;
+            }
+            else
+            {
+                rx_timeout = RS485_RX_TIMEOUT;
+            }
+#else
+            if (ret == RT_EOK)
+            {
+                uart_output(serial, rx_buf, rx_size);
+                rt_memset(rx_buf, 0x00, 64);
+                rx_size = 0;
+            }
+#endif
         }
     }
 }

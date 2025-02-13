@@ -38,6 +38,10 @@ config _LPM_PAGING_
     bool "lpm paging func, default open(_LPM_PAGING_)"
     default y
 
+config WIOTA_NEED_LICENSE
+    bool "wiota license func, default open(WIOTA_NEED_LICENSE)"
+    default y
+
 config AT_WIOTA_GATEWAY_API
     bool "single gateway mode api, default open(AT_WIOTA_GATEWAY_API)"
     default y
