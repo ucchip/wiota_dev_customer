@@ -40,6 +40,9 @@ if GetDepend(['APP_EXAMPLE_FLASH']):
 if GetDepend(['APP_EXAMPLE_HWTIMER']):
     src += ['uc_hwtimer_app.c']
 
+if GetDepend(['APP_EXAMPLE_RW']):
+    src += ['uc_rw_user_data_app.c']
+
 path = [cwd]
 
 group = DefineGroup('Applications_example', src, depend = [''], CPPPATH = path)

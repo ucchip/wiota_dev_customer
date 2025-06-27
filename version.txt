@@ -1,4 +1,33 @@
 
+sync V3.5
+S-v3.5
+
+外部更新：
+    1. 更新快速连接功能
+    2. 新增用户静态数据demo
+    3. gpio od mode修复
+    4. pwm驱动修复
+    5. 校准及校准结果上报，uc_wiota_start_scan_dcxo，UC_RECV_DCXO_RESULT，uc_adjust_info_t
+    6. 新增快速扫频模式，uc_scan_mode_e
+    7. 设置进入paging前的dcdc，uc_wiota_set_vol_in_pg
+    8. license check开关，uc_wiota_set_is_check_license，需配合硬件使用
+    9. flash类型判断api，uc_wiota_flash_id_is_puya
+    10. 扫频结果是否排序api，uc_wiota_set_scan_sorted
+    11. 加解密api，uc_wiota_rf_crypto
+    12. 数字LDO配置，硬件需0a7g以上才有效，uc_wiota_set_new_ldo
+    13. 更新任意內存配置接口
+
+协议更新：
+    1. 静态数据初始化栈空间优化
+    2. sync paging与at撞上异常修复
+    3. 邻区检测功能，暂未开放
+    4. flash api地址限制更新
+    5. 修复内部数据队列接口
+
+遗留问题：
+    1. 帧结构1:2的sync_paging的symbol-128-burst0一次进入休眠失败的概率超过10%
+    2. 超低功耗漏检率最高6%，比之前测的高些，之前低于5%
+
 
 sync V3.4
 S-v3.4

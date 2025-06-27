@@ -38,19 +38,20 @@ typedef enum
 
 typedef enum
 {
-    UC_RECV_MSG = 0,         // UC_CALLBACK_NORAMAL_MSG, normal msg from ap
-    UC_RECV_BC = 1,          // UC_CALLBACK_NORAMAL_MSG, broadcast msg from ap
-    UC_RECV_OTA = 2,         // UC_CALLBACK_NORAMAL_MSG, ota msg from ap
-    UC_RECV_MULT0 = 3,       // UC_CALLBACK_NORAMAL_MSG, multcast0 msg from ap
-    UC_RECV_MULT1 = 4,       // UC_CALLBACK_NORAMAL_MSG, multcast1 msg from ap
-    UC_RECV_MULT2 = 5,       // UC_CALLBACK_NORAMAL_MSG, multcast2 msg from ap
-    UC_RECV_SCAN_FREQ = 6,   // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
-    UC_RECV_SYNC_LOST = 7,   // UC_CALLBACK_STATE_INFO, sync lost notify by riscv, need scan freq
-    UC_RECV_IDLE_PAGING = 8, // UC_CALLBACK_STATE_INFO, when idle state, recv ap's paging signal
-    UC_RECV_VOICE = 9,       // UC_CALLBACK_NORAMAL_MSG, voice msg from ap
-    UC_RECV_PG_TX_DONE = 10, // UC_CALLBACK_STATE_INFO, when pg tx end, tell app
-    UC_RECV_FN_CHANGE = 11,  // UC_CALLBACK_NORAMAL_MSG, when frame num change, tell app
-    UC_RECV_PHY_ERROR = 12,  // UC_CALLBACK_STATE_INFO, if phy not response timeout, tell app
+    UC_RECV_MSG = 0,          // UC_CALLBACK_NORAMAL_MSG, normal msg from ap
+    UC_RECV_BC = 1,           // UC_CALLBACK_NORAMAL_MSG, broadcast msg from ap
+    UC_RECV_OTA = 2,          // UC_CALLBACK_NORAMAL_MSG, ota msg from ap
+    UC_RECV_MULT0 = 3,        // UC_CALLBACK_NORAMAL_MSG, multcast0 msg from ap
+    UC_RECV_MULT1 = 4,        // UC_CALLBACK_NORAMAL_MSG, multcast1 msg from ap
+    UC_RECV_MULT2 = 5,        // UC_CALLBACK_NORAMAL_MSG, multcast2 msg from ap
+    UC_RECV_SCAN_FREQ = 6,    // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
+    UC_RECV_SYNC_LOST = 7,    // UC_CALLBACK_STATE_INFO, sync lost notify by riscv, need scan freq
+    UC_RECV_IDLE_PAGING = 8,  // UC_CALLBACK_STATE_INFO, when idle state, recv ap's paging signal
+    UC_RECV_VOICE = 9,        // UC_CALLBACK_NORAMAL_MSG, voice msg from ap
+    UC_RECV_PG_TX_DONE = 10,  // UC_CALLBACK_STATE_INFO, when pg tx end, tell app
+    UC_RECV_FN_CHANGE = 11,   // UC_CALLBACK_NORAMAL_MSG, when frame num change, tell app
+    UC_RECV_PHY_ERROR = 12,   // UC_CALLBACK_STATE_INFO, if phy not response timeout, tell app
+    UC_RECV_DCXO_RESULT = 13, // UC_CALLBACK_NORAMAL_MSG, report dcxo scan result
     UC_RECV_MAX_TYPE,
 } uc_recv_data_type_e;
 
@@ -87,6 +88,7 @@ typedef enum
     SUBFRAME_MODE_CLOSE = 0,
     SUBFRAME_MODE_ONE = 1,
     SUBFRAME_MODE_TWO = 2,
+    SUBFRAME_MODE_FOUR = 3,
 } uc_subframe_mode_e;
 
 typedef enum
@@ -162,6 +164,19 @@ typedef enum
 
 typedef enum
 {
+    DCDC_VOLTAGE_138V = 0,
+    DCDC_VOLTAGE_147V = 1,
+    DCDC_VOLTAGE_156V = 2,
+    DCDC_VOLTAGE_165V = 3,
+    DCDC_VOLTAGE_175V = 4,
+    DCDC_VOLTAGE_182V = 5, // default
+    DCDC_VOLTAGE_192V = 6,
+    DCDC_VOLTAGE_205V = 7,
+    DCDC_VOLTAGE_TEMP_MAX,
+} uc_dcdc_voltage_e;
+
+typedef enum
+{
     AWAKENED_CAUSE_HARD_RESET = 0, // also watchdog reset, spi cs reset
     AWAKENED_CAUSE_SLEEP = 1,
     AWAKENED_CAUSE_PAGING = 2,          // then get uc_lpm_paging_waken_cause_e
@@ -180,6 +195,14 @@ typedef enum
     PAGING_WAKEN_CAUSE_SYNC_PG_TIMING = 5,  // from sync paging timing set
     PAGING_WAKEN_CAUSE_MAX,
 } uc_lpm_paging_waken_cause_e;
+
+typedef enum
+{
+    SCAN_MODE_NORMAL = 0,    // fast scan and sync process
+    SCAN_MODE_SUBSYSID = 1,  // each freq with one subsystem id
+    SCAN_MODE_ONLY_FAST = 2, // only fast scan, only report rssi, no need subsystem id
+    SCAN_MODE_OTHERS,
+} uc_scan_mode_e;
 
 typedef struct
 {
@@ -200,7 +223,7 @@ typedef struct
     unsigned char id_len;        // 0: 2, 1: 4, 2: 6, 3: 8
     unsigned char pp;            // 0: 1, 1: 2, 2: 4, 3: not use
     unsigned char symbol_length; //128,256,512,1024
-    unsigned char dlul_ratio;    // 0 1:1,  1 1:2
+    unsigned char dlul_ratio;    // 0: 1-1,  1: 1-2,  2: 1-4
     unsigned char btvalue;       //bt from rf 1: 0.3, 0: 1.2
     unsigned char group_number;  //frame ul group number: 0,1,2,3: 1,2,4,8
     unsigned char spectrum_idx;  //default 3, 470M~510M;
@@ -212,6 +235,14 @@ typedef struct
     unsigned char freq_list[16];
     unsigned int subsystemid_list[8];
 } sub_system_config_t;
+
+typedef struct
+{
+    unsigned char freq_idx;
+    unsigned char reserved;
+    unsigned short reserved1;
+    unsigned int subsystemid;
+} uc_neighbor_info_t;
 
 typedef struct
 {
@@ -355,6 +386,15 @@ typedef struct
     short adc_midb;         // adc calc
 } uc_adc_adj_t, *uc_adc_adj_p;
 
+typedef struct
+{
+    signed char tempAdjust;      // temperature offset adjust
+    unsigned char dcxoDir;       // dcxo direction
+    unsigned char dcxoAdjust;    // dcxo offset adjust
+    unsigned char tcxoDirection; // tcxo init dir
+    unsigned int tcxoOffset;     // tcxo init offset
+} uc_adjust_info_t, *uc_adjust_info_p;
+
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
 
@@ -458,6 +498,8 @@ void uc_wiota_set_freq_div(unsigned char div_mode);
 
 void uc_wiota_set_vol_mode(unsigned char vol_mode);
 
+unsigned char uc_wiota_set_vol_in_pg(unsigned char vol);
+
 void uc_wiota_enable_rtc_interrupt(void);
 
 void uc_wiota_set_alarm_time(unsigned int sec);
@@ -487,7 +529,9 @@ void uc_wiota_set_outer_32K(unsigned char is_open);
 unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // uc_awakened_cause_e
 
 unsigned char uc_wiota_get_paging_awaken_cause(unsigned int *detected_times, unsigned char *detect_idx); // uc_lpm_paging_waken_cause_e
+
 #endif // _LPM_PAGING_
+
 unsigned int uc_wiota_get_curr_rf_cnt(void);
 
 void uc_wiota_get_frame_head_rf_cnt(uc_frame_head_p frame_head_info);
@@ -554,6 +598,24 @@ void uc_wiota_set_adc_adj_close(unsigned char is_close); // 1 means close
 
 void uc_wiota_set_gps_gpio(unsigned char is_func_open, unsigned char gpio);
 
+unsigned char uc_wiota_set_is_check_license(unsigned char is_check);
+
+unsigned char uc_wiota_flash_id_is_puya(void);
+
+void uc_wiota_set_new_ldo(unsigned char new_ldo);
+
+void uc_wiota_start_scan_dcxo(signed char input_temp); // if input_temp is 127, not adjust temperature
+
+void uc_wiota_set_scan_sorted(unsigned char is_sort);
+
+/*  key 128 bit,
+    data_out same size of data_in,
+    data_len must the multiple of 8byte!!!
+    en_or_de: 0,encrypt, 1, decrypt
+*/
+unsigned char uc_wiota_rf_crypto(unsigned char *key, unsigned char *data_in,
+                                 unsigned char *data_out, unsigned short data_len,
+                                 unsigned char en_or_de);
 
 // below is for inter test !
 
@@ -565,19 +627,27 @@ void uc_wiota_test_loop(unsigned char mode);
 void uc_wiota_test_lpm(unsigned char mode, unsigned char value);
 #endif
 
+#ifdef UC8288_AT_TEST
 void uc_wiota_set_bc_mode(unsigned char mode);
-
 unsigned char uc_wiota_get_bc_mode(void);
+#endif
 
 void uc_wiota_set_subframe_test(unsigned char mode);
 
 unsigned int uc_wiota_get_subframe_test(unsigned char mode);
 
-unsigned char uc_wiota_set_is_check_license(unsigned char is_check);
+#ifdef _NEIGHBOR_FUNC_
+unsigned char uc_wiota_set_neighbor_info(uc_neighbor_info_t *config);
+void uc_wiota_set_neighbor_start(unsigned char state);
+#endif
 
-unsigned char uc_wiota_flash_id_is_puya(void);
+unsigned char uc_wiota_set_bc_burst(unsigned char bc_busrt);
 
-void uc_wiota_set_new_ldo(unsigned char new_ldo);
+unsigned char uc_wiota_get_bc_burst(void);
+
+void uc_wiota_set_en_aagc_ajust(unsigned char en_aagc_ajust);
+
+unsigned char uc_wiota_mem_addr_value(unsigned int mem_addr, unsigned int value);
 
 // below is about uboot !
 

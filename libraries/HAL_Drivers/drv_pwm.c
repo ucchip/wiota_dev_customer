@@ -68,7 +68,7 @@ struct uc8x88_pwm
 {
     char *name;
     PWM_TypeDef *pwm_handle;
-    rt_uint8_t channel;
+    rt_uint32_t duty;
     struct rt_device_pwm pwm_device;
 };
 
@@ -123,10 +123,21 @@ static rt_err_t uc8x88_pwm_enable(PWM_TypeDef *hpwm, struct rt_pwm_configuration
 {
     if (enable)
     {
+        uint32_t pwm_duty = 0;
+        for (int i = 0; i < sizeof(uc8x88_pwm_obj) / sizeof(uc8x88_pwm_obj[0]); i++)
+        {
+            if (uc8x88_pwm_obj[i].pwm_handle == hpwm)
+            {
+                pwm_duty = uc8x88_pwm_obj[i].duty;
+                break;
+            }
+        }
+        pwm_set_duty(hpwm, pwm_duty);
         pwm_enable(hpwm);
     }
     else
     {
+        pwm_set_duty(hpwm, 0);
         pwm_disable(hpwm);
     }
 
@@ -157,6 +168,15 @@ static rt_err_t uc8x88_pwm_set(PWM_TypeDef *hpwm, struct rt_pwm_configuration *c
     pwm_duty = configuration->pulse * ns_ratio;
     pwm_set_period(hpwm, pwm_count);
     pwm_set_duty(hpwm, pwm_duty);
+
+    for (int i = 0; i < sizeof(uc8x88_pwm_obj) / sizeof(uc8x88_pwm_obj[0]); i++)
+    {
+        if (uc8x88_pwm_obj[i].pwm_handle == hpwm)
+        {
+            uc8x88_pwm_obj[i].duty = pwm_duty;
+            break;
+        }
+    }
 
     return RT_EOK;
 }

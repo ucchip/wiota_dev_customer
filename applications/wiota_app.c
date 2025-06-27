@@ -6,20 +6,21 @@
 #include "uc_event.h"
 #endif
 
-#ifdef UC8288_MODULE
 #include "uc_wiota_static.h"
 #include "uc_wiota_api.h"
+
+#ifdef UC8288_MODULE
 
 #ifdef RT_USING_AT
 #include "at.h"
 #include "at_wiota.h"
 #include "at_wiota_gpio_report.h"
-#endif
-
-#endif
-
 #ifdef _QUICK_CONNECT_
 #include "quick_connect.h"
+#endif
+
+#endif
+
 #endif
 
 #ifdef RT_USING_WDT
@@ -113,7 +114,9 @@ int wiota_app_init(void)
 
 
 #ifdef _QUICK_CONNECT_
+#ifdef RT_USING_AT
     quick_connect_task_init();
+#endif
 #endif
 
     // extern void gateway_app_demo_init(void);

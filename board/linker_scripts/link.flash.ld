@@ -198,6 +198,7 @@ SECTIONS
         *(.sdata*);
         edata  =  .;
         _edata  =  .;
+        . = ALIGN(4);
     } > dataram
 
     .bss :

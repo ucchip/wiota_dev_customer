@@ -11,6 +11,7 @@
 #include "uc_dac_app.h"
 #include "uc_flash_app.h"
 #include "uc_hwtimer_app.h"
+#include "uc_rw_user_data_app.h"
 
 void uc_peripheral_example(void)
 {
@@ -56,5 +57,9 @@ void uc_peripheral_example(void)
 
 #if defined(APP_EXAMPLE_HWTIMER)
     hwtimer_app_sample();
+#endif
+
+#if defined(APP_EXAMPLE_RW)
+    uc_static_data_example();
 #endif
 }

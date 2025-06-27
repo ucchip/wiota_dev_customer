@@ -20,8 +20,8 @@ extern "C"
 {
 #endif
 
-#define FLASH_OPEN_START_ADDRESS     0x0        	// 0
-#define FLASH_OPEN_END_ADDRESS       0x7E000        // (512-8)*1024, last 8KB is static info space
+#define FLASH_OPEN_START_ADDRESS 0x0   // 0
+// #define FLASH_OPEN_END_ADDRESS 0x7E000 // (512-8)*1024, last 8KB is static info space
 
 
 /**

@@ -34,14 +34,58 @@ static uint32_t pin_irq_enable_mask = 0;
 
 #define ITEM_NUM(items) sizeof(items) / sizeof(items[0])
 
+uint8_t g_uc8x88_pin_od_mode[ITEM_NUM(pin_irq_hdr_tab)];
+
+rt_inline void uc8x88_pin_od_mode_set(rt_base_t pin, rt_uint8_t is_od_mode)
+{
+    if (pin >= ITEM_NUM(pin_irq_hdr_tab))
+    {
+        return;
+    }
+
+    g_uc8x88_pin_od_mode[pin] = is_od_mode;
+}
+
+rt_inline rt_uint8_t uc8x88_pin_od_mode_get(rt_base_t pin)
+{
+    if (pin >= ITEM_NUM(pin_irq_hdr_tab))
+    {
+        return RT_FALSE;
+    }
+
+    return g_uc8x88_pin_od_mode[pin];
+}
+
 static void uc8x88_pin_write(rt_device_t dev, rt_base_t pin, rt_base_t value)
 {
+    rt_uint8_t is_od_mode = RT_FALSE;
     if (pin == 0xff)
     {
         return;
     }
 
-    gpio_set_pin_value(UC_GPIO, pin, (GPIO_VALUE)value);
+    is_od_mode = uc8x88_pin_od_mode_get(pin);
+
+    if (is_od_mode)
+    {
+        if (value == GPIO_VALUE_LOW)
+        {
+            /* output setting */
+            gpio_set_pin_pupd(UC_GPIO_CFG, pin, GPIO_PUPD_UP);
+            gpio_set_pin_direction(UC_GPIO, pin, GPIO_DIR_OUT);
+            gpio_set_pin_value(UC_GPIO, pin, (GPIO_VALUE)value);
+        }
+        else
+        {
+            /* input setting */
+            gpio_set_pin_pupd(UC_GPIO_CFG, pin, GPIO_PUPD_NONE);
+            gpio_set_pin_direction(UC_GPIO, pin, GPIO_DIR_IN);
+        }
+    }
+    else
+    {
+        gpio_set_pin_value(UC_GPIO, pin, (GPIO_VALUE)value);
+    }
 }
 
 static int uc8x88_pin_read(rt_device_t dev, rt_base_t pin)
@@ -68,6 +112,8 @@ static void uc8x88_pin_mode(rt_device_t dev, rt_base_t pin, rt_base_t mode)
 
     gpio_set_pin_mux(UC_GPIO_CFG, pin, GPIO_FUNC_0);
 
+    uc8x88_pin_od_mode_set(pin, RT_FALSE);
+
     switch (mode)
     {
     case PIN_MODE_OUTPUT:
@@ -87,8 +133,7 @@ static void uc8x88_pin_mode(rt_device_t dev, rt_base_t pin, rt_base_t mode)
         break;
     case PIN_MODE_OUTPUT_OD:
         /* output setting: od. */
-        gpio_set_pin_pupd(UC_GPIO_CFG, pin, GPIO_PUPD_NONE);
-        gpio_set_pin_direction(UC_GPIO, pin, GPIO_DIR_OUT);
+        uc8x88_pin_od_mode_set(pin, RT_TRUE);
         break;
     default:
         RT_ASSERT(0);

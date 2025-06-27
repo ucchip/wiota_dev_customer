@@ -3,7 +3,7 @@ menu "Application Example Config"
     config APP_EXAMPLE_PIN
         bool "Enable PIN Example"
         default n
-    
+
     config APP_EXAMPLE_UART
         bool "Enable UART Example"
         default n
@@ -27,7 +27,7 @@ menu "Application Example Config"
     config APP_EXAMPLE_RTC
         bool "Enable RTC Example"
         default n
-    
+
     config APP_EXAMPLE_WATCHDOG
         bool "Enable Watchdog Example"
         default n
@@ -42,6 +42,10 @@ menu "Application Example Config"
 
     config APP_EXAMPLE_HWTIMER
         bool "Enable HwTimer Example"
+        default n
+
+    config APP_EXAMPLE_RW
+        bool "Enable RW Example"
         default n
 
 endmenu

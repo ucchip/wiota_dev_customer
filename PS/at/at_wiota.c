@@ -44,6 +44,7 @@ enum at_wiota_lpm
     AT_WIOTA_PAGING_TIMINT, // 7, sync paging, need sync ok, then enter
     AT_WIOTA_EX_WK,         // 8
     AT_WIOTA_PAGING_TX,     // 9
+    AT_WIOTA_PAGING_VOL,    // 10, set dcdc vol when enter paging rx or sync paging
     AT_WIOTA_LPM_MAX,
 };
 
@@ -309,7 +310,7 @@ static at_result_t at_freq_setup(const char *args)
     WIOTA_MUST_ALREADY_INIT(wiota_state)
 
     args = parse((char *)(++args), "d", &freq);
-    if (!args || freq > 255)
+    if (!args || freq > 255 || freq < 0)
     {
         return AT_RESULT_PARSE_FAILE;
     }
@@ -419,7 +420,7 @@ static unsigned char convert_string_to_freq_array(unsigned char *string, uc_freq
         pStart = pEnd;
     }
 
-    if (mode)
+    if (SCAN_MODE_SUBSYSID == mode)
     {
         if (num == freq_num * 2)
         {
@@ -461,7 +462,7 @@ static at_result_t at_scan_freq_setup(const char *args)
     }
 
     args = parse((char *)(++args), "d,d,d,d", &timeout, &mode, &dataLen, &freqNum);
-    if (!args || (0 != mode && 1 != mode))
+    if (!args || (mode < SCAN_MODE_NORMAL && mode > SCAN_MODE_ONLY_FAST))
     {
         return AT_RESULT_PARSE_FAILE;
     }
@@ -518,7 +519,7 @@ static at_result_t at_scan_freq_setup(const char *args)
         }
         rt_free(freqString);
 
-        if (0 == mode)
+        if (SCAN_MODE_NORMAL == mode || SCAN_MODE_ONLY_FAST == mode)
         {
             freqArry = (unsigned char *)rt_malloc(freqNum * sizeof(unsigned char));
             if (freqArry == NULL)
@@ -547,7 +548,7 @@ static at_result_t at_scan_freq_setup(const char *args)
     else
     {
         // uc_wiota_scan_freq(RT_NULL, 0, WIOTA_SCAN_FREQ_TIMEOUT, RT_NULL, &result);
-        uc_wiota_scan_freq(RT_NULL, 0, 0, 0, RT_NULL, &result); // scan all wait for ever
+        uc_wiota_scan_freq(RT_NULL, 0, (unsigned char)mode, 0, RT_NULL, &result); // scan all wait for ever
     }
 
     if (UC_OP_SUCC == result.result)
@@ -572,6 +573,21 @@ static at_result_t at_scan_freq_setup(const char *args)
     }
 
     return AT_RESULT_NULL;
+}
+
+static at_result_t at_scan_sort_setup(const char *args)
+{
+    unsigned int mode;
+
+    args = parse((char *)(++args), "d", &mode);
+    if (!args || mode > 1)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    uc_wiota_set_scan_sorted((unsigned char)mode);
+
+    return AT_RESULT_OK;
 }
 
 static at_result_t at_dcxo_query(void)
@@ -1525,6 +1541,8 @@ static at_result_t at_wiotalpm_setup(const char *args)
 
     args = parse((char *)(++args), "d,d,d", &mode, &value, &value2);
 
+    // at_server_printfln("input %d %d %d",mode,value,value2);
+
     switch (mode)
     {
     case AT_WIOTA_SLEEP:
@@ -1594,6 +1612,11 @@ static at_result_t at_wiotalpm_setup(const char *args)
         uc_wiota_paging_tx_start();
         break;
     }
+    case AT_WIOTA_PAGING_VOL:
+    {
+        is_ok = uc_wiota_set_vol_in_pg((unsigned char)value);
+        break;
+    }
 #endif
     default:
         return AT_RESULT_FAILE;
@@ -1619,7 +1642,7 @@ static at_result_t at_wiotarate_setup(const char *args)
         return AT_RESULT_PARSE_FAILE;
     }
     at_server_printfln("+WIOTARATE: %d, %d", (unsigned char)rate_mode, (unsigned short)rate_value);
-    if(uc_wiota_set_data_rate((unsigned char)rate_mode, (unsigned short)rate_value))
+    if (uc_wiota_set_data_rate((unsigned char)rate_mode, (unsigned short)rate_value))
     {
         return AT_RESULT_OK;
     }
@@ -2333,7 +2356,7 @@ static at_result_t at_paging_tx_config_setup(const char *args)
     uc_lpm_tx_cfg_t config = {0};
     unsigned int temp[6];
 
-    WIOTA_MUST_ALREADY_INIT(wiota_state)
+    // WIOTA_MUST_ALREADY_INIT(wiota_state)
 
     args = parse((char *)(++args), "d,d,d,d,d,d",
                  &temp[0], &temp[1], &temp[2], &temp[3], &temp[4], &temp[5]);
@@ -2708,15 +2731,12 @@ static at_result_t at_wiota_fn_setup(const char *args)
 
     args = parse((char *)(++args), "d", &mode);
 
-    if (!args)
+    if (!args || mode < 0 || mode > 1)
     {
         return AT_RESULT_PARSE_FAILE;
     }
 
-    if (mode >= 0 && mode <= 1)
-    {
-        uc_wiota_set_is_report_fn(mode);
-    }
+    uc_wiota_set_is_report_fn(mode);
 
     return AT_RESULT_OK;
 }
@@ -2755,16 +2775,12 @@ static at_result_t at_wiota_adc_adj_setup(const char *args)
 
     args = parse((char *)(++args), "d", &mode);
 
-    if (!args)
+    if (!args || mode < 0 || mode >1)
     {
         return AT_RESULT_PARSE_FAILE;
     }
 
-    if (mode >= 0 && mode <= 1)
-    {
-        uc_wiota_set_adc_adj_close(mode); // 1 means close!
-    }
-
+    uc_wiota_set_adc_adj_close(mode); // 1 means close!
     return AT_RESULT_OK;
 }
 
@@ -2825,7 +2841,7 @@ static at_result_t at_new_ldo_setup(const char *args)
     unsigned int value = 0;
 
     args = parse((char *)(++args), "d", &value);
-    if (!args)
+    if (!args || value < 0 || value > 7)
     {
         return AT_RESULT_PARSE_FAILE;
     }
@@ -2835,6 +2851,69 @@ static at_result_t at_new_ldo_setup(const char *args)
     return AT_RESULT_OK;
 }
 
+static at_result_t at_agc_adjust_set_setup(const char *args)
+{
+    unsigned int value = 0;
+
+    args = parse((char *)(++args), "d", &value);
+    if (!args || value > 1)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    uc_wiota_set_en_aagc_ajust((unsigned char)value);
+
+    return AT_RESULT_OK;
+}
+
+static at_result_t at_mem_addr_setup(const char *args)
+{
+    unsigned int mem_addr = 0;
+    unsigned int value = 0;
+
+    args = parse((char *)(++args), "y,y", &mem_addr, &value);
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+    if (uc_wiota_mem_addr_value(mem_addr, value))
+    {
+        return AT_RESULT_OK;
+    }
+    return AT_RESULT_FAILE;
+}
+
+
+#ifdef _NEIGHBOR_FUNC_
+static at_result_t at_neighbor_info_setup(const char *args)
+{
+    unsigned int freq = 0;
+    unsigned int subsys_id = 0;
+    uc_neighbor_info_t config = {0};
+
+    args = parse((char *)(++args), "d,y", &freq, &subsys_id);
+    if (!args || freq > 255 || freq < 0)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    config.freq_idx = freq;
+    config.subsystemid = subsys_id;
+
+    if (uc_wiota_set_neighbor_info(&config))
+    {
+        return AT_RESULT_OK;
+    }
+
+    return AT_RESULT_PARSE_FAILE;
+}
+
+static at_result_t at_neighbor_start_exec(void)
+{
+    uc_wiota_set_neighbor_start(1);
+    return AT_RESULT_OK;
+}
+#endif
 
 AT_CMD_EXPORT("AT+AUTOCONNECT", "<v>", RT_NULL, at_auto_connect_query, at_auto_connect_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAVERSION", RT_NULL, RT_NULL, at_wiota_version_query, RT_NULL, RT_NULL);
@@ -2843,7 +2922,8 @@ AT_CMD_EXPORT("AT+WIOTALPM", "=<mode>,<v>,<v2>", RT_NULL, RT_NULL, at_wiotalpm_s
 AT_CMD_EXPORT("AT+WIOTARATE", "=<mode>,<v>", RT_NULL, RT_NULL, at_wiotarate_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAPOW", "=<mode>,<power>", RT_NULL, RT_NULL, at_wiotapow_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTASCANFREQ", "=<timeout>,<mode>,<dataLen>,<freqnum>", RT_NULL, RT_NULL, at_scan_freq_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTAFREQ", "=<freqpint>", RT_NULL, at_freq_query, at_freq_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTASCANSORT", "=<mode>", RT_NULL, RT_NULL, at_scan_sort_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTAFREQ", "=<freq>", RT_NULL, at_freq_query, at_freq_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTADCXO", "=<dcxo>", RT_NULL, at_dcxo_query, at_dcxo_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTATXMODE", "=<mode>", RT_NULL, RT_NULL, at_wiotatxmode_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTADEVADDRESS", "=<addr>", RT_NULL, at_dev_addr_query, at_dev_addr_setup, RT_NULL);
@@ -2906,6 +2986,13 @@ AT_CMD_EXPORT("AT+WIOTAQC", "=<onoff>,<freq>,<mode>", RT_NULL, RT_NULL, at_wiota
 #endif // QUICK_CONNECT
 
 AT_CMD_EXPORT("AT+WIOTALDO", "=<value>", RT_NULL, RT_NULL, at_new_ldo_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTAAGC", "=<value>", RT_NULL, RT_NULL, at_agc_adjust_set_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTAMEMADDR", "=<addr>,<v>", RT_NULL, RT_NULL, at_mem_addr_setup, RT_NULL);
+
+#ifdef _NEIGHBOR_FUNC_
+AT_CMD_EXPORT("AT+WIOTANEIGHBOR", "=<freq>,<subsysid>", RT_NULL, RT_NULL, at_neighbor_info_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTANEIST", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_neighbor_start_exec);
+#endif
 
 #endif // UC8288_MODULE
 #endif // RT_USING_AT

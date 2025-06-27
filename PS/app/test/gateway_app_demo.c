@@ -167,7 +167,38 @@ static void gateway_send_scan_freq_msg(void)
 
 int gateway_app_send_data(user_ul_data_t *ul_data)
 {
-    return gateway_send_msg(MSG_TYPE_SEND_DATA, ul_data, 0);
+    if (ul_data == RT_NULL || ul_data->data_len == 0 || ul_data->data == RT_NULL)
+    {
+        rt_kprintf("para invalid\n");
+        return -RT_ERROR;
+    }
+
+    user_ul_data_t *user_data = rt_malloc(sizeof(user_ul_data_t));
+    if (user_data == RT_NULL)
+    {
+        return -RT_ENOMEM;
+    }
+    unsigned char *data = rt_malloc(ul_data->data_len);
+    if (data == RT_NULL)
+    {
+        rt_free(user_data);
+        return -RT_ENOMEM;
+    }
+
+    user_data->data_len = ul_data->data_len;
+    user_data->timeout = ul_data->timeout;
+    user_data->callback = ul_data->callback;
+    rt_memcpy(data, ul_data->data, ul_data->data_len);
+    user_data->data = data;
+
+    int res = gateway_send_msg(MSG_TYPE_SEND_DATA, user_data, 0);
+    if (RT_EOK != res)
+    {
+        rt_free(user_data->data);
+        rt_free(user_data);
+    }
+
+    return res;
 }
 
 static unsigned char gateway_get_freq_list(unsigned char *freq_list)
@@ -609,8 +640,11 @@ static void gateway_app_task_entry(void *para)
         {
             // called gateway_app_send_data
             user_ul_data_t *ul_data = (user_ul_data_t *)msg.data;
-
-            ul_data->callback(uc_wiota_gateway_send_data(ul_data->data, ul_data->data_len, ul_data->timeout));
+            int send_res = uc_wiota_gateway_send_data(ul_data->data, ul_data->data_len, ul_data->timeout);
+            if (ul_data->callback)
+            {
+                ul_data->callback(send_res);
+            }
             rt_free(ul_data->data);
             break;
         }

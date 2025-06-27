@@ -509,7 +509,7 @@ static int uc_wiota_gateway_wait_send_time_slot(void)
     if (is_waiting_ts && gateway_mode.fn_refresh_sem)
     {
         uc_wiota_get_gateway_info(&gw_info);
-        wait_timeout = (gw_info.pof + 2) * uc_wiota_get_frame_len() / 1000;
+        wait_timeout = (gw_info.pof * 2 + 2) * uc_wiota_get_frame_len() / 1000;
         rt_kprintf("take sem fn %u, wt %d\n", uc_wiota_get_frame_num(), wait_timeout);
         gateway_mode.is_waiting_ts = RT_TRUE;
         if (RT_EOK != rt_sem_take(gateway_mode.fn_refresh_sem, wait_timeout))
@@ -792,7 +792,7 @@ static void uc_wiota_gateway_auth_res_msg(unsigned char *data, unsigned int data
         uc_wiota_disconnect();
         uc_wiota_set_freq_info(auth_res_data->connect_index.freq);
         uc_wiota_connect();
-        if (0 == uc_wiota_wait_sync(uc_wiota_get_frame_len() / 200, 2))
+        if (0 == uc_wiota_wait_sync(uc_wiota_get_frame_len() / 100, 2))
         {
             uc_wiota_gateway_send_auth_req();
         }
@@ -1233,6 +1233,16 @@ static void uc_wiota_gateway_analisys_dl_msg(unsigned char *data, unsigned int d
         break;
     }
 
+    case IOTE_PAGING_TX_CTRL:
+    {
+        app_pt_ctrl_t *pt_ctrl = (app_pt_ctrl_t *)data_decoding;
+
+        uc_wiota_suspend_connect();
+        rt_thread_mdelay(pt_ctrl->send_time + uc_wiota_get_frame_len() / 1000);
+        uc_wiota_recover_connect();
+        break;
+    }
+
     default:
         break;
     }
@@ -1583,7 +1593,7 @@ static int uc_wiota_gateway_auth(uc_gatway_mode_e mode)
                     uc_wiota_gateway_set_auth_period(ts_info->auth_period);
                     uc_wiota_set_sm_resend_times(gw_info.resend_times);
                     uc_wiota_set_data_rate(0, gw_info.ul_mcs);
-                    uc_wiota_save_static_info();
+                    // uc_wiota_save_static_info(); // not save
                     rt_kprintf("ts_info pof %d, auth_period %d, rs_t %d, mcs %d\n",
                                ts_info->pof, ts_info->auth_period, ts_info->resend_times, ts_info->mcs);
                     time_slot_state = 1;
@@ -2048,7 +2058,7 @@ int wiota_state_judge(char *lost_count, char *report_flag)
     {
         rt_kprintf("gw N\n");
         (*lost_count)++;
-        if (*lost_count > 3)
+        if (*lost_count > 11)
         {
             *report_flag = 1;
         }

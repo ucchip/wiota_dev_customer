@@ -51,7 +51,7 @@ menu "On-chip Peripheral Drivers"
 
                 config BSP_USING_HARD_I2C_PIN_GROUP_2
                     bool "Hard i2c pin group 2 (SCL: GPIO4, SDA: GPIO14)"
-                    
+
                 config BSP_USING_SOFT_I2C_PIN_GROUP
                     bool "Soft i2c pin group"
                     select RT_USING_I2C_BITOPS

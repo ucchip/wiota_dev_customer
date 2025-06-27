@@ -71,6 +71,7 @@ typedef enum
     IOTE_LOOP_DATA = 101,
     IOTE_VERSION_REQ = 150,
     IOTE_VERSION_RES = 151,
+    IOTE_PAGING_TX_CTRL = 160,
     IOTE_RESPON_STATE = 0xFFFFFFFF,
 } app_ps_cmd_e;
 
@@ -192,6 +193,11 @@ typedef struct
     unsigned char na;
     unsigned int frame_num;
 } app_ps_ts_info_t;
+
+typedef struct
+{
+    unsigned int send_time;
+} app_pt_ctrl_t;
 
 //unsigned char app_packet_num(void);
 

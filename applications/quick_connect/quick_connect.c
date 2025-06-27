@@ -1,14 +1,13 @@
 #include <rtthread.h>
 #ifdef _QUICK_CONNECT_
+#ifdef RT_USING_AT
 #include <rtdevice.h>
 #include <board.h>
 #include <string.h>
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
-#ifdef RT_USING_AT
 #include <at.h>
 #include "ati_prs.h"
-#endif
 #include "uc_string_lib.h"
 #include "uc_adda.h"
 #include "uc_uart.h"
@@ -17,6 +16,32 @@
 
 static rt_mutex_t p_mutex_qc_state = NULL;
 static rt_mutex_t p_mutex_qc_run = NULL;
+
+static unsigned int str_to_16(char *hexstring)
+{
+    unsigned int hexnumber = 0;
+
+    for (int i = 0; hexstring[i] != '\0'; i++)
+    {
+        int value = 0;
+        if (hexstring[i] >= '0' && hexstring[i] <= '9')
+        {
+            value = hexstring[i] - '0';
+        }
+        else if (hexstring[i] >= 'a' && hexstring[i] <= 'f')
+        {
+            value = hexstring[i] - 'a' + 10;
+        }
+        else if (hexstring[i] >= 'A' && hexstring[i] <= 'F')
+        {
+            value = hexstring[i] - 'A' + 10;
+        }
+
+        hexnumber = hexnumber * 16 + value;
+    }
+
+    return hexnumber;
+}
 
 void quick_connect_init(void)
 {
@@ -121,11 +146,11 @@ static s_qc_cfg qc_cfg[QC_MODE_MAX] =
 };
 
 static e_qc_mode cur_mode = QC_MODE_MID_DIS_HIGH_RATE;
+static unsigned short cur_freq = 100;
 
 int wiota_quick_connect_start(unsigned short freq, e_qc_mode mode)
 {
     int ret = -1;
-    sub_system_config_t config;
 
     if (mode >= QC_MODE_MAX)
     {
@@ -137,6 +162,7 @@ int wiota_quick_connect_start(unsigned short freq, e_qc_mode mode)
         return ret;
     }
 
+    cur_freq = freq;
     cur_mode = mode;
 
     clr_qc_auto_run();
@@ -144,9 +170,8 @@ int wiota_quick_connect_start(unsigned short freq, e_qc_mode mode)
     if (get_qc_wiota_state() != QC_EXIT)
     {
         uc_wiota_exit();
-#ifdef RT_USING_AT
+
         at_wiota_set_state(AT_WIOTA_EXIT);
-#endif
 
         set_qc_wiota_state(QC_EXIT);
 
@@ -154,34 +179,6 @@ int wiota_quick_connect_start(unsigned short freq, e_qc_mode mode)
     }
 
     quick_clr_best_freq();
-
-    //配置参数
-
-    uc_wiota_get_system_config(&config);
-
-    config.freq_idx = freq;
-
-    config.symbol_length = qc_cfg[mode].symbol_len;
-
-    config.dlul_ratio = qc_cfg[mode].dlul_ratio;
-
-    config.group_number = qc_cfg[mode].group_num;
-
-    config.ap_tx_power = qc_cfg[mode].down_pow - 20;
-
-    uc_wiota_set_system_config(&config);
-
-    uc_wiota_save_static_info();
-
-    rt_kprintf("\nqs f=%d,m=%d,sl=%d,dr=%d,gn=%d,p=%d\n",
-               freq, mode, config.symbol_length, config.dlul_ratio, config.group_number, config.ap_tx_power);
-
-#ifdef RT_USING_AT
-    at_server_printfln("+QCSTART:%d,%d,%d,%d,%d,%d,%d",
-                       freq, config.symbol_length, config.dlul_ratio, config.group_number, qc_cfg[mode].up_pow - 20, config.ap_tx_power, qc_cfg[mode].mcs);
-#endif
-
-    rt_thread_mdelay(50);
 
     set_qc_auto_run();
 
@@ -197,9 +194,8 @@ int wiota_quick_connect_stop(void)
     if (get_qc_wiota_state() != QC_EXIT)
     {
         uc_wiota_exit();
-#ifdef RT_USING_AT
+
         at_wiota_set_state(AT_WIOTA_EXIT);
-#endif
 
         set_qc_wiota_state(QC_EXIT);
 
@@ -248,12 +244,10 @@ static uc_op_result_e quick_freq_scan_op(void)
                 }
             }
 
-#ifdef RT_USING_AT
             if (get_qc_auto_run() == 1)
             {
                 at_server_printfln("+QCCONN:%d,%d,%d", freqlist->freq_idx, freqlist->rssi, freqlist->is_synced);
             }
-#endif
 
             freqlist++;
         }
@@ -267,13 +261,16 @@ static uc_op_result_e quick_freq_scan_op(void)
 static uc_op_result_e quick_scan(void)
 {
     uc_op_result_e ret = UC_OP_FAIL;
+    sub_system_config_t config;
+    unsigned char module_id[19] = {0};
+    unsigned int userid[2] = {0};
+    unsigned char userid_len = 0;
 
     if (get_qc_wiota_state() != QC_EXIT)
     {
         uc_wiota_exit();
-#ifdef RT_USING_AT
+
         at_wiota_set_state(AT_WIOTA_EXIT);
-#endif
 
         set_qc_wiota_state(QC_EXIT);
     }
@@ -284,11 +281,43 @@ static uc_op_result_e quick_scan(void)
 
     quick_clr_best_freq();
 
+    //配置参数
+
+    uc_wiota_get_system_config(&config);
+
+    config.freq_idx = cur_freq;
+
+    config.symbol_length = qc_cfg[cur_mode].symbol_len;
+
+    config.dlul_ratio = qc_cfg[cur_mode].dlul_ratio;
+
+    config.group_number = qc_cfg[cur_mode].group_num;
+
+    config.ap_tx_power = qc_cfg[cur_mode].down_pow - 20;
+
+    uc_wiota_set_system_config(&config);
+
+    uc_wiota_save_static_info();
+
+    uc_wiota_get_module_id(module_id);
+
+    userid[0] = str_to_16((char *)module_id);
+
+    uc_wiota_set_userid(&userid[0], 4);
+
+    uc_wiota_get_userid(userid, &userid_len);
+
+    rt_kprintf("\nqs f=%d,m=%d,sl=%d,dr=%d,gn=%d,p=%d\n",
+               cur_freq, cur_mode, config.symbol_length, config.dlul_ratio, config.group_number, config.ap_tx_power);
+
+    at_server_printfln("+QCSTART:0x%02x,%d,%d,%d,%d,%d,%d,%d",
+                       userid[0], cur_freq, config.symbol_length, config.dlul_ratio, config.group_number, qc_cfg[cur_mode].up_pow - 20, config.ap_tx_power, qc_cfg[cur_mode].mcs);
+
+    rt_thread_mdelay(50);
+
     uc_wiota_run();
 
-#ifdef RT_USING_AT
     at_wiota_set_state(AT_WIOTA_RUN);
-#endif
 
     set_qc_wiota_state(QC_RUN);
 
@@ -296,9 +325,7 @@ static uc_op_result_e quick_scan(void)
 
     uc_wiota_exit();
 
-#ifdef RT_USING_AT
     at_wiota_set_state(AT_WIOTA_EXIT);
-#endif
 
     set_qc_wiota_state(QC_EXIT);
 
@@ -312,9 +339,8 @@ static int quick_open_wiota(void)
     if (get_qc_wiota_state() != QC_EXIT)
     {
         uc_wiota_exit();
-#ifdef RT_USING_AT
+
         at_wiota_set_state(AT_WIOTA_EXIT);
-#endif
 
         set_qc_wiota_state(QC_EXIT);
     }
@@ -332,11 +358,9 @@ static int quick_open_wiota(void)
 
         uc_wiota_run();
 
-#ifdef RT_USING_AT
         uc_wiota_register_recv_data_callback(wiota_recv_callback, UC_CALLBACK_NORAMAL_MSG);
         uc_wiota_register_recv_data_callback(wiota_recv_callback, UC_CALLBACK_STATE_INFO);
         at_wiota_set_state(AT_WIOTA_RUN);
-#endif
 
         set_qc_wiota_state(QC_RUN);
 
@@ -351,6 +375,8 @@ static void quick_connect_task(void *argument)
     uc_wiota_status_e wiota_state = UC_STATUS_NULL;
     int connect_flag = 0;
     unsigned int cnt = 0;
+    unsigned int userid[2] = {0};
+    unsigned char userid_len = 0;
 
     quick_connect_init();
 
@@ -380,9 +406,9 @@ static void quick_connect_task(void *argument)
 
                         uc_wiota_set_data_rate(UC_RATE_NORMAL, qc_cfg[cur_mode].mcs);
 
-#ifdef RT_USING_AT
-                        at_server_printfln("+QCRESULT:%d,%d SUCC", best_freq.freq_idx, best_freq.rssi);
-#endif
+                        uc_wiota_get_userid(userid, &userid_len);
+
+                        at_server_printfln("+QCRESULT:0x%02x,%d,%d SUCC", userid[0], best_freq.freq_idx, best_freq.rssi);
                     }
                 }
             }
@@ -415,4 +441,5 @@ int quick_connect_task_init(void)
     return 0;
 }
 
+#endif
 #endif
