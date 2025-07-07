@@ -9,7 +9,7 @@ S-v3.5
     4. pwm驱动修复
     5. 校准及校准结果上报，uc_wiota_start_scan_dcxo，UC_RECV_DCXO_RESULT，uc_adjust_info_t
     6. 新增快速扫频模式，uc_scan_mode_e
-    7. 设置进入paging前的dcdc，uc_wiota_set_vol_in_pg
+    7. 设置进入paging前的dcdc，uc_wiota_set_vol_in_pg，0a7g的终端硬件，必须配置为5！否则影响sync paging休眠唤醒功能。  
     8. license check开关，uc_wiota_set_is_check_license，需配合硬件使用
     9. flash类型判断api，uc_wiota_flash_id_is_puya
     10. 扫频结果是否排序api，uc_wiota_set_scan_sorted
