@@ -89,9 +89,9 @@ int wiota_app_init(void)
         ota_package max size 57344
      */
     get_partition_size(&bin_size, &reserved_size, &ota_size);
-    if (bin_size < 0x4c000)
+    if (bin_size < 0x4d000)
     {
-        set_partition_size(0x4c000, 0x24000, 0xe000);
+        set_partition_size(0x4d000, 0x24000, 0xd000);
     }
 
 #ifdef RT_USING_WDT

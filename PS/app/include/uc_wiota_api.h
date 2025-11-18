@@ -609,13 +609,20 @@ void uc_wiota_start_scan_dcxo(signed char input_temp); // if input_temp is 127, 
 void uc_wiota_set_scan_sorted(unsigned char is_sort);
 
 /*  key 128 bit,
-    data_out same size of data_in,
-    data_len must the multiple of 8byte!!!
+    data_out
+        sm7: same size of data_in
+        sm4: same size of data_in
+        sm3: 32 bytes
+    data_len
+        sm7: must the multiple of 8byte!!!
+        sm4: must the multiple of 16byte!!!
+        sm3: 1~32 bytes
     en_or_de: 0,encrypt, 1, decrypt
+    mode: 0, sm7, 1, sm4, 2, sm3
 */
 unsigned char uc_wiota_rf_crypto(unsigned char *key, unsigned char *data_in,
                                  unsigned char *data_out, unsigned short data_len,
-                                 unsigned char en_or_de);
+                                 unsigned char en_or_de, unsigned char mode);
 
 // below is for inter test !
 

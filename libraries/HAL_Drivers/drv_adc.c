@@ -11,6 +11,8 @@
 #define LOG_TAG "drv.adc"
 #include <drv_log.h>
 
+extern uint32_t adc_get_adj_result(uint32_t adc_ori);
+
 static struct rt_adc_device uc8x88_adc_device;
 
 static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t channel, rt_bool_t enabled)
@@ -188,7 +190,7 @@ static rt_err_t get_adc_value(struct rt_adc_device *device, rt_uint32_t channel,
         for (uint8_t index = 0; index < 100; index++)
         {
             adc_wait_data_ready(UC_ADDA);
-            adc_val += adc_read(UC_ADDA);
+            adc_val += adc_get_adj_result(adc_read(UC_ADDA));
         }
         *value = adc_val / 100;
     }

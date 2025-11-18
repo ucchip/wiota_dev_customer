@@ -1,4 +1,25 @@
 
+
+sync V3.5.2
+S-v3.5.2
+
+外部更新：
+    1. 加解密接口修改（uc_wiota_rf_crypto），新增mode，0为原sm7；1：sim4； 2： sm3
+    2. 修复adc读取接口中，增加校准。(文件：libraries/HAL_Drivers/drv_adc.c)
+    3. boot strap中，删除无效的qspi初始化。（文件：libraries/UC8288_HAL_Driver/src/uc_boot_strap.c）
+    4. 由于固件大小增加，修改uboot升级使用的bin size和ota size（从v3.5升级到v3.5.2，OTA差分包不要勾选uboot！）（文件：applications/wiota_app.c）
+
+协议更新：
+    1. 修复超低功耗扩展ID情况下的误唤醒问题。
+    2. 增加sm4、sm3加密功能。
+
+
+遗留问题：
+    1. 帧结构1:2的sync_paging的symbol-128-burst0一次进入休眠失败的概率超过10%
+    2. 超低功耗漏检率最高6%，比之前测的高些，之前低于5%
+    3. symbol 128 mcs4，symbol 256 mcs6，上行成功率较低。
+
+
 sync V3.5
 S-v3.5
 
