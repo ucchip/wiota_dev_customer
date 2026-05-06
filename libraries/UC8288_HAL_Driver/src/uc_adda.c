@@ -43,16 +43,24 @@
 uint32_t adc_get_adj_result(uint32_t adc_ori)
 {
     uc_adc_adj_t adc_adj = {0};
+    uint32_t adc_calc = adc_ori;
     uc_wiota_get_adc_adj_info(&adc_adj);
     if (!adc_adj.is_close && adc_adj.is_valid)
     {
-        if (adc_ori > 1694 && uc_wiota_flash_id_is_puya())
+        if (adc_ori > adc_adj.a3 && uc_wiota_get_is_version_e())
         {
-            return adc_ori * adc_adj.adc_kb / 16384 + adc_adj.adc_midb;
+            adc_calc =  adc_ori * adc_adj.adc_kb / 16384 + adc_adj.adc_midb;
         }
-        return adc_ori * adc_adj.adc_ka / 16384 + adc_adj.adc_mida;
+        else
+        {
+            adc_calc = adc_ori * adc_adj.adc_ka / 16384 + adc_adj.adc_mida;
+        }
     }
-    return adc_ori;
+
+    // rt_kprintf("adj %d,%d,%d,%u,%u,%u\n", adc_adj.is_close, adc_adj.is_valid, uc_wiota_get_is_version_e(),
+    //                                  adc_adj.a3, adc_ori, adc_calc);
+
+    return adc_calc;
 }
 
 void adc_open_avdd_cap_func(ADDA_TypeDef *ADDA)
@@ -84,6 +92,12 @@ void temp_in_b_config(ADDA_TypeDef *ADDA)
 //    ADDA->ADC_CTRL1 =  (ADDA->ADC_CTRL1 & (~(0x07 << 18))) | (ADC_VCM_TRIM << 18); //set vcm trim
 //}
 
+void adc_avg_set(ADDA_TypeDef *ADDA, unsigned char avg)
+{
+    CHECK_PARAM(PARAM_ADDC(ADDA));
+    ADDA->ADC_CTRL0 |= (avg << 8);
+}
+
 void adc_power_set(ADDA_TypeDef *ADDA)
 {
     CHECK_PARAM(PARAM_ADDC(ADDA));
@@ -95,6 +109,8 @@ void adc_power_set(ADDA_TypeDef *ADDA)
     adc_open_avdd_cap_func(ADDA);
 
     REG(0x1A10A02C) = (REG(0x1A10A02C) & (~(0x0f << 12))) | (0xC << 12); //calibrate voltage
+
+    REG(0x1A10A020) |= 1 << 26;
 }
 
 // void temperature_set(ADDA_TypeDef* ADDA)
@@ -248,13 +264,13 @@ int adc_battery_voltage(ADDA_TypeDef *ADDA)
     unsigned int adc = 0;
 
     adc_fifo_clear(ADDA);
-    for (adc = 0; adc < 64; adc++)
+    for (adc = 0; adc < WATERMARK_FIFO_SIZE; adc++)
     {
         adc_wait_data_ready(ADDA);
         adc += adc_get_adj_result(adc_read(ADDA));
     }
 
-    adc_val = ((adc + (1 << 5)) >> 6); // div 64
+    adc_val = ((adc + (WATERMARK_FIFO_SIZE / 2)) / WATERMARK_FIFO_SIZE); // div
 
     return adc_val;
 }

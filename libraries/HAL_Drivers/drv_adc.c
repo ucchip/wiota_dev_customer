@@ -11,8 +11,6 @@
 #define LOG_TAG "drv.adc"
 #include <drv_log.h>
 
-extern uint32_t adc_get_adj_result(uint32_t adc_ori);
-
 static struct rt_adc_device uc8x88_adc_device;
 
 static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t channel, rt_bool_t enabled)
@@ -32,10 +30,11 @@ static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
         {
             ADC_CHANNEL channel_val = ADC_CHANNEL_A;
             adc_power_set(UC_ADDA);
+            // adc_avg_set(UC_ADDA, 1);
             adc_channel_select(UC_ADDA, channel_val);
             adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
-            adc_watermark_set(UC_ADDA, 100);
+            adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
             break;
         }
         case ADC_CONFIG_CHANNEL_B:
@@ -45,7 +44,7 @@ static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             adc_channel_select(UC_ADDA, channel_val);
             adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
-            adc_watermark_set(UC_ADDA, 100);
+            adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
             break;
         }
         case ADC_CONFIG_CHANNEL_C:
@@ -55,7 +54,7 @@ static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             adc_channel_select(UC_ADDA, channel_val);
             adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
-            adc_watermark_set(UC_ADDA, 100);
+            adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
             break;
         }
         case ADC_CONFIG_CHANNEL_BAT1:
@@ -64,7 +63,7 @@ static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             ADC_CHANNEL channel_val = ADC_CHANNEL_BAT;
             adc_power_set(UC_ADDA);
             adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
-            adc_watermark_set(UC_ADDA, 128);
+            adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
             adc_channel_select(UC_ADDA, channel_val);
             adc_vbat_measure_enable(true);
             adc_fifo_clear(UC_ADDA);
@@ -80,7 +79,7 @@ static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
                 adc_vbat_measure_enable(false);
                 adc_set_sample_rate(UC_ADDA, ADC_SR_45KSPS);
                 adc_fifo_clear(UC_ADDA);
-                adc_watermark_set(UC_ADDA, 100);
+                adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
                 break;
             }
 #endif
@@ -93,7 +92,7 @@ static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             adc_temp_source_sel(UC_ADDA, ADC_TEMP_A1);
             adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
-            adc_watermark_set(UC_ADDA, 100);
+            adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
             break;
         }
         case ADC_CONFIG_CHANNEL_TEMP_A2:
@@ -105,7 +104,7 @@ static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             adc_temp_source_sel(UC_ADDA, ADC_TEMP_A2);
             adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
-            adc_watermark_set(UC_ADDA, 100);
+            adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
             break;
         }
         case ADC_CONFIG_CHANNEL_TEMP_B:
@@ -125,13 +124,13 @@ static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
                 adc_temp_source_sel(UC_ADDA, ADC_TEMP_C);
                 adc_set_sample_rate(UC_ADDA, ADC_SR_45KSPS);
                 adc_fifo_clear(UC_ADDA);
-                adc_watermark_set(UC_ADDA, 100);
+                adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
                 break;
             }
 #endif
         case ADC_CONFIG_CHANNEL_CHIP_TEMP:
         {
-            adc_watermark_set(UC_ADDA, 64);
+            adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
             internal_temp_measure(UC_ADDA);
             adc_fifo_clear(UC_ADDA);
             break;
@@ -166,13 +165,14 @@ static rt_err_t get_adc_value(struct rt_adc_device *device, rt_uint32_t channel,
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(value != RT_NULL);
 
+#if 1
     /* get ADC value */
-    for (uint8_t index = 0; index < 100; index++)
+    for (uint8_t index = 0; index < WATERMARK_FIFO_SIZE; index++)
     {
         adc_read(UC_ADDA);
     }
     adc_fifo_clear(UC_ADDA);
-    adc_watermark_set(UC_ADDA, 100);
+    adc_watermark_set(UC_ADDA, WATERMARK_FIFO_SIZE);
     while (is_adc_fifo_over_watermark(UC_ADDA))
     {
         if (wait_count < 1000)
@@ -187,18 +187,31 @@ static rt_err_t get_adc_value(struct rt_adc_device *device, rt_uint32_t channel,
     if (wait_count < 1000)
     {
         uint32_t adc_val = 0;
-        for (uint8_t index = 0; index < 100; index++)
+        for (uint8_t index = 0; index < WATERMARK_FIFO_SIZE; index++)
         {
             adc_wait_data_ready(UC_ADDA);
             adc_val += adc_get_adj_result(adc_read(UC_ADDA));
         }
-        *value = adc_val / 100;
+        *value = adc_val / WATERMARK_FIFO_SIZE;
     }
     else
     {
         *value = 0;
         ret_val = RT_ERROR;
     }
+#else
+
+    for (int j = 0; j < 200; j++)
+    {
+        asm volatile("nop");
+    }
+
+    adc_fifo_clear(UC_ADDA);
+    adc_wait_data_ready(UC_ADDA);
+    *value = adc_get_adj_result(adc_read(UC_ADDA));
+
+    // rt_kprintf("adc %d %d", adc_list[0], adc_list[1]);
+#endif
 
     return ret_val;
 }

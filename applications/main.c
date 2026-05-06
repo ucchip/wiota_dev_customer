@@ -3,6 +3,9 @@
 #include "wiota_app.h"
 #include "uc_example_app.h"
 #include "uc_wiota_static.h"
+#ifdef _AT_SIMPLIFIED_
+#include "at_simplified.h"
+#endif
 
 static int memory_show(void)
 {
@@ -23,10 +26,18 @@ int main(void)
     uc_peripheral_example();
     wiota_app_init();
 
+    unsigned int count = 0;
     while (1)
     {
-        rt_thread_mdelay(7000);
-        memory_show();
+#ifdef _AT_SIMPLIFIED_
+        at_simplified_running();
+#else
+        rt_thread_mdelay(2000);
+#endif
+        if (count++ % 4 == 0)
+        {
+            memory_show();
+        }
     }
     return 0;
 }

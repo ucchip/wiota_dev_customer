@@ -4,13 +4,18 @@ cwd = GetCurrentDir()
 
 path = [cwd + '/app/include']
 path += [cwd + '/app/test']
+path += [cwd + '/at_simplified/']
 path += [cwd + '/at/']
 
 src = Glob('app/test/*.c')
 src += Glob('app/src/*.c')
-src += Glob('at/*.c')
 
-lib = ['libwin_wiota_dev_v3.5.2']
+if GetDepend('_AT_SIMPLIFIED_'):
+    src += Glob('at_simplified/*.c')
+else:
+    src += Glob('at/*.c')
+
+lib = ['libwin_wiota_dev_v3.6.1']
 libpath = [cwd + '/lib']
 
 group = DefineGroup('PS', src, depend = [''], CPPPATH = path, LIBS = lib, LIBPATH = libpath)

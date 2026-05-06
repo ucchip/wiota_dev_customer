@@ -1,11 +1,59 @@
 
 
+sync V3.6.1
+S-v3.6.1
+    由于ota升级包限制，本次更新分成2部分，ota升级需要先升级V3.6，再升级V3.6.1（仅提供linux的两个at版本）
+
+外部更新：
+    1. 提供单独的简化版AT固件
+    2. 更新 at_base_cmd.c 和 at_server.c 文件
+协议更新：
+    1. 基带更新，修改agc配置，捕获周期等配置功能
+    2. 修复一些内部小bug
+
+
+sync V3.6 （改版本无单独tag）
+S-v3.6
+
+外部更新：
+    1. 优化flash锁操作：
+       （1） 开机默认全锁flash（uc_wiota_static_data_init函数中），
+	   （2） 增加加锁解锁接口（uc_wiota_lock_flash_all，uc_wiota_unlock_flash_all，uc_wiota_read_flash_sr）
+       （3） OTA升级操作接口最后会解锁（uc_wiota_ota_jump_program，set_uboot_mode），如自行开发升级，需解锁后才能升级
+       （4） 擦写flash接口中没有加解锁操作，需要在擦写前后自行调用解锁和加锁接口！（uc_wiota_flash_write，uc_wiota_flash_erase_4K），
+            可参考ota_flash_write接口流程！
+    2. adc水线bug修复，adc_watermark_set
+    3. adc校准优化，区分芯片类型，uc_adc_adj_t结构体增加参数a3，avdd_cap
+    4. spi flash cache miss问题优化，涉及文件（uc_sectdefs.h，uc_spi_flash.c，uc_spi_flash.h，uc_spi.c）
+    5. 网关模式代码更新（uc_wiota_gateway_api.c）
+    6. 数据暂存及开机脉冲功能优化（at_wiota_gpio_report.c）
+    7. 增加厂商名字配置接口（uc_wiota_set_manufacture_name）
+    8. 功率配置接口增加返回值，用于判断是否设置成功（uc_wiota_set_cur_power）
+    9. paging tx发送增加返回值，用于判断是否发送成功（uc_wiota_paging_tx_start）
+    10. 适配pura 2MB芯片，增加可用flash尾部地址接口（uc_wiota_get_open_flash_end_addr）
+    11. 删除一些不再使用的接口，例如uc_wiota_send_data_by_fn，uc_wiota_set_ramp_type，uc_wiota_algo_rand，uc_wiota_set_subframe_test等等。
+
+协议更新：
+    1. 工厂测试流程更新
+    2. 开机检查user id和device id，如果是默认ID，则使用module id进行更新
+    3. 新的跳频策略更新
+    4. 扩展模式的paging tx信号连续发送的间隔控制逻辑更新
+    5. agc默认值修改为13，并且增加配置接口
+    6. 写静态数据时的解锁加锁操作更新
+    7. 不同symbol使用不同的捕获zc阈值
+
+遗留问题：
+    1. 帧结构1:2的sync_paging的symbol-128-burst0一次进入休眠失败的概率超过10%
+    2. 超低功耗漏检率最高6%，比之前测的高些，之前低于5%
+    3. symbol 128 mcs4，symbol 256 mcs6，上行成功率较低。
+
+
 sync V3.5.2
 S-v3.5.2
 
 外部更新：
     1. 加解密接口修改（uc_wiota_rf_crypto），新增mode，0为原sm7；1：sim4； 2： sm3
-    2. 修复adc读取接口中，增加校准。(文件：libraries/HAL_Drivers/drv_adc.c)
+    2. 修复adc读取接口，增加校准。(文件：libraries/HAL_Drivers/drv_adc.c)
     3. boot strap中，删除无效的qspi初始化。（文件：libraries/UC8288_HAL_Driver/src/uc_boot_strap.c）
     4. 由于固件大小增加，修改uboot升级使用的bin size和ota size（从v3.5升级到v3.5.2，OTA差分包不要勾选uboot！）（文件：applications/wiota_app.c）
 

@@ -24,9 +24,6 @@
 
 #define UC_DATA_LENGTH_LIMIT 310 // do not change
 
-#define UC_ALGO_MULTIPLIER 0x15a4e35
-#define UC_ALGO_INCREMENT 0x1
-
 typedef enum
 {
     UC_CALLBACK_NORAMAL_MSG = 0,   // normal msg from ap
@@ -52,6 +49,8 @@ typedef enum
     UC_RECV_FN_CHANGE = 11,   // UC_CALLBACK_NORAMAL_MSG, when frame num change, tell app
     UC_RECV_PHY_ERROR = 12,   // UC_CALLBACK_STATE_INFO, if phy not response timeout, tell app
     UC_RECV_DCXO_RESULT = 13, // UC_CALLBACK_NORAMAL_MSG, report dcxo scan result
+    UC_RECV_NEI_INFO = 14,    // UC_CALLBACK_NORAMAL_MSG, result: type, 0: search info, 1: switch done, 2: stop done
+    UC_RECV_VOICE_ISR = 15,   // UC_CALLBACK_STATE_INFO, ahead one subframe of arrange voice task, tell app
     UC_RECV_MAX_TYPE,
 } uc_recv_data_type_e;
 
@@ -88,7 +87,7 @@ typedef enum
     SUBFRAME_MODE_CLOSE = 0,
     SUBFRAME_MODE_ONE = 1,
     SUBFRAME_MODE_TWO = 2,
-    SUBFRAME_MODE_FOUR = 3,
+    SUBFRAME_MODE_FOUR = 3, // not support
 } uc_subframe_mode_e;
 
 typedef enum
@@ -204,10 +203,26 @@ typedef enum
     SCAN_MODE_OTHERS,
 } uc_scan_mode_e;
 
+typedef enum
+{
+    NEIGHBOR_OPER_STOP_SEARCH = 0, // stop search
+    NEIGHBOR_OPER_SEARCH = 1,      // start search
+    NEIGHBOR_OPER_SWITCH = 2,      // switch
+    NEIGHBOR_OPER_OTHERS,
+} uc_neighbor_operator_e;
+
+typedef enum
+{
+    NEIGHBOR_RESULT_TRACK_INFO = 1,  // has data, uc_neighbor_info_t
+    NEIGHBOR_RESULT_SWITCH_DONE = 2, // no data
+    NEIGHBOR_RESULT_STOP_DONE = 3,   // no data
+    NEIGHBOR_RESULT_OTHERS,
+} uc_neighbor_result_e;
+
 typedef struct
 {
-    unsigned char rssi; // absolute value, 0~150, always negative
-    unsigned char ramp_type;
+    unsigned char rssi;      // absolute value, 0~150, always negative
+    unsigned char ramp_type; // default 1, not support change
     signed char snr;
     signed char cur_power;
     signed char min_power;
@@ -238,10 +253,11 @@ typedef struct
 
 typedef struct
 {
-    unsigned char freq_idx;
-    unsigned char reserved;
-    unsigned short reserved1;
-    unsigned int subsystemid;
+    unsigned char freq_idx;   // set/get
+    unsigned char is_track;   // get
+    unsigned char rssi;       // get, average
+    signed char snr;          // get, average
+    unsigned int subsystemid; // set/get
 } uc_neighbor_info_t;
 
 typedef struct
@@ -308,12 +324,14 @@ typedef struct
     unsigned int ul_sm_total;
 } uc_stats_info_t, *uc_stats_info_p;
 
+#ifdef WIOTA_TEST_LOOP
 typedef struct
 {
     unsigned int ul_succ_data_len;
     unsigned int dl_succ_data_len;
     unsigned int bc_succ_data_len;
 } uc_throughput_info_t, *uc_throughput_info_p;
+#endif
 
 typedef struct
 {
@@ -376,14 +394,16 @@ typedef struct
 
 typedef struct
 {
-    unsigned char is_close; // default 0, can set 1, then not use adj
-    unsigned char is_valid; // if got valid data from factory test
-    unsigned char adc_trm;  // adc config
-    unsigned char reserved; // re
-    unsigned short adc_ka;  // adc calc
-    short adc_mida;         // adc calc
-    unsigned short adc_kb;  // adc calc
-    short adc_midb;         // adc calc
+    unsigned char is_close;  // default 0, can set 1, then not use adj
+    unsigned char is_valid;  // if got valid data from factory test
+    unsigned char adc_trm;   // adc config
+    unsigned char reserved;  // re
+    unsigned short adc_ka;   // adc calc
+    short adc_mida;          // adc calc
+    unsigned short adc_kb;   // adc calc
+    short adc_midb;          // adc calc
+    unsigned short a3;       // a3
+    unsigned short avdd_cap; // avdd_cap
 } uc_adc_adj_t, *uc_adc_adj_p;
 
 typedef struct
@@ -395,10 +415,22 @@ typedef struct
     unsigned int tcxoOffset;     // tcxo init offset
 } uc_adjust_info_t, *uc_adjust_info_p;
 
+typedef struct
+{
+    signed char temp_list[32];    // temperature
+    unsigned char dcxo_list[32];  // dcxo at temp
+    signed char pow_min;          // min power like -18dbm
+    unsigned char pow_num;        // power list num, like 41
+    unsigned char tx_mode;        // tx mode for iote is 3
+    unsigned char reserved;       // re
+    unsigned short ramp_list[42]; // power list
+    unsigned char na[8];          // re
+} uc_rf_static_info_t, *uc_rf_static_info_p;
+
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
 
-unsigned char uc_factory_msg_handler(unsigned int subtype, unsigned int value);
+unsigned char uc_factory_msg_handler(unsigned int subtype, unsigned int v1, unsigned int v2, unsigned int v3);
 
 unsigned char uc_wiota_execute_state(void);
 
@@ -442,7 +474,7 @@ void uc_wiota_get_system_config(sub_system_config_t *config);
 
 void uc_wiota_get_radio_info(radio_info_t *radio);
 
-uc_op_result_e uc_wiota_send_data_by_fn(unsigned char *data, unsigned short len, unsigned short timeout, unsigned int fn);
+// uc_op_result_e uc_wiota_send_data_by_fn(unsigned char *data, unsigned short len, unsigned short timeout, unsigned int fn);
 
 uc_op_result_e uc_wiota_send_data(unsigned char *data, unsigned short len, unsigned short timeout, uc_send callback);
 
@@ -453,14 +485,15 @@ void uc_wiota_register_recv_data_callback(uc_recv callback, uc_callback_data_typ
 void uc_wiota_scan_freq(unsigned char *data, unsigned short len, unsigned char mode, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
 #ifdef _CLK_GATING_
 void uc_wiota_set_is_gating(unsigned char is_gating, unsigned char is_phy_gating);
-
 void uc_wiota_set_gating_event(unsigned char action, unsigned char event_id);
 #endif // _CLK_GATING_
 unsigned char uc_wiota_set_data_rate(unsigned char rate_mode, unsigned short rate_value);
 
+#ifdef WIOTA_RAMP_OLD
 void uc_wiota_set_ramp_type(unsigned char ramp_type);
+#endif
 
-void uc_wiota_set_cur_power(signed char power);
+unsigned char uc_wiota_set_cur_power(signed char power);
 
 void uc_wiota_set_max_power(signed char power);
 
@@ -478,11 +511,12 @@ void uc_wiota_set_crc(unsigned short crc_limit);
 
 unsigned short uc_wiota_get_crc(void);
 
+#ifdef WIOTA_TEST_LOOP
 void uc_wiota_add_throughput(uc_stats_type_e type, unsigned int len);
-
 void uc_wiota_reset_throughput(unsigned char type);
-
 void uc_wiota_get_throughput(uc_throughput_info_t *throughput_info);
+#endif
+
 #ifdef _LIGHT_PILOT_
 void uc_wiota_light_func_enable(unsigned char func_enable);
 #endif
@@ -514,7 +548,7 @@ unsigned char uc_wiota_set_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
 
 void uc_wiota_get_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
 
-void uc_wiota_paging_tx_start(void);
+unsigned char uc_wiota_paging_tx_start(void);
 
 unsigned char uc_wiota_set_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
 
@@ -540,7 +574,7 @@ void uc_wiota_get_gps_info(uc_gps_time_p gps_info);
 
 unsigned char uc_wiota_set_tx_mode(unsigned char mode);
 
-unsigned char uc_wiota_get_tx_mode(void);
+// unsigned char uc_wiota_get_tx_mode(void);
 
 void uc_wiota_hard_switch_to_active(void);
 
@@ -554,15 +588,17 @@ void uc_wiota_set_sm_resend_times(unsigned char resend_times);
 
 unsigned char uc_wiota_get_module_id(unsigned char *module_id);
 
+unsigned char uc_wiota_get_is_version_e(void);
+
 unsigned char uc_wiota_add_subframe_data(uc_subf_data_p subf_data);
 
 unsigned int uc_wiota_get_subframe_data_num(void);
 
 void uc_wiota_set_subframe_data_limit(unsigned int num_limit);
 
-void uc_wiota_algo_srand(unsigned int seedSet);
+// void uc_wiota_algo_srand(unsigned int seedSet);
 
-unsigned int uc_wiota_algo_rand(void);
+// unsigned int uc_wiota_algo_rand(void);
 
 unsigned char uc_wiota_set_is_use_temp(unsigned char is_use_temp);
 
@@ -602,6 +638,8 @@ unsigned char uc_wiota_set_is_check_license(unsigned char is_check);
 
 unsigned char uc_wiota_flash_id_is_puya(void);
 
+unsigned int uc_wiota_get_open_flash_end_addr(void);
+
 void uc_wiota_set_new_ldo(unsigned char new_ldo);
 
 void uc_wiota_start_scan_dcxo(signed char input_temp); // if input_temp is 127, not adjust temperature
@@ -639,22 +677,41 @@ void uc_wiota_set_bc_mode(unsigned char mode);
 unsigned char uc_wiota_get_bc_mode(void);
 #endif
 
+#ifdef UC8288_AT_TEST
 void uc_wiota_set_subframe_test(unsigned char mode);
+#endif
 
 unsigned int uc_wiota_get_subframe_test(unsigned char mode);
 
 #ifdef _NEIGHBOR_FUNC_
 unsigned char uc_wiota_set_neighbor_info(uc_neighbor_info_t *config);
-void uc_wiota_set_neighbor_start(unsigned char state);
+// void uc_wiota_get_neighbor_info(uc_neighbor_info_t *config);
+unsigned char uc_wiota_set_neighbor_operator(unsigned char oper); // uc_neighbor_operator_e
 #endif
-
-unsigned char uc_wiota_set_bc_burst(unsigned char bc_busrt);
-
-unsigned char uc_wiota_get_bc_burst(void);
 
 void uc_wiota_set_en_aagc_ajust(unsigned char en_aagc_ajust);
 
+void uc_wiota_set_init_agc(unsigned char agc_idx);
+
 unsigned char uc_wiota_mem_addr_value(unsigned int mem_addr, unsigned int value);
+
+void uc_wiota_set_is_report_visr(unsigned char is_rep_visr, unsigned char ahead_num);
+
+void uc_wiota_set_trk_coef(unsigned char trkTrxFocCoef);
+
+unsigned char uc_wiota_set_rf_info(uc_rf_static_info_t *rf_config);
+
+unsigned char uc_wiota_get_rf_info(uc_rf_static_info_t *rf_config);
+
+unsigned char uc_wiota_set_sync_fn_num(unsigned char fn_num);
+
+unsigned char uc_wiota_get_sync_fn_num(void);
+
+unsigned short uc_wiota_read_flash_sr(void);
+
+void uc_wiota_lock_flash_all(void);
+
+void uc_wiota_unlock_flash_all(void);
 
 // below is about uboot !
 

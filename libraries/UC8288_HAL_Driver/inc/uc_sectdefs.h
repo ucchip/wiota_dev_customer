@@ -24,6 +24,7 @@
 #define __task  __attribute__ ((section (".task_text")))
 #define __reset __attribute__ ((section (".reset")))
 #define __reset_64 __attribute__ ((section (".reset"), aligned(64)))
+#define __reset_128 __attribute__ ((section (".reset"), aligned(128),noinline))
 #define __reset0 __attribute__ ((section (".reset0")))
 #define __reset1 __attribute__ ((section (".reset1")))
 #define __reset2 __attribute__ ((section (".reset2")))

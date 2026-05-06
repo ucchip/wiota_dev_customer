@@ -78,6 +78,15 @@ int uc_wiota_set_userid(unsigned int *id, unsigned char len);
 void uc_wiota_get_userid(unsigned int *id, unsigned char *len);
 
 /**
+ * @brief  get manufacture name
+ *
+ * @param  name: Manufacture name
+ * @note   length is 16 bytes
+ */
+void uc_wiota_set_manufacture_name(unsigned char *name);
+
+
+/**
  * @brief  get device name
  *
  * @param  name the device name

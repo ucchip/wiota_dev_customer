@@ -48,10 +48,12 @@ typedef enum
     FLASH_CMD_ERASE_BLOCK = 0xD8,
     FLASH_CMD_STATUS = 0x05,
     FLASH_CMD_ENABLE_WR = 0x06,
+    FLASH_CMD_DISABLE_WR = 0x04,
     FLASH_CMD_QREAD = 0x11101011,
     FLASH_CMD_READ = 0x03,
     FLASH_CMD_PAGE_PROGRAM = 0x02,
-    FLASH_CMD_WRITE_STATUS = 0x01,
+    FLASH_CMD_WRITE_STATUS = 0x01000000,
+    FLASH_CMD_WRITE_STATUS_HIGH = 0x31000000,
     FLASH_CMD_ERASE_SECURITY = 0x44,
     FLASH_CMD_PROGRAM_SECURITY = 0x42,
     FLASH_CMD_READ_SECURITY = 0x48,
@@ -72,20 +74,20 @@ EXT_FLASH void FlashQRead(uint32_t nAddr, uint8_t* pData, uint16_t usLen);
 
 //#ifdef __SPI_FLASH_C_
 void FlashEnableWr(void);
+void FlashDisableWr(void);
 // void FlashWaitForWr(void);
 // uint8_t FlashStatus(void);
 void FlashPageProgram(uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
 // void FlashPageRead(uint32_t nAddr, uint8_t* pData, uint16_t usLen);
 
-uint32_t Flash_Read_SR();
-// void Flash_Write_SR(uint8_t status);
+uint32_t Flash_Read_SR(uint8_t is_high);
+void Flash_Write_SR(uint8_t status, uint8_t is_high);
 
 void FlashEraseSecurity(uint8_t mode);
 void FlashWriteSecurity(uint32_t rigister_num, uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
 void FlashProgramSecurity(uint32_t nAddr, const uint8_t* pData, uint16_t usLen);
 void FlashReadSecurity(uint32_t rigister_num, uint32_t nAddr, uint8_t* pData, uint16_t usLen);
 
-void flash_wait_ok(void);
 
 //#endif
 

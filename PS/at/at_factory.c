@@ -23,9 +23,10 @@ enum factory_can_write_read_type
 enum factory_command_type
 {
     FACTORY_WIOTA = 0,
-    FACTORY_GPIO = 1, // 1
-    FACTORY_AD = 3,   // 3
-    FACTORY_DA = 4,   // 4
+    FACTORY_GPIO = 1,    // 1
+    FACTORY_AD = 3,      // 3
+    FACTORY_DA = 4,      // 4
+    FACTORY_AD_INIT = 5,
     FACTORY_GPIO_IN = 8, // 8
 #ifdef UC8288_DRV_TEST
     FACTORY_I2C = 2,   // 2
@@ -37,6 +38,27 @@ enum factory_command_type
 
 #define DAC_DEV_NAME "dac"
 #define ADC_DEV_NAME "adc"
+
+static int at_test_ad_init(unsigned int channel)
+{
+    rt_adc_device_t adc_dev;
+
+    adc_dev = (rt_adc_device_t)rt_device_find(ADC_DEV_NAME);
+    if (RT_NULL == adc_dev)
+    {
+        rt_kprintf("adc find fail\n");
+        return -1;
+    }
+
+    rt_adc_enable(adc_dev, channel);
+    adc_avg_set(UC_ADDA, 1);
+
+    rt_thread_mdelay(200);
+
+    rt_kprintf("adc init 1\n");
+
+    return 1;
+}
 
 static int at_test_ad(unsigned int channel)
 {
@@ -50,11 +72,11 @@ static int at_test_ad(unsigned int channel)
         return -1;
     }
 
-    rt_adc_enable(adc_dev, channel);
+    // rt_adc_enable(adc_dev, channel);
 
     value = rt_adc_read(adc_dev, channel);
 
-    rt_adc_disable(adc_dev, channel);
+    // rt_adc_disable(adc_dev, channel);
 
     return value;
 }
@@ -282,21 +304,21 @@ static int at_factory_test_can(int type, void *data)
 
 static at_result_t at_factory_setup(const char *args)
 {
-    int type = 0, data = 0, data1 = 0;
+    int type = 0, data = 0, data1 = 0, data2 = 0, data3 = 0;
 
-    args = parse((char *)(++args), "ddd", &type, &data, &data1);
+    args = parse((char *)(++args), "ddddd", &type, &data, &data1, &data2, &data3);
     if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
 
-    rt_kprintf("type %d,data %d,data1 %d\n", type, data, data1);
+    rt_kprintf("type %d data %d %d %d %d\n", type, data, data1, data2, data3);
     switch (type)
     {
     case FACTORY_WIOTA:
     {
 #ifdef _L1_FACTORY_FUNC_
-        if (!uc_factory_msg_handler(data, data1))
+        if (!uc_factory_msg_handler(data, data1, data2, data3))
         {
             return AT_RESULT_FAILE;
         }
@@ -315,9 +337,20 @@ static at_result_t at_factory_setup(const char *args)
     case FACTORY_GPIO_IN:
     {
         rt_base_t pin = data;
+        // gpio_set_pin_mux((GPIO_CFG_TypeDef *)UC_GPIO_CFG, GPIO_PIN_12, GPIO_FUNC_2);
         gpio_set_pin_mux((GPIO_CFG_TypeDef *)UC_GPIO_CFG, pin, GPIO_FUNC_0);
         rt_pin_mode(pin, PIN_MODE_INPUT);
         at_server_printfln("+FACTORY=%d,%d", type, rt_pin_read(pin));
+        break;
+    }
+    case FACTORY_AD_INIT:
+    {
+        unsigned int ch = data;
+        int result = at_test_ad_init(ch);
+        if (result < 0)
+        {
+            return AT_RESULT_NULL;
+        }
         break;
     }
     case FACTORY_AD:
@@ -325,7 +358,9 @@ static at_result_t at_factory_setup(const char *args)
         unsigned int ch = data;
         int result = at_test_ad(ch);
         if (result < 0)
+        {
             return AT_RESULT_NULL;
+        }
 
         switch (ch)
         {
@@ -401,7 +436,7 @@ static at_result_t at_factory_setup(const char *args)
     return AT_RESULT_OK;
 }
 
-AT_CMD_EXPORT("AT+FACTORY", "=<type>,<d0>,<d1>", RT_NULL, RT_NULL, at_factory_setup, RT_NULL);
+AT_CMD_EXPORT("AT+FACTORY", "=<type>,<d>,<d0>,<d1>,<d2>", RT_NULL, RT_NULL, at_factory_setup, RT_NULL);
 
 #endif
 #endif

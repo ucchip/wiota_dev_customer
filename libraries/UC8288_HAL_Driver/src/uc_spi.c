@@ -3,6 +3,11 @@
 #include <uc_sectdefs.h>
 
 
+__reset_128 void spi_prefetch1()
+{
+    asm("nop");
+}
+
 /*********************************************************
  * Function name    :void spim_send_data_noaddr(int cmd,
                                                 char *data,
@@ -16,6 +21,7 @@
  * establish time   :2021-04-23
  *********************************************************/
 void spi_send_data_noaddr(int cmd, char* data, int datalen, int useQpi);
+
 
 /*********************************************************
  * Function name    :void spim_send_data_noaddr(int cmd,
@@ -75,6 +81,12 @@ __reset void spi_set_datalen(int datalen)
     old_len = *(volatile int*) (SPI_REG_SPILEN);
     old_len = ((datalen << 16) & 0xFFFF0000) | (old_len & 0xFFFF);
     *(volatile int*) (SPI_REG_SPILEN) = old_len;
+}
+
+
+__reset_128 void spi_prefetch2()
+{
+    asm("nop");
 }
 
 
@@ -144,6 +156,10 @@ __reset void spi_write_fifo(int* data, int datalen)
     }
 }
 
+__reset_128 void spi_prefetch3()
+{
+    asm("nop");
+}
 
 /*********************************************************
  * Function name    :void spim_send_data_noaddr(int cmd,
@@ -195,3 +211,12 @@ __reset void spi_no_op()
     return;
 }
 
+/**
+ * @brief preftch all spi code
+*/
+__reset void spi_prefetch()
+{
+    spi_prefetch1();
+    spi_prefetch2();
+    spi_prefetch3();
+}

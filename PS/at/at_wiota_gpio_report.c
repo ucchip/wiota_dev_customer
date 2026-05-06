@@ -15,17 +15,17 @@
 #include "at_wiota.h"
 #include "at_wiota_gpio_report.h"
 
-#define WIOTA_NO_DATA       PIN_LOW
-#define WIOTA_DATA_ARRIVE   PIN_HIGH
-#define WIOTA_DATA_NUM      (5)
+#define WIOTA_NO_DATA PIN_LOW
+#define WIOTA_DATA_ARRIVE PIN_HIGH
+#define WIOTA_DATA_NUM (5)
 
 #ifndef SYS_TIMER_FLAG_ONE_SHOT
-#define SYS_TIMER_FLAG_DEACTIVATED 0x0 /**< timer is deactive */
-#define SYS_TIMER_FLAG_ACTIVATED 0x1   /**< timer is active */
-#define SYS_TIMER_FLAG_ONE_SHOT 0x0    /**< one shot timer */
-#define SYS_TIMER_FLAG_PERIODIC 0x2    /**< periodic timer */
-#define SYS_TIMER_FLAG_HARD_TIMER 0x0 /**< hard timer,the timer's callback function will be called in tick isr. */
-#define SYS_TIMER_FLAG_SOFT_TIMER 0x4 /**< soft timer,the timer's callback function will be called in timer thread. */
+#define SYS_TIMER_FLAG_DEACTIVATED 0x0  /**< timer is deactive */
+#define SYS_TIMER_FLAG_ACTIVATED 0x1    /**< timer is active */
+#define SYS_TIMER_FLAG_ONE_SHOT 0x0     /**< one shot timer */
+#define SYS_TIMER_FLAG_PERIODIC 0x2     /**< periodic timer */
+#define SYS_TIMER_FLAG_HARD_TIMER 0x0   /**< hard timer,the timer's callback function will be called in tick isr. */
+#define SYS_TIMER_FLAG_SOFT_TIMER 0x4   /**< soft timer,the timer's callback function will be called in timer thread. */
 #define SYS_TIMER_CTRL_SET_TIME 0x0     /**< set timer control command */
 #define SYS_TIMER_CTRL_GET_TIME 0x1     /**< get timer control command */
 #define SYS_TIMER_CTRL_SET_ONESHOT 0x2  /**< change timer to one shot */
@@ -38,14 +38,12 @@
 static int wiota_gpio_mode = WIOTA_MODE_OUT_UART;
 static int wiota_gpio_state = WIOTA_NO_DATA;
 
-static int s_store_pin = GPIO_PIN_2;
-static int s_store_width = 50;
+// static int s_store_pin = GPIO_PIN_2;
+// static int s_store_width = 50;
 static rt_timer_t wiota_gpio_timer = RT_NULL;
-static  uc_recv_back_t wiota_save_data[WIOTA_DATA_NUM];
+static uc_recv_back_t wiota_save_data[WIOTA_DATA_NUM];
 static int wiota_save_index = -1;
 
-static int s_wake_out_pin = GPIO_PIN_7;
-static int s_wake_out_width = 50;
 static rt_timer_t s_wake_out_timer = RT_NULL;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,47 +59,45 @@ static void wiota_gpio_report_state(void)
     rt_timer_control(wiota_gpio_timer, RT_TIMER_CTRL_GET_STATE, &state);
     if (RT_TIMER_FLAG_DEACTIVATED == state)
     {
-        s_store_pin = uc_wiota_get_store_pin();
-        rt_pin_write(s_store_pin, WIOTA_DATA_ARRIVE);
+        // s_store_pin = uc_wiota_get_store_pin();
+        rt_pin_write(uc_wiota_get_store_pin(), WIOTA_DATA_ARRIVE);
         wiota_gpio_state = WIOTA_DATA_ARRIVE;
         rt_timer_start(wiota_gpio_timer);
     }
 }
 
-static void wiota_gpio_timer_cb(void* ptr)
+static void wiota_gpio_timer_cb(void)
 {
-    int *state = (int *)ptr;
-    if (RT_NULL != state)
-    {
-        s_store_pin = uc_wiota_get_store_pin();
-        rt_pin_write(s_store_pin, WIOTA_NO_DATA);
-        *state = WIOTA_NO_DATA;
-    }
-    return ;
+    // s_store_pin = uc_wiota_get_store_pin();
+    rt_pin_write(uc_wiota_get_store_pin(), WIOTA_NO_DATA);
+    wiota_gpio_state = WIOTA_NO_DATA;
+    return;
 }
 
 int at_wiota_gpio_report_init(void)
 {
-    int pin = uc_wiota_get_store_pin();
-    int width = uc_wiota_get_store_width();
-    if ((pin >= 0) && (pin <= 18))
-    {
-        s_store_pin = pin;
-    }
-    if ((width >= 1) && (width <= 255))
-    {
-        s_store_width = width;
-        rt_pin_mode(s_store_pin, PIN_MODE_OUTPUT);
-        rt_pin_write(s_store_pin, WIOTA_NO_DATA);
-    }    
+    unsigned char pin = uc_wiota_get_store_pin();
+    unsigned char width = uc_wiota_get_store_width();
 
     wiota_gpio_mode = WIOTA_MODE_OUT_UART;
     wiota_gpio_state = WIOTA_NO_DATA;
     wiota_save_index = -1;
     rt_memset(wiota_save_data, 0, WIOTA_DATA_NUM * sizeof(uc_recv_back_t));
 
+    if (pin <= 18 && width > 0)
+    {
+        rt_pin_mode(pin, PIN_MODE_OUTPUT);
+        rt_pin_write(pin, WIOTA_NO_DATA);
+    }
+    else
+    {
+        return -1;
+    }
+
     // create timer
-    wiota_gpio_timer = rt_timer_create("gpio_s", wiota_gpio_timer_cb, &wiota_gpio_state, s_store_width, SYS_TIMER_FLAG_ONE_SHOT | SYS_TIMER_FLAG_SOFT_TIMER);
+    wiota_gpio_timer = rt_timer_create("gpio_s", (void *)wiota_gpio_timer_cb,
+                                       RT_NULL, width,
+                                       SYS_TIMER_FLAG_ONE_SHOT | SYS_TIMER_FLAG_SOFT_TIMER);
     if (RT_NULL == wiota_gpio_timer)
     {
         // judge time
@@ -148,36 +144,29 @@ void wiota_data_show(void)
 
 static void wake_out_timer_cb(void *ptr)
 {
-    int pin = *(int *)ptr;
+    // int pin = *(int *)ptr;
+    unsigned char pin = uc_wiota_get_wake_out_pin();
     rt_pin_write(pin, PIN_LOW);
 }
 
 int wake_out_pulse_init(void)
 {
-    int pin = uc_wiota_get_wake_out_pin();
-    int width = uc_wiota_get_wake_out_width();
-    if ((pin >= 0) && (pin <= 18))
+    unsigned char pin = uc_wiota_get_wake_out_pin();
+    unsigned char width = uc_wiota_get_wake_out_width();
+    if (pin > 18 || 0 == width)
     {
-        s_wake_out_pin = pin;
+        return -1;
     }
-    if ((width >= 1) && (width <= 255))
-    {
-        s_wake_out_width = width;
-    }
-    s_wake_out_timer = rt_timer_create("wake_o", wake_out_timer_cb, 
-                                       &s_wake_out_pin, 
-                                       s_wake_out_width, 
+    s_wake_out_timer = rt_timer_create("wake_o", (void *)wake_out_timer_cb,
+                                       RT_NULL, width,
                                        SYS_TIMER_FLAG_ONE_SHOT | SYS_TIMER_FLAG_SOFT_TIMER);
     if (RT_NULL == s_wake_out_timer)
     {
         return -1;
     }
-    if (width)
-    {
-        rt_pin_mode(s_wake_out_pin, PIN_MODE_OUTPUT);
-        rt_pin_write(s_wake_out_pin, PIN_HIGH);
-        rt_timer_start(s_wake_out_timer);
-    }
+    rt_pin_mode(pin, PIN_MODE_OUTPUT);
+    rt_pin_write(pin, PIN_HIGH);
+    rt_timer_start(s_wake_out_timer);
     return 0;
 }
 
@@ -185,46 +174,49 @@ int wake_out_pulse_init(void)
 
 static at_result_t at_pulse_setup(const char *args)
 {
-    int value = 0;
-    int pin = 0;
-    at_result_t ret = AT_RESULT_FAILE;
+    unsigned int pin = 0;
+    unsigned int width = 0;
 
-    args = parse((char *)(++args), "d,d", &pin, &value);
-    do 
+    args = parse((char *)(++args), "d,d", &pin, &width);
+
+    if (pin > 18 || width > 255)
     {
-        if ((pin < 0) || (pin > 18))
-        {
-            break;
-        }
-        if (0 == value)
-        {
-            return AT_RESULT_OK;
-        }
-        if ((value < WIOTA_DATA_NUM) || (value > 255) || (RT_NULL == wiota_gpio_timer))
-        {
-            break;
-        }
-        ret = AT_RESULT_OK;
-    } while (0);
-
-    if (AT_RESULT_OK == ret)
-    {
-        rt_pin_mode(s_store_pin, PIN_MODE_INPUT);
-        uc_wiota_set_store_pin(pin);
-        s_store_pin = pin;
-        rt_pin_mode(s_store_pin, PIN_MODE_OUTPUT);
-
-        s_store_width = value;
-        uc_wiota_set_store_width(s_store_width);
-        rt_timer_control(wiota_gpio_timer, RT_TIMER_CTRL_SET_TIME, &s_store_width);
+        return AT_RESULT_PARSE_FAILE;
     }
-    return ret;
+
+    uc_wiota_set_store_pin(pin);
+    uc_wiota_set_store_width(width);
+
+    if (width)
+    {
+        rt_pin_mode(pin, PIN_MODE_OUTPUT);
+        if (RT_NULL == wiota_gpio_timer)
+        {
+            wiota_gpio_timer = rt_timer_create("gpio_s", (void *)wiota_gpio_timer_cb,
+                                               RT_NULL, width,
+                                               SYS_TIMER_FLAG_ONE_SHOT | SYS_TIMER_FLAG_SOFT_TIMER);
+            if (RT_NULL == wiota_gpio_timer)
+            {
+                return AT_RESULT_PARSE_FAILE;
+            }
+        }
+
+        rt_timer_control(wiota_gpio_timer, RT_TIMER_CTRL_SET_TIME, &width);
+    }
+    else if (wiota_gpio_timer)
+    {
+        rt_timer_stop(wiota_gpio_timer);
+        rt_timer_delete(wiota_gpio_timer);
+        wiota_gpio_timer = RT_NULL;
+    }
+
+    return AT_RESULT_OK;
 }
 
 static at_result_t at_pulse_query(void)
 {
-    at_server_printfln("+PIN=%d", s_store_pin);
-    at_server_printfln("+PULSEWIDTH=%d", s_store_width);
+    at_server_printfln("+PIN=%d", uc_wiota_get_store_pin());
+    at_server_printfln("+PULSEWIDTH=%d", uc_wiota_get_store_width());
     return AT_RESULT_OK;
 }
 
@@ -253,55 +245,26 @@ static at_result_t at_mode_query(void)
 
 static at_result_t at_wake_out_pin_setup(const char *args)
 {
-    int pin = -1;
-    int width = -1;
-    int state = 0;
-    at_result_t ret = AT_RESULT_FAILE;
-    
-    args = parse((char *)(++args), "d,d", &pin, &width);
-    do 
-    {
-        if ((pin < 0) || (pin > 18))
-        {
-            break;
-        }
-        if (!width)
-        {
-            rt_timer_stop(s_wake_out_timer);
-            return AT_RESULT_OK;
-        }
-        if ((width < 1) || (width > 255))
-        {
-            break;
-        }
-        ret = AT_RESULT_OK;
-    } while (0);
+    unsigned int pin = 0;
+    unsigned int width = 0;
 
-    if (AT_RESULT_OK == ret)
+    args = parse((char *)(++args), "d,d", &pin, &width);
+
+    if (pin > 18 || width > 255)
     {
-        if (pin != s_wake_out_pin)
-        {
-            s_wake_out_pin = pin;
-            uc_wiota_set_wake_out_pin(pin);
-        }
-        if (width != s_wake_out_width)
-        {
-            s_wake_out_width = width;
-            uc_wiota_set_wake_out_width(width);
-            rt_timer_control(s_wake_out_timer, RT_TIMER_CTRL_GET_STATE, &state);
-            if (RT_TIMER_FLAG_DEACTIVATED == state)
-            {
-                rt_timer_start(s_wake_out_timer);
-            }
-        }
+        return AT_RESULT_FAILE;
     }
-    return ret;
+
+    uc_wiota_set_wake_out_pin(pin);
+    uc_wiota_set_wake_out_width(width);
+
+    return AT_RESULT_OK;
 }
 
 static at_result_t at_wake_out_pin_query(void)
 {
-    at_server_printfln("+PIN=%d", s_wake_out_pin);
-    at_server_printfln("+WIDTH=%d", s_wake_out_width);
+    at_server_printfln("+PIN=%d", uc_wiota_get_wake_out_pin());
+    at_server_printfln("+WIDTH=%d", uc_wiota_get_wake_out_width());
     return AT_RESULT_OK;
 }
 
@@ -328,7 +291,8 @@ void wiota_gpio_mode_set(int mode)
 
 void wiota_data_insert(uc_recv_back_t *data)
 {
-    if ((RT_NULL == data) || (RT_NULL == data->data)) return;
+    if ((RT_NULL == data) || (RT_NULL == data->data))
+        return;
     if ((wiota_save_index + 1) >= (int)WIOTA_DATA_NUM)
     {
         wiota_save_index = -1;
@@ -344,5 +308,5 @@ void wiota_data_insert(uc_recv_back_t *data)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#endif  // ~#ifdef UC8288_MODULE
-#endif  // ~#ifdef RT_USING_AT
+#endif // ~#ifdef UC8288_MODULE
+#endif // ~#ifdef RT_USING_AT

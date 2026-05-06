@@ -59,6 +59,7 @@ static int ota_flash_write(unsigned int offset, const unsigned char *buf, unsign
     unsigned int addr = 0x00000000 + offset;
     unsigned int end_addr = addr + size;
     unsigned int index = 0;
+    unsigned int level = 0;
 
     if ((end_addr) > (0x00000000 + (FLASH_SECTOR_SIZE * FLASH_PAGE_SIZE)))
     {
@@ -70,6 +71,9 @@ static int ota_flash_write(unsigned int offset, const unsigned char *buf, unsign
         return -RT_EINVAL;
         // return size;
     }
+
+    level = rt_hw_interrupt_disable();
+    uc_wiota_unlock_flash_all();
 
     while (index < size)
     {
@@ -108,6 +112,9 @@ static int ota_flash_write(unsigned int offset, const unsigned char *buf, unsign
 
         index += order_len;
     }
+
+    uc_wiota_lock_flash_all();
+    rt_hw_interrupt_enable(level);
 
     if (result != RT_EOK)
     {
@@ -148,6 +155,7 @@ void uc_wiota_ota_flash_erase(unsigned int start_addr, unsigned int erase_size)
 {
     unsigned int erase_addr = start_addr;
     unsigned int size = 0;
+    unsigned int level = 0;
 
     if (erase_size == 0)
     {
@@ -159,19 +167,22 @@ void uc_wiota_ota_flash_erase(unsigned int start_addr, unsigned int erase_size)
 
     uc_wiota_suspend_connect();
     rt_thread_mdelay(uc_wiota_get_frame_len() / 1000 + 2);
+    level = rt_hw_interrupt_disable();
+    uc_wiota_unlock_flash_all();
     if (erase_addr < start_addr)
     {
         ota_flash_erase(erase_addr, 4096);
         erase_addr += 4096;
         size = start_addr - erase_addr;
     }
-
     while (size < erase_size)
     {
         ota_flash_erase(erase_addr, 4096);
         erase_addr += 4096;
         size += 4096;
     }
+    uc_wiota_lock_flash_all();
+    rt_hw_interrupt_enable(level);
     uc_wiota_recover_connect();
 }
 
@@ -253,6 +264,7 @@ void uc_wiota_ota_jump_program(unsigned int file_size, unsigned char upgrade_typ
     }
     // rt_thread_mdelay(2000);
     uc_wiota_exit();
+    uc_wiota_unlock_flash_all();
     rt_hw_interrupt_disable();
     // rt_hw_cpu_reset();
     // boot_riscv_reboot();

@@ -80,4 +80,9 @@ void spi_read_fifo(int* data, int datalen);
 /**/
 int spi_get_status();
 
+void spi_no_op();
+
+/**/
+void spi_prefetch();
+
 #endif // _SPI_H_

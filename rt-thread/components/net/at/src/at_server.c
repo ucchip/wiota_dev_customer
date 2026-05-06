@@ -399,10 +399,14 @@ static rt_err_t at_cmd_process(at_cmd_t cmd, const char *cmd_args)
             return -RT_ERROR;
         }
 
-        if (at_check_args(cmd_args, cmd->args_expr) < 0)
+        if (rt_strncmp(cmd->name, "AT+RSSI", rt_strlen(cmd->name)) != 0 &&
+            rt_strncmp(cmd->name, "AT+FREQ", rt_strlen(cmd->name)) != 0)
         {
-            at_server_print_result(AT_RESULT_CHECK_FAILE);
-            return -RT_ERROR;
+            if (at_check_args(cmd_args, cmd->args_expr) < 0)
+            {
+                at_server_print_result(AT_RESULT_CHECK_FAILE);
+                return -RT_ERROR;
+            }
         }
 
         result = cmd->setup(cmd_args);

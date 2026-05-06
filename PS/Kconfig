@@ -50,4 +50,8 @@ config AT_WIOTA_GATEWAY
     bool "single gateway at cmd, default open(AT_WIOTA_GATEWAY)"
     default y
 
+config _AT_SIMPLIFIED_
+    bool "simplified at cmd, default close(_AT_SIMPLIFIED_)"
+    default n
+
 endmenu
